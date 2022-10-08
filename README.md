@@ -13,3 +13,4 @@ These include:
 - Random intercept linear regression
 
 For each model, the performance of EP is compared to other standard Bayesian approaches (mainly Laplace and mean-field variational Bayes) on some simulated data and benchmark datasets.
+The main Overleaf document can be found [here (view only)](https://www.overleaf.com/read/wrkrmnyfzskg).
