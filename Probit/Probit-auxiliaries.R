@@ -17,6 +17,7 @@ A.2 <- function(a, b.2) {
 }
 
 I.r <- function(m, V) {
+  # Hybrid integrals for sites
   m <- as.numeric(m); v <- as.numeric(V)
   A.0 <- A.0(m, v)
   A.1 <- A.1(m, v)
