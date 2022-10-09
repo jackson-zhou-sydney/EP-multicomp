@@ -104,7 +104,7 @@ ep.approx <- function(X, y, mu.tau, sigma.2.tau,
   if (!is.matrix(X)) X <- as.matrix(X)
   n <- nrow(X)
   p <- ncol(X)
-  stop.ep <- FALSE
+  stop.ep <- F
   
   # Obtaining initial estimates
   glmnet.coef <- as.vector(coef(glmnet(X[, -1], y, alpha = 0, lambda = lambda.init)))
@@ -157,7 +157,7 @@ ep.approx <- function(X, y, mu.tau, sigma.2.tau,
       # Setting up
       Q.cavity <- Q.sum - eta*Q.values[, , i]
       Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
-      if (!is.matrix(Q.cavity.inv)) {stop.ep <- TRUE; break}
+      if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
       r.cavity <- r.sum - eta*r.values[i, ]
       mu.cavity <- Q.cavity.inv%*%r.cavity
       Sigma.cavity <- Q.cavity.inv
@@ -212,7 +212,7 @@ ep.approx <- function(X, y, mu.tau, sigma.2.tau,
       mu.hybrid <- (f.0*g.grad.0 + f.grad.0*g.0)/z.hybrid
       Sigma.hybrid <- (f.hess.0*g.0 + f.grad.0%*%t(g.grad.0) + g.grad.0%*%t(f.grad.0) + f.0*g.hess.0)/z.hybrid - mu.hybrid%*%t(mu.hybrid)
       Sigma.hybrid.inv <- tryCatch(force.sym(solve(Sigma.hybrid)), error = err)
-      if (!is.matrix(Sigma.hybrid.inv)) {stop.ep <- TRUE; break}
+      if (!is.matrix(Sigma.hybrid.inv)) {stop.ep <- T; break}
       
       # Moment matching and calculating deltas
       Q.updated <- (Sigma.hybrid.inv - Q.cavity)/eta
