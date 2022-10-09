@@ -21,17 +21,16 @@ Q.coef.1 <- function(n, p) {
   current.matrix <- matrix(1/n, nrow = p + 1, ncol = p + 1)
   current.matrix[p + 1, 1:(p + 1)] <- 1/(n + 1)
   current.matrix[1:(p + 1), p + 1] <- 1/(n + 1)
-  diag(current.matrix) <- c(rep(1/(n + 1), p), 1/(n + p))
+  diag(current.matrix) <- r.coef.1(n, p)
   return(current.matrix)
 }
 
 Q.coef.2 <- function(n, p, j) {
   # Q coefficient for Laplace-based prior sites
   current.matrix <- matrix(0, nrow = p + 1, ncol = p + 1)
-  current.matrix[j, j] <- 1/(n + 1)
   current.matrix[j, p + 1] <- 1/(n + 1)
   current.matrix[p + 1, j] <- 1/(n + 1)
-  current.matrix[p + 1, p + 1] <- 1/(n + p)
+  diag(current.matrix) <- r.coef.2(n, p, j)
   return(current.matrix)
 }
 
