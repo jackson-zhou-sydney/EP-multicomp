@@ -16,5 +16,5 @@ parameters {
 
 model {
   y ~ bernoulli(Phi(X*beta));
-  theta ~ multi_normal(mu_beta, Sigma_beta);
+  beta ~ multi_normal(mu_beta, Sigma_beta);
 }
