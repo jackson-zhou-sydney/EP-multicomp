@@ -1,6 +1,8 @@
 
 # Auxiliary functions and variables for probit regression
 
+library(glmnet) # Fast ridge regression estimates
+
 A.0 <- function(a, b.2) {
   # Normal CDF-PDF integral (0th order)
   pnorm(a/sqrt(b.2 + 1))

@@ -1,6 +1,8 @@
 
 # Auxiliary functions and variables for heteroscedastic linear regression
 
+library(glmnet) # Fast ridge regression estimates
+
 log.joint.likelihood <- function(theta, X, Z, y, D) {
   # Log joint likelihood
   if (!is.matrix(X)) X <- as.matrix(X)
