@@ -16,7 +16,7 @@ source("Heteroscedastic-auxiliaries.R")
 
 ```{r Generating random data}
 set.seed(1)
-n <- 200
+n <- 120
 p <- 20
 q <- 6
 
@@ -41,7 +41,7 @@ laplace.Sigma <- laplace.res$Sigma
 ```{r EP approximation}
 set.seed(1)
 ep.res <- ep.approx(X.eg, Z.eg, y.eg, D.eg, 
-                    eta = 0.5, alpha = 1,
+                    eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu

@@ -97,7 +97,7 @@ I.r <- function(y, m, V, eta, mult, maxEval, tol) {
 }
 
 ep.approx <- function(X, Z, y, D, 
-                      eta, alpha, 
+                      eta, alpha, lambda.init,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian heteroscedastic linear regression
@@ -109,8 +109,7 @@ ep.approx <- function(X, Z, y, D,
   stop.ep <- F
   
   # Obtaining initial estimates
-  laplace.res <- laplace.approx(X, Z, y, D)
-  init.mu <- laplace.res$mu
+  init.mu <- c(as.vector(coef(glmnet(X[, -1], y, alpha = 0, lambda = lambda.init))), rep(0, q))
   init.Sigma <- diag(p + q)
   init.Sigma.inv <- force.sym(solve(init.Sigma))
   
