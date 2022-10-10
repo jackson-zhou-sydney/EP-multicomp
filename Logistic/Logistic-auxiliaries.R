@@ -39,7 +39,7 @@ I.r <- function(y, m, V) {
   }
 }
 
-ep.approx <- function(X, y, sigma.2.beta, alpha,
+ep.approx <- function(X, y, sigma.2.beta, alpha, lambda.init,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian logistic regression
@@ -49,7 +49,7 @@ ep.approx <- function(X, y, sigma.2.beta, alpha,
   stop.ep <- F
   
   # Obtaining initial estimates
-  init.mu <- unname(coef(glm(y ~ X[, -1], family = binomial(link = "logit"))))
+  init.mu <- as.vector(coef(glmnet(X[, -1], y, family = binomial(link = "logit"), alpha = 0, lambda = lambda.init)))
   init.Sigma <- diag(p)
   init.Sigma.inv <- force.sym(solve(init.Sigma))
   
