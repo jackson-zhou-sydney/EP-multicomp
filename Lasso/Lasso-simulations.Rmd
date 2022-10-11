@@ -14,41 +14,49 @@ source("../EP-general-auxiliaries.R")
 source("Lasso-auxiliaries.R")
 ```
 
-```{r Generating random data}
-set.seed(1)
-n <- 10
-p <- 20
+```{r Common simulation settings}
+# Data
+mu.tau <- 0
+sigma.2.tau <- 10000
+kappa <- log(0.5)
 
-mu.tau.eg <- 0
-sigma.2.tau.eg <- 10000
-kappa.eg <- log(0.5)
-X.eg <- cbind(rep(1, n), matrix(data = rnorm(n = n*(p - 1)), nrow = n))
-beta.eg <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p
-beta.eg[1:p/2] <- 0
-sigma.eg <- 0.1
-y.eg <- rnorm(n, X.eg%*%beta.eg, sigma.eg)
+# Parameters
+sigma <- 0.1
 ```
 
-```{r EP approximation}
+## Simulation 1
+
+```{r Simulation 1}
 set.seed(1)
-ep.res <- ep.approx(X.eg, y.eg, mu.tau.eg, sigma.2.tau.eg, 
-                    kappa = kappa.eg, eta = 0.5, alpha = 1, lambda.init = 0.5,
+
+# Data
+n <- 200
+p <- 50
+X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
+
+# Parameters
+beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
+
+# Response
+y <- rnorm(n, X%*%beta, sigma)
+
+# EP approximation
+ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
+                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
-```
 
-```{r MCMC approximation}
-set.seed(1)
+# MCMC approximation
 stan.res <- stan(file = "Lasso-model.stan",
                  data = list(N = n,
                              p = p,
-                             X = X.eg,
-                             y = y.eg,
-                             kappa = kappa.eg,
-                             mu_tau = mu.tau.eg,
-                             sigma_2_tau = sigma.2.tau.eg),
+                             X = X,
+                             y = y,
+                             kappa = kappa,
+                             mu_tau = mu.tau,
+                             sigma_2_tau = sigma.2.tau),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -57,9 +65,256 @@ stan.res <- stan(file = "Lasso-model.stan",
 mcmc.samples <- rstan::extract(stan.res)$theta
 mcmc.mu <- colMeans(mcmc.samples)
 mcmc.Sigma <- var(mcmc.samples)
+
+# Plotting results
+for (j in 1:(p + 1)) {
+  curve(demp(x, obs = mcmc.samples[, j]),
+        from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
+        to = mcmc.mu[j] + 5*sqrt(mcmc.Sigma[j, j]))
+  abline(v = mcmc.mu[j], lty = 2)
+  curve(dnorm(x, ep.mu[j], sqrt(ep.Sigma[j, j])), col = "red", add = TRUE)
+}
 ```
 
-```{r Comparing approximations}
+## Simulation 2
+
+```{r Simulation 2}
+set.seed(1)
+
+# Data
+n <- 50
+p <- 50
+X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
+
+# Parameters
+beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
+
+# Response
+y <- rnorm(n, X%*%beta, sigma)
+
+# EP approximation
+ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
+                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
+                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+ep.mu <- ep.res$mu
+ep.Sigma <- ep.res$Sigma
+
+# MCMC approximation
+stan.res <- stan(file = "Lasso-model.stan",
+                 data = list(N = n,
+                             p = p,
+                             X = X,
+                             y = y,
+                             kappa = kappa,
+                             mu_tau = mu.tau,
+                             sigma_2_tau = sigma.2.tau),
+                 chains = 1,
+                 iter = 50000,
+                 warmup = 5000,
+                 init = "random") 
+
+mcmc.samples <- rstan::extract(stan.res)$theta
+mcmc.mu <- colMeans(mcmc.samples)
+mcmc.Sigma <- var(mcmc.samples)
+
+# Plotting results
+for (j in 1:(p + 1)) {
+  curve(demp(x, obs = mcmc.samples[, j]),
+        from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
+        to = mcmc.mu[j] + 5*sqrt(mcmc.Sigma[j, j]))
+  abline(v = mcmc.mu[j], lty = 2)
+  curve(dnorm(x, ep.mu[j], sqrt(ep.Sigma[j, j])), col = "red", add = TRUE)
+}
+```
+
+## Simulation 3
+
+```{r Simulation 3}
+set.seed(1)
+
+# Data
+n <- 10
+p <- 50
+X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
+
+# Parameters
+beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
+
+# Response
+y <- rnorm(n, X%*%beta, sigma)
+
+# EP approximation
+ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
+                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
+                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+ep.mu <- ep.res$mu
+ep.Sigma <- ep.res$Sigma
+
+# MCMC approximation
+stan.res <- stan(file = "Lasso-model.stan",
+                 data = list(N = n,
+                             p = p,
+                             X = X,
+                             y = y,
+                             kappa = kappa,
+                             mu_tau = mu.tau,
+                             sigma_2_tau = sigma.2.tau),
+                 chains = 1,
+                 iter = 50000,
+                 warmup = 5000,
+                 init = "random") 
+
+mcmc.samples <- rstan::extract(stan.res)$theta
+mcmc.mu <- colMeans(mcmc.samples)
+mcmc.Sigma <- var(mcmc.samples)
+
+# Plotting results
+for (j in 1:(p + 1)) {
+  curve(demp(x, obs = mcmc.samples[, j]),
+        from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
+        to = mcmc.mu[j] + 5*sqrt(mcmc.Sigma[j, j]))
+  abline(v = mcmc.mu[j], lty = 2)
+  curve(dnorm(x, ep.mu[j], sqrt(ep.Sigma[j, j])), col = "red", add = TRUE)
+}
+```
+
+## Benchmark 1
+
+```{r Benchmark 1}
+set.seed(1)
+
+# Data
+load("../Benchmark-data/efron2004.Rdata")
+X <- cbind(1, scale(efron2004$x))
+y <- as.vector(efron2004$y)
+n <- nrow(X)
+p <- ncol(X)
+
+# EP approximation
+ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
+                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
+                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+ep.mu <- ep.res$mu
+ep.Sigma <- ep.res$Sigma
+
+# MCMC approximation
+stan.res <- stan(file = "Lasso-model.stan",
+                 data = list(N = n,
+                             p = p,
+                             X = X,
+                             y = y,
+                             kappa = kappa,
+                             mu_tau = mu.tau,
+                             sigma_2_tau = sigma.2.tau),
+                 chains = 1,
+                 iter = 50000,
+                 warmup = 5000,
+                 init = "random") 
+
+mcmc.samples <- rstan::extract(stan.res)$theta
+mcmc.mu <- colMeans(mcmc.samples)
+mcmc.Sigma <- var(mcmc.samples)
+
+# Plotting results
+for (j in 1:(p + 1)) {
+  curve(demp(x, obs = mcmc.samples[, j]),
+        from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
+        to = mcmc.mu[j] + 5*sqrt(mcmc.Sigma[j, j]))
+  abline(v = mcmc.mu[j], lty = 2)
+  curve(dnorm(x, ep.mu[j], sqrt(ep.Sigma[j, j])), col = "red", add = TRUE)
+}
+```
+
+## Benchmark 2
+
+```{r Benchmark 2}
+set.seed(1)
+
+# Data
+load("../Benchmark-data/Prostate.RData")
+X <- cbind(1, scale(Prostate[, -9]))
+y <- Prostate[, 9]
+n <- nrow(X)
+p <- ncol(X)
+
+# EP approximation
+ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
+                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
+                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+ep.mu <- ep.res$mu
+ep.Sigma <- ep.res$Sigma
+
+# MCMC approximation
+stan.res <- stan(file = "Lasso-model.stan",
+                 data = list(N = n,
+                             p = p,
+                             X = X,
+                             y = y,
+                             kappa = kappa,
+                             mu_tau = mu.tau,
+                             sigma_2_tau = sigma.2.tau),
+                 chains = 1,
+                 iter = 50000,
+                 warmup = 5000,
+                 init = "random") 
+
+mcmc.samples <- rstan::extract(stan.res)$theta
+mcmc.mu <- colMeans(mcmc.samples)
+mcmc.Sigma <- var(mcmc.samples)
+
+# Plotting results
+for (j in 1:(p + 1)) {
+  curve(demp(x, obs = mcmc.samples[, j]),
+        from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
+        to = mcmc.mu[j] + 5*sqrt(mcmc.Sigma[j, j]))
+  abline(v = mcmc.mu[j], lty = 2)
+  curve(dnorm(x, ep.mu[j], sqrt(ep.Sigma[j, j])), col = "red", add = TRUE)
+}
+```
+
+## Benchmark 3
+
+```{r Benchmark 3}
+set.seed(1)
+
+# Data
+load("../Benchmark-data/eyedata.RData")
+X <- cbind(1, scale(unname(x)))
+y <- y
+n <- nrow(X)
+p <- ncol(X)
+
+# EP approximation
+ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
+                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 7000, 
+                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+ep.mu <- ep.res$mu
+ep.Sigma <- ep.res$Sigma
+
+# MCMC approximation
+stan.res <- stan(file = "Lasso-model.stan",
+                 data = list(N = n,
+                             p = p,
+                             X = X,
+                             y = y,
+                             kappa = kappa,
+                             mu_tau = mu.tau,
+                             sigma_2_tau = sigma.2.tau),
+                 chains = 1,
+                 iter = 50000,
+                 warmup = 5000,
+                 init = "random") 
+
+mcmc.samples <- rstan::extract(stan.res)$theta
+mcmc.mu <- colMeans(mcmc.samples)
+mcmc.Sigma <- var(mcmc.samples)
+
+# Plotting results
 for (j in 1:(p + 1)) {
   curve(demp(x, obs = mcmc.samples[, j]),
         from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
