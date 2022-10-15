@@ -1,0 +1,69 @@
+---
+title: "Simulations for quantile regression"
+author: "Jackson Zhou"
+date: "2022-10-15"
+output: html_document
+---
+
+```{r Sourcing auxiliary functions}
+library(tidyverse) # Data manipulation and plotting
+library(rstan)     # Robust MCMC and diagnostics
+library(EnvStats)  # Compute empirical densities
+
+source("../EP-general-auxiliaries.R")
+source("Quantile-auxiliaries.R")
+```
+
+```{r Generating random data}
+set.seed(1)
+n <- 40
+p <- 10
+
+mu.theta.eg <- rep(0, p + 1)
+Sigma.theta.eg <- 10000*diag(p + 1)
+tau.eg <- 0.75
+
+X.eg <- cbind(rep(1, n), matrix(data = rnorm(n = n*(p - 1)), nrow = n))
+beta.eg <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p
+sigma.eg <- 0.2
+y.eg <- rnorm(n, X.eg%*%beta.eg, sigma.eg)
+```
+
+```{r EP approximation}
+ep.res <- ep.approx(X.eg, y.eg, mu.theta.eg, Sigma.theta.eg, 
+                    tau.eg, eta = 0.5, alpha = 1,
+                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.01, 
+                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = TRUE)
+ep.mu <- ep.res$mu
+ep.Sigma <- ep.res$Sigma
+```
+
+```{r MCMC approximation}
+set.seed(1)
+stan.res <- stan(file = "Quantile-model.stan",
+                 data = list(N = n,
+                             p = p,
+                             X = X.eg,
+                             y = y.eg,
+                             tau = tau.eg,
+                             mu_theta = mu.theta.eg,
+                             Sigma_theta = Sigma.theta.eg),
+                 chains = 1,
+                 iter = 50000,
+                 warmup = 5000,
+                 init = "random") 
+
+mcmc.samples <- rstan::extract(stan.res)$theta
+mcmc.mu <- colMeans(mcmc.samples)
+mcmc.Sigma <- var(mcmc.samples)
+```
+
+```{r Comparing approximations}
+for (j in 1:p) {
+  curve(demp(x, obs = mcmc.samples[, j]),
+        from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
+        to = mcmc.mu[j] + 5*sqrt(mcmc.Sigma[j, j]))
+  abline(v = mcmc.mu[j], lty = 2)
+  curve(dnorm(x, ep.mu[j], sqrt(ep.Sigma[j, j])), col = "red", add = TRUE)
+}
+```
