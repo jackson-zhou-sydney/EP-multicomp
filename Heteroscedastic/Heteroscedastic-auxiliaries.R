@@ -3,68 +3,29 @@
 
 library(glmnet) # Fast ridge regression estimates
 
-log.joint.likelihood <- function(theta, X, Z, y, D) {
+log.joint.likelihood <- function(theta, X.1, X.2, y, mu.theta, Sigma.theta) {
   # Log joint likelihood
-  if (!is.matrix(X)) X <- as.matrix(X)
-  if (!is.matrix(Z)) Z <- as.matrix(Z)
-  n <- nrow(X)
-  p <- ncol(X)
-  q <- ncol(Z)
+  n <- nrow(X.1)
+  p.1 <- ncol(X.1)
+  p.2 <- ncol(X.2)
   
-  beta <- theta[1:p]
-  alpha <- theta[(p + 1):length(theta)]
+  beta.1 <- theta[1:p.1]
+  beta.2 <- theta[(p.1 + 1):length(theta)]
   
-  as.numeric(-0.5*(sum(Z%*%alpha) + t(y - X%*%beta)%*%((1/exp(Z%*%alpha))*(y - X%*%beta)) + t(theta)%*%D%*%theta))
+  as.numeric(-0.5*(sum(2*X.2%*%beta.2) + t(y - X.1%*%beta.1)%*%((1/exp(2*X.2%*%beta.2))*(y - X.1%*%beta.1)) + t(theta - mu.theta)%*%solve(Sigma.theta)%*%(theta - mu.theta)))
 }
 
-ljl.grad <- function(theta, X, Z, y, D) {
-  # Gradient of log joint likelihood
-  if (!is.matrix(X)) X <- as.matrix(X)
-  if (!is.matrix(Z)) Z <- as.matrix(Z)
-  n <- nrow(X)
-  p <- ncol(X)
-  q <- ncol(Z)
-  
-  beta <- theta[1:p]
-  alpha <- theta[(p + 1):length(theta)]
-  
-  ll.grad.beta <- -0.5*(-2*t(X)%*%((1/exp(Z%*%alpha))*(y - X%*%beta)))
-  ll.grad.alpha <- -0.5*(rowSums(t(Z)) - t(Z*as.vector((y - X%*%beta)/exp(Z%*%alpha)))%*%(y - X%*%beta))
-  
-  as.vector(c(ll.grad.beta, ll.grad.alpha) - D%*%theta)
-}
-
-ljl.hess <- function(theta, X, Z, y, D) {
-  # Hessian of log joint likelihood
-  if (!is.matrix(X)) X <- as.matrix(X)
-  if (!is.matrix(Z)) Z <- as.matrix(Z)
-  n <- nrow(X)
-  p <- ncol(X)
-  q <- ncol(Z)
-  
-  beta <- theta[1:p]
-  alpha <- theta[(p + 1):length(theta)]
-  
-  ll.hess.beta.beta <- -t(X*as.vector(1/exp(Z%*%alpha)))%*%X
-  ll.hess.beta.alpha <- -t(X)%*%(Z*as.vector((y - X%*%beta)/exp(Z%*%alpha)))
-  ll.hess.alpha.alpha <- -0.5*t(Z*as.vector(y - X%*%beta))%*%(Z*as.vector((y - X%*%beta)/exp(Z%*%alpha)))
-  
-  ll.hess <- matrix(nrow = p + q, ncol = p + q)
-  ll.hess[1:p, 1:p] <- ll.hess.beta.beta
-  ll.hess[1:p, (p + 1):(p + q)] <- ll.hess.beta.alpha
-  ll.hess[(p + 1):(p + q), 1:p] <- t(ll.hess.beta.alpha)
-  ll.hess[(p + 1):(p + q), (p + 1):(p + q)] <- ll.hess.alpha.alpha
-  
-  ll.hess - D
-}
-
-laplace.approx <- function(X, Z, y, D, start = rep(0, ncol(as.matrix(X)) + ncol(as.matrix(Z)))) {
+laplace.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init, maxit) {
   # Laplace approximation
-  m <- optim(start, fn = log.joint.likelihood, gr = ljl.grad, 
-             method = "BFGS", 
-             control = list(fnscale = -1, maxit = 50000), 
-             X = X, Z = Z, y = y, D = D)$par
-  return(list(mu = m, Sigma = solve(-ljl.hess(m, X, Z, y, D))))
+  p.2 <- ncol(X.2)
+  
+  start <- c(as.vector(coef(glmnet(X.1[, -1], y, alpha = 0, lambda = lambda.init))), rep(0, p.2))
+  optim.res <- optim(start, fn = log.joint.likelihood, 
+                     method = "BFGS", 
+                     control = list(fnscale = -1, maxit = maxit),
+                     hessian = T,
+                     X.1 = X.1, X.2 = X.2, y = y, mu.theta = mu.theta, Sigma.theta = Sigma.theta)
+  return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
 }
 
 I.r <- function(y, m, V, eta, mult, maxEval, tol) {
@@ -78,9 +39,9 @@ I.r <- function(y, m, V, eta, mult, maxEval, tol) {
   V.22 <- V.inv[2, 2]
   
   abc <- function(x) {
-    c(V.11 + eta/exp(x),
-      2*(V.12*(x - m.2) - V.11*m.1) - eta*2*y/exp(x),
-      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(y^2/exp(x) + x))
+    c(V.11 + eta/exp(2*x),
+      2*(V.12*(x - m.2) - V.11*m.1) - eta*2*y/exp(2*x),
+      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + y^2/exp(2*x)))
   }
   
   lb <- m.2 - mult*sqrt(V[2, 2])
@@ -98,34 +59,35 @@ I.r <- function(y, m, V, eta, mult, maxEval, tol) {
        I.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*V)), nrow = 2))
 }
 
-ep.approx <- function(X, Z, y, D, 
+ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
                       eta, alpha, lambda.init,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian heteroscedastic linear regression
-  if (!is.matrix(X)) X <- as.matrix(X)
-  if (!is.matrix(Z)) Z <- as.matrix(Z)
-  n <- nrow(X)
-  p <- ncol(X)
-  q <- ncol(Z)
+  n <- nrow(X.1)
+  p.1 <- ncol(X.1)
+  p.2 <- ncol(X.2)
   stop.ep <- F
   
   # Obtaining initial estimates
-  init.mu <- c(as.vector(coef(glmnet(X[, -1], y, alpha = 0, lambda = lambda.init))), rep(0, q))
-  init.Sigma <- diag(p + q)
+  init.mu <- c(as.vector(coef(glmnet(X.1[, -1], y, alpha = 0, lambda = lambda.init))), rep(0, p.2))
+  init.Sigma <- diag(p.1 + p.2)
   init.Sigma.inv <- force.sym(solve(init.Sigma))
   
   # Parameter initialisation
-  Q.values <- array(dim = c(p + q, p + q, n + 1))
-  r.values <- matrix(nrow = n + 1, ncol = p + q)
+  Q.values <- array(dim = c(p.1 + p.2, p.1 + p.2, n + 1))
+  r.values <- matrix(nrow = n + 1, ncol = p.1 + p.2)
+  
+  Q.p <- force.sym(solve(Sigma.theta))
+  r.p <- force.sym(solve(Sigma.theta))%*%mu.theta
   
   for (i in 1:(n + 1)) {
     if (i <= n) {
-      Q.values[, , i] <- (init.Sigma.inv - D)/n
-      r.values[i, ] <- (init.Sigma.inv%*%init.mu)/n
+      Q.values[, , i] <- (init.Sigma.inv - Q.p)/n
+      r.values[i, ] <- (init.Sigma.inv%*%init.mu - r.p)/n
     } else {
-      Q.values[, , i] <- D
-      r.values[i, ] <- rep(0, p + q)
+      Q.values[, , i] <- Q.p
+      r.values[i, ] <- r.p
     }
   }
   
@@ -153,7 +115,7 @@ ep.approx <- function(X, Z, y, D,
       r.cavity <- r.sum - eta*r.values[i, ]
       mu.cavity <- Q.cavity.inv%*%r.cavity
       Sigma.cavity <- Q.cavity.inv
-      W <- cbind(c(X[i, ], rep(0, q)), c(rep(0, p), Z[i, ]))
+      W <- cbind(c(X.1[i, ], rep(0, p.2)), c(rep(0, p.1), X.2[i, ]))
       m <- t(W)%*%mu.cavity
       V <- force.sym(t(W)%*%Sigma.cavity%*%W)
       if (det(V) < 0) {
