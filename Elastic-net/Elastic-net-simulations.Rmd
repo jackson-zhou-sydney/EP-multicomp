@@ -16,10 +16,10 @@ source("Elastic-net-auxiliaries.R")
 
 ```{r Common simulation settings}
 # Data
-mu.tau <- 0
-sigma.2.tau <- 10000
-kappa.1 <- log(0.8)
-kappa.2 <- log(0.2)
+mu.kappa <- 0
+sigma.2.kappa <- 10000
+lambda.1 <- 0.8
+lambda.2 <- 0.2
 
 # Parameters
 sigma <- 0.1
@@ -42,8 +42,8 @@ beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
 y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa.1, kappa.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -55,10 +55,10 @@ stan.res <- stan(file = "Elastic-net-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa_1 = kappa.1,
-                             kappa_2 = kappa.2,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda_1 = lambda.1,
+                             lambda_2 = lambda.2),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -95,8 +95,8 @@ beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
 y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa.1, kappa.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -108,10 +108,10 @@ stan.res <- stan(file = "Elastic-net-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa_1 = kappa.1,
-                             kappa_2 = kappa.2,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda_1 = lambda.1,
+                             lambda_2 = lambda.2),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -148,8 +148,8 @@ beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
 y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa.1, kappa.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -161,10 +161,10 @@ stan.res <- stan(file = "Elastic-net-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa_1 = kappa.1,
-                             kappa_2 = kappa.2,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda_1 = lambda.1,
+                             lambda_2 = lambda.2),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -197,8 +197,8 @@ n <- nrow(X)
 p <- ncol(X)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa.1, kappa.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -210,10 +210,10 @@ stan.res <- stan(file = "Elastic-net-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa_1 = kappa.1,
-                             kappa_2 = kappa.2,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda_1 = lambda.1,
+                             lambda_2 = lambda.2),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -246,8 +246,8 @@ n <- nrow(X)
 p <- ncol(X)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa.1, kappa.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -259,10 +259,10 @@ stan.res <- stan(file = "Elastic-net-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa_1 = kappa.1,
-                             kappa_2 = kappa.2,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda_1 = lambda.1,
+                             lambda_2 = lambda.2),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -295,8 +295,8 @@ n <- nrow(X)
 p <- ncol(X)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa.1, kappa.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 7000, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -308,10 +308,10 @@ stan.res <- stan(file = "Elastic-net-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa_1 = kappa.1,
-                             kappa_2 = kappa.2,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda_1 = lambda.1,
+                             lambda_2 = lambda.2),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,

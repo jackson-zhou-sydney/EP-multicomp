@@ -6,9 +6,9 @@ data {
   int<lower=0> p;
   matrix[N, p] X;
   vector[N] y;
-  real kappa;
-  real mu_tau;
-  real<lower=0> sigma_2_tau;
+  real mu_kappa;
+  real<lower=0> sigma_2_kappa;
+  real lambda;
 }
 
 parameters {
@@ -17,14 +17,14 @@ parameters {
 
 transformed parameters {
   vector[p] beta;
-  real tau;
+  real kappa;
   
   beta = theta[1:p];
-  tau = theta[p + 1];
+  kappa = theta[p + 1];
 }
 
 model {
-  y ~ normal(X*beta, rep_vector(exp(tau), N));
-  beta ~ double_exponential(rep_vector(0, p), rep_vector(exp(tau - kappa), p));
-  tau ~ normal(mu_tau, sqrt(sigma_2_tau));
+  y ~ normal(X*beta, rep_vector(exp(kappa), N));
+  beta ~ double_exponential(rep_vector(0, p), rep_vector(exp(kappa)/lambda, p));
+  kappa ~ normal(mu_kappa, sqrt(sigma_2_kappa));
 }

@@ -45,9 +45,9 @@ I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
   V.22 <- V.inv[2, 2]
   
   abc <- function(x) {
-    c(V.11 + eta*exp(2*x),
-      2*(V.12*(x - m.2) - V.11*m.1) - eta*2*y*exp(2*x),
-      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(y^2*exp(2*x) - 2*x))
+    c(V.11 + eta/exp(2*x),
+      2*(V.12*(x - m.2) - V.11*m.1) - eta*2*y/exp(2*x),
+      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + y^2/exp(2*x)))
   }
   
   lb <- m.2 - mult*sqrt(V[2, 2])
@@ -65,7 +65,7 @@ I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
        I.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*V)), nrow = 2))
 }
 
-I.r.2 <- function(kappa, m, V, eta, mult, maxEval, tol) {
+I.r.2 <- function(lambda, m, V, eta, mult, maxEval, tol) {
   # Hybrid integrals for Laplace-based prior sites
   m.1 <- m[1]
   m.2 <- m[2]
@@ -77,8 +77,8 @@ I.r.2 <- function(kappa, m, V, eta, mult, maxEval, tol) {
   
   abc <- function(x, lower) {
     c(V.11,
-      2*(V.12*(x - m.2) - V.11*m.1) + eta*ifelse(lower, -1, 1)*2*exp(kappa + x),
-      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 - eta*2*x)
+      2*(V.12*(x - m.2) - V.11*m.1) + eta*ifelse(lower, -1, 1)*2*lambda/exp(x),
+      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*2*x)
   }
   
   lb <- m.2 - mult*sqrt(V[2, 2])
@@ -96,12 +96,11 @@ I.r.2 <- function(kappa, m, V, eta, mult, maxEval, tol) {
        I.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*V)), nrow = 2))
 }
 
-ep.approx <- function(X, y, mu.tau, sigma.2.tau, 
-                      kappa, eta, alpha, lambda.init, 
+ep.approx <- function(X, y, mu.kappa, sigma.2.kappa, 
+                      lambda, eta, alpha, lambda.init, 
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian lasso linear regression
-  if (!is.matrix(X)) X <- as.matrix(X)
   n <- nrow(X)
   p <- ncol(X)
   stop.ep <- F
@@ -117,9 +116,9 @@ ep.approx <- function(X, y, mu.tau, sigma.2.tau,
   r.values <- matrix(nrow = n + p + 1, ncol = p + 1)
   
   Q.p <- matrix(0, nrow = p + 1, ncol = p + 1)
-  Q.p[p + 1, p + 1] <- 1/sigma.2.tau
+  Q.p[p + 1, p + 1] <- 1/sigma.2.kappa
   r.p <- numeric(p + 1)
-  r.p[p + 1] <- mu.tau/sigma.2.tau
+  r.p[p + 1] <- mu.kappa/sigma.2.kappa
   Q.diff <- init.Sigma.inv - Q.p
   r.diff <- init.Sigma.inv%*%init.mu - r.p
   
@@ -165,10 +164,10 @@ ep.approx <- function(X, y, mu.tau, sigma.2.tau,
       W <- matrix(0, nrow = p + 1, ncol = 2)
       if (i <= n) {
         W[1:p, 1] <- X[i, ]
-        W[p + 1, 2] <- -1
+        W[p + 1, 2] <- 1
       } else {
         W[i - n, 1] <- 1
-        W[p + 1, 2] <- -1
+        W[p + 1, 2] <- 1
       }
       
       m <- t(W)%*%mu.cavity
@@ -185,7 +184,7 @@ ep.approx <- function(X, y, mu.tau, sigma.2.tau,
       if (i <= n) {
         I.r.res <- tryCatch(I.r.1(y[i], m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
       } else {
-        I.r.res <- tryCatch(I.r.2(kappa, m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
+        I.r.res <- tryCatch(I.r.2(lambda, m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
       }
       
       if (!is.list(I.r.res)) {

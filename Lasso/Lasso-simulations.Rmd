@@ -16,9 +16,9 @@ source("Lasso-auxiliaries.R")
 
 ```{r Common simulation settings}
 # Data
-mu.tau <- 0
-sigma.2.tau <- 10000
-kappa <- log(0.5)
+mu.kappa <- 0
+sigma.2.kappa <- 10000
+lambda <- 0.5
 
 # Parameters
 sigma <- 0.1
@@ -41,8 +41,8 @@ beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
 y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -54,9 +54,9 @@ stan.res <- stan(file = "Lasso-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa = kappa,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda = lambda),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -93,8 +93,8 @@ beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
 y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -106,9 +106,9 @@ stan.res <- stan(file = "Lasso-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa = kappa,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda = lambda),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -145,8 +145,8 @@ beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p; beta[1:p/2] <- 0
 y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -158,9 +158,9 @@ stan.res <- stan(file = "Lasso-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa = kappa,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda = lambda),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -193,8 +193,8 @@ n <- nrow(X)
 p <- ncol(X)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -206,9 +206,9 @@ stan.res <- stan(file = "Lasso-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa = kappa,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda = lambda),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -241,8 +241,8 @@ n <- nrow(X)
 p <- ncol(X)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -254,9 +254,9 @@ stan.res <- stan(file = "Lasso-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa = kappa,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda = lambda),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
@@ -289,8 +289,8 @@ n <- nrow(X)
 p <- ncol(X)
 
 # EP approximation
-ep.res <- ep.approx(X, y, mu.tau, sigma.2.tau, 
-                    kappa, eta = 0.5, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
+                    lambda, eta = 0.5, alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 7000, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -302,9 +302,9 @@ stan.res <- stan(file = "Lasso-model.stan",
                              p = p,
                              X = X,
                              y = y,
-                             kappa = kappa,
-                             mu_tau = mu.tau,
-                             sigma_2_tau = sigma.2.tau),
+                             mu_kappa = mu.kappa,
+                             sigma_2_kappa = sigma.2.kappa,
+                             lambda = lambda),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
