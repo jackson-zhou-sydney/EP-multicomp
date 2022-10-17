@@ -31,37 +31,37 @@ GI.2 <- function(x) {
   sqrt(2*pi/a)*(1/a + b^2/(4*a^2))*exp(-0.5*(c - b^2/(4*a)))
 }
 
-TGI.lower.0 <- function(x, y) {
+TGI.minus.0 <- function(x, y) {
   # Truncated Gaussian integral (lower, 0th raw moment)
   a <- x[1]; b <- x[2]; c <- x[3]
   exp(log(sqrt(2*pi/a)) - 0.5*(c - b^2/(4*a)) + pnorm(b/(2*sqrt(a)) + sqrt(a)*y, log.p = T))
 }
 
-TGI.lower.1 <- function(x, y) {
+TGI.minus.1 <- function(x, y) {
   # Truncated Gaussian integral (lower, 1st raw moment)
   a <- x[1]; b <- x[2]; c <- x[3]
   sqrt(2*pi/a)*(-(b/(2*a))*exp(-0.5*(c - b^2/(4*a)) + pnorm(b/(2*sqrt(a)) + sqrt(a)*y, log.p = T)) - (1/sqrt(a))*exp(-0.5*(c - b^2/(4*a)) + dnorm(b/(2*sqrt(a)) + sqrt(a)*y, log = T)))
 }
 
-TGI.lower.2 <- function(x, y) {
+TGI.minus.2 <- function(x, y) {
   # Truncated Gaussian integral (lower, 2nd raw moment)
   a <- x[1]; b <- x[2]; c <- x[3]
   sqrt(2*pi/a)*((b^2/(4*a) + 1)*exp(-0.5*(c - b^2/(4*a)) + pnorm(b/(2*sqrt(a)) + sqrt(a)*y, log.p = T)) + (b/(2*sqrt(a)) - sqrt(a)*y)*exp(-0.5*(c - b^2/(4*a)) + dnorm(b/(2*sqrt(a)) + sqrt(a)*y, log = T)))/a
 }
 
-TGI.upper.0 <- function(x, y) {
+TGI.plus.0 <- function(x, y) {
   # Truncated Gaussian integral (upper, 0th raw moment)
   a <- x[1]; b <- x[2]; c <- x[3]
   exp(log(sqrt(2*pi/a)) - 0.5*(c - b^2/(4*a)) + pnorm(b/(2*sqrt(a)) + sqrt(a)*y, lower.tail = F, log.p = T))
 }
 
-TGI.upper.1 <- function(x, y) {
+TGI.plus.1 <- function(x, y) {
   # Truncated Gaussian integral (upper, 1st raw moment)
   a <- x[1]; b <- x[2]; c <- x[3]
   sqrt(2*pi/a)*(-(b/(2*a))*exp(-0.5*(c - b^2/(4*a)) + pnorm(-b/(2*sqrt(a)) - sqrt(a)*y, log.p = T)) + (1/sqrt(a))*exp(-0.5*(c - b^2/(4*a)) + dnorm(b/(2*sqrt(a)) + sqrt(a)*y, log = T)))
 }
 
-TGI.upper.2 <- function(x, y) {
+TGI.plus.2 <- function(x, y) {
   # Truncated Gaussian integral (upper, 2nd raw moment)
   a <- x[1]; b <- x[2]; c <- x[3]
   sqrt(2*pi/a)*((b^2/(4*a) + 1)*exp(-0.5*(c - b^2/(4*a)) + pnorm(-b/(2*sqrt(a)) - sqrt(a)*y, log.p = T)) - (b/(2*sqrt(a)) - sqrt(a)*y)*exp(-0.5*(c - b^2/(4*a)) + dnorm(b/(2*sqrt(a)) + sqrt(a)*y, log = T)))/a

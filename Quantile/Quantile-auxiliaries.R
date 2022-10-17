@@ -28,12 +28,12 @@ I.r <- function(y, tau, m, V, eta, mult, maxEval, tol) {
   lb <- m.2 - mult*sqrt(V[2, 2])
   ub <- m.2 + mult*sqrt(V[2, 2])
   
-  ret.0 <- integrate(Vectorize(function(x) TGI.lower.0(abc(x, T), y) + TGI.upper.0(abc(x, F), y)), lb, ub)$value
-  ret.11 <- integrate(Vectorize(function(x) TGI.lower.1(abc(x, T), y) + TGI.upper.1(abc(x, F), y)), lb, ub)$value
-  ret.12 <- integrate(Vectorize(function(x) x*(TGI.lower.0(abc(x, T), y) + TGI.upper.0(abc(x, F), y))), lb, ub)$value
-  ret.211 <- integrate(Vectorize(function(x) TGI.lower.2(abc(x, T), y) + TGI.upper.2(abc(x, F), y)), lb, ub)$value
-  ret.212 <- integrate(Vectorize(function(x) x*(TGI.lower.1(abc(x, T), y) + TGI.upper.1(abc(x, F), y))), lb, ub)$value
-  ret.222 <- integrate(Vectorize(function(x) x^2*(TGI.lower.0(abc(x, T), y) + TGI.upper.0(abc(x, F), y))), lb, ub)$value
+  ret.0 <- integrate(Vectorize(function(x) TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y)), lb, ub)$value
+  ret.11 <- integrate(Vectorize(function(x) TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y)), lb, ub)$value
+  ret.12 <- integrate(Vectorize(function(x) x*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub)$value
+  ret.211 <- integrate(Vectorize(function(x) TGI.minus.2(abc(x, T), y) + TGI.plus.2(abc(x, F), y)), lb, ub)$value
+  ret.212 <- integrate(Vectorize(function(x) x*(TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y))), lb, ub)$value
+  ret.222 <- integrate(Vectorize(function(x) x^2*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub)$value
   
   list(I.0 = ret.0/sqrt(det(2*pi*V)), 
        I.1 = c(ret.11, ret.12)/sqrt(det(2*pi*V)), 
