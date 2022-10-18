@@ -55,9 +55,9 @@ I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
   V.22 <- V.inv[2, 2]
   
   abc <- function(x) {
-    c(V.11 + eta*exp(2*x),
-      2*(V.12*(x - m.2) - V.11*m.1) - eta*2*y*exp(2*x),
-      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(y^2*exp(2*x) - 2*x))
+    c(V.11 + eta/exp(2*x),
+      2*(V.12*(x - m.2) - V.11*m.1) - eta*2*y/exp(2*x),
+      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + y^2/exp(2*x)))
   }
   
   lb <- m.2 - mult*sqrt(V[2, 2])
@@ -86,9 +86,9 @@ I.r.2 <- function(m, V, eta, mult, maxEval, tol) {
   V.22 <- V.inv[2, 2]
   
   abc <- function(x) {
-    c(V.11 + eta*exp(2*x),
+    c(V.11 + eta/exp(2*x),
       2*(V.12*(x - m.2) - V.11*m.1),
-      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 - eta*2*x)
+      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*2*x)
   }
   
   lb <- m.2 - mult*sqrt(V[2, 2])
@@ -106,14 +106,11 @@ I.r.2 <- function(m, V, eta, mult, maxEval, tol) {
        I.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*V)), nrow = 2))
 }
 
-ep.approx <- function(X, Z, y,mu.beta, Sigma.beta, 
-                      mu.tau.y, sigma.2.tau.y, mu.tau.u, sigma.2.tau.u,
+ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
                       eta, alpha,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian random intercept linear regression
-  if (!is.matrix(X)) X <- as.matrix(X)
-  if (!is.matrix(Z)) Z <- as.matrix(Z)
   n <- nrow(X)
   p <- ncol(X)
   q <- ncol(Z)
@@ -132,14 +129,15 @@ ep.approx <- function(X, Z, y,mu.beta, Sigma.beta,
   Q.values <- array(dim = c(p + q + 2, p + q + 2, n + q + 1))
   r.values <- matrix(nrow = n + q + 1, ncol = p + q + 2)
   
+  Q.bk <- force.sym(solve(Sigma.bk))
+  r.bk <- Q.bk%*%mu.bk
+  
   Q.p <- matrix(0, nrow = p + q + 2, ncol = p + q + 2)
-  Q.p[1:p, 1:p] <- force.sym(solve(Sigma.beta))
-  Q.p[p + q + 1, p + q + 1] <- 1/sigma.2.tau.y
-  Q.p[p + q + 2, p + q + 2] <- 1/sigma.2.tau.u
-  r.p <- numeric(p + q + 2)
-  r.p[1:p] <- force.sym(solve(Sigma.beta))%*%mu.beta
-  r.p[p + q + 1] <- mu.tau.y/sigma.2.tau.y
-  r.p[p + q + 2] <- mu.tau.u/sigma.2.tau.u
+  Q.p[1:p, 1:p] <- Q.bk[1:p, 1:p]
+  Q.p[1:p, (p + q + 1):(p + q + 2)] <- Q.bk[1:p, (p + 1):(p + 2)]
+  Q.p[(p + q + 1):(p + q + 2), 1:p] <- Q.bk[(p + 1):(p + 2), 1:p]
+  Q.p[(p + q + 1):(p + q + 2), (p + q + 1):(p + q + 2)] <- Q.bk[(p + 1):(p + 2), (p + 1):(p + 2)]
+  r.p <- c(r.bk[1:p], rep(0, q), r.bk[(p + 1):(p + 2)])
   Q.diff <- init.Sigma.inv - Q.p
   r.diff <- init.Sigma.inv%*%init.mu - r.p
   
@@ -186,10 +184,10 @@ ep.approx <- function(X, Z, y,mu.beta, Sigma.beta,
       if (i <= n) {
         W[1:p, 1] <- X[i, ]
         W[(p + 1):(p + q), 1] <- Z[i, ]
-        W[p + q + 1, 2] <- -1
+        W[p + q + 1, 2] <- 1
       } else {
         W[p + i - n, 1] <- 1
-        W[p + q + 2, 2] <- -1
+        W[p + q + 2, 2] <- 1
       }
       
       m <- t(W)%*%mu.cavity

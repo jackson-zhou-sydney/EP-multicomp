@@ -8,12 +8,8 @@ data {
   matrix[N, p] X;
   matrix[N, q] Z;
   vector[N] y;
-  vector[p] mu_beta;
-  real mu_tau_y;
-  real mu_tau_u;
-  cov_matrix[p] Sigma_beta;
-  real<lower=0> sigma_2_tau_y;
-  real<lower=0> sigma_2_tau_u;
+  vector[p + 2] mu_bk;
+  cov_matrix[p + 2] Sigma_bk;
 }
 
 parameters {
@@ -23,19 +19,19 @@ parameters {
 transformed parameters {
   vector[p] beta;
   vector[q] u;
-  real tau_y;
-  real tau_u;
+  real kappa_y;
+  real kappa_u;
+  vector[p + 2] bk;
   
   beta = theta[1:p];
   u = theta[(p + 1):(p + q)];
-  tau_y = theta[p + q + 1];
-  tau_u = theta[p + q + 2];
+  kappa_y = theta[p + q + 1];
+  kappa_u = theta[p + q + 2];
+  bk = append_row(append_row(beta, kappa_y), kappa_u);
 }
 
 model {
-  y ~ normal(X*beta + Z*u, rep_vector(exp(tau_y), N));
-  beta ~ multi_normal(mu_beta, Sigma_beta);
-  u ~ normal(rep_vector(0, q), rep_vector(exp(tau_u), q));
-  tau_y ~ normal(mu_tau_y, sqrt(sigma_2_tau_y));
-  tau_u ~ normal(mu_tau_u, sqrt(sigma_2_tau_u));
+  y ~ normal(X*beta + Z*u, rep_vector(exp(kappa_y), N));
+  u ~ normal(rep_vector(0, q), rep_vector(exp(kappa_u), q));
+  bk ~ multi_normal(mu_bk, Sigma_bk);
 }

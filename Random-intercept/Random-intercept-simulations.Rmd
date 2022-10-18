@@ -20,29 +20,22 @@ n <- 40
 p <- 4
 q <- 5
 
-mu.beta.eg <- rep(0, p)
-Sigma.beta.eg <- 10000*diag(p)
+mu.bk <- rep(0, p + 2)
+Sigma.bk <- 10000*diag(p + 2)
 
-mu.tau.y.eg <- 0
-sigma.2.tau.y.eg <- 10000
+X <- cbind(rep(1, n), matrix(data = rnorm(n = n*(p - 1)), nrow = n))
+Z <- as.matrix(bdiag(rep(list(rep(1, n/q)), q)))
 
-mu.tau.u.eg <- 0
-sigma.2.tau.u.eg <- 10000
-
-X.eg <- cbind(rep(1, n), matrix(data = rnorm(n = n*(p - 1)), nrow = n))
-Z.eg <- as.matrix(bdiag(rep(list(rep(1, n/q)), q)))
-
-beta.eg <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p
-tau.y.eg <- -1
-tau.u.eg <- -0.5
-u.eg <- rnorm(q, sd = exp(tau.u.eg))
-y.eg <- rnorm(n, X.eg%*%beta.eg + Z.eg%*%u.eg, exp(tau.y.eg))
+beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p
+kappa.y <- -1
+kappa.u <- -0.5
+u <- rnorm(q, sd = exp(kappa.u))
+y <- rnorm(n, X%*%beta + Z%*%u, exp(kappa.y))
 ```
 
 ```{r EP approximation}
 set.seed(1)
-ep.res <- ep.approx(X.eg, Z.eg, y.eg, mu.beta.eg, Sigma.beta.eg, 
-                    mu.tau.y.eg, sigma.2.tau.y.eg, mu.tau.u.eg, sigma.2.tau.u.eg,
+ep.res <- ep.approx(X, Z, y, mu.bk, Sigma.bk,
                     eta = 0.5, alpha = 1,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
@@ -56,15 +49,11 @@ stan.res <- stan(file = "Random-intercept-model.stan",
                  data = list(N = n,
                              p = p,
                              q = q,
-                             X = X.eg,
-                             Z = Z.eg,
-                             y = y.eg,
-                             mu_beta = mu.beta.eg,
-                             mu_tau_y = mu.tau.y.eg,
-                             mu_tau_u = mu.tau.u.eg,
-                             Sigma_beta = Sigma.beta.eg,
-                             sigma_2_tau_y = sigma.2.tau.y.eg,
-                             sigma_2_tau_u = sigma.2.tau.u.eg),
+                             X = X,
+                             Z = Z,
+                             y = y,
+                             mu_bk = mu.bk,
+                             Sigma_bk = Sigma.bk),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
