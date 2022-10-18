@@ -14,15 +14,9 @@ I.r <- function(y, tau, m, V, eta, mult, maxEval, tol) {
   V.22 <- V.inv[2, 2]
   
   abc <- function(x, lower) {
-    if (lower) {
-      c(V.11,
-        2*(V.12*(x - m.2) - V.11*m.1) - eta*2*tau*exp(x),
-        V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 - eta*(2*x - 2*tau*exp(x)*y))
-    } else {
-      c(V.11,
-        2*(V.12*(x - m.2) - V.11*m.1) + eta*2*(1 - tau)*exp(x),
-        V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 - eta*(2*x + 2*(1 - tau)*exp(x)*y))
-    }
+    c(V.11,
+      2*(V.12*(x - m.2) - V.11*m.1) + eta*(1 + ifelse(lower, -1, 1) - 2*tau)/exp(x),
+      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + (2*tau - 1 + ifelse(lower, 1, -1))*y/exp(x)))
   }
   
   lb <- m.2 - mult*sqrt(V[2, 2])
@@ -45,7 +39,6 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian quantile regression
-  if (!is.matrix(X)) X <- as.matrix(X)
   n <- nrow(X)
   p <- ncol(X)
   stop.ep <- F
@@ -96,7 +89,7 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
       r.cavity <- r.sum - eta*r.values[i, ]
       mu.cavity <- Q.cavity.inv%*%r.cavity
       Sigma.cavity <- Q.cavity.inv
-      W <- cbind(c(X[i, ], 0), c(rep(0, p), -1))
+      W <- cbind(c(X[i, ], 0), c(rep(0, p), 1))
       m <- t(W)%*%mu.cavity
       V <- force.sym(t(W)%*%Sigma.cavity%*%W)
       if (det(V) < 0) {

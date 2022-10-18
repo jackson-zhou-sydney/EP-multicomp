@@ -3,7 +3,7 @@
 //
 functions {
   real rho(real y, real tau) {
-    return 0.5*(abs(y) + (2*tau - 1)*y);
+    return 0.5*(fabs(y) + (2*tau - 1)*y);
   }
   real asym_double_exponential_lpdf(real y, real mu, real sigma, real tau) {
     return log(tau) + log(1 - tau) - log(sigma) - rho((y - mu)/sigma, tau);
@@ -15,9 +15,9 @@ data {
   int<lower=0> p;
   matrix[N, p] X;
   vector[N] y;
-  real<lower=0,upper=1> tau;
   vector[p + 1] mu_theta;
   cov_matrix[p + 1] Sigma_theta;
+  real<lower=0,upper=1> tau;
 }
 
 parameters {
