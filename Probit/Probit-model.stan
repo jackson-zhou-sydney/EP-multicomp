@@ -6,7 +6,7 @@ data {
   int<lower=0> p;
   matrix[N, p] X;
   int<lower=0,upper=1> y[N];
-  vector<lower=0,upper=0>[p] mu_beta;
+  vector[p] mu_beta;
   cov_matrix[p] Sigma_beta;
 }
 

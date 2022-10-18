@@ -19,16 +19,18 @@ set.seed(1)
 n <- 30
 p <- 10
 
-sigma.2.beta.eg <- 10000
+mu.beta <- rep(0, p)
+Sigma.beta <- 10000*diag(p)
 
-X.eg <- cbind(rep(1, n), matrix(data = rnorm(n = n*(p - 1)), nrow = n))
-beta.eg <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p
-y.eg <- rbinom(n = nrow(X.eg), size = 1, prob = plogis(X.eg%*%beta.eg))
+X <- cbind(rep(1, n), matrix(data = rnorm(n = n*(p - 1)), nrow = n))
+beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p
+y <- rbinom(n = nrow(X), size = 1, prob = plogis(X%*%beta))
 ```
 
 ```{r EP approximation}
 set.seed(1)
-ep.res <- ep.approx(X.eg, y.eg, sigma.2.beta.eg, alpha = 1, lambda.init = 0.5,
+ep.res <- ep.approx(X, y, mu.beta, Sigma.beta, 
+                    alpha = 1, lambda.init = 0.5,
                     max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
@@ -40,10 +42,10 @@ set.seed(1)
 stan.res <- stan(file = "Logistic-model.stan",
                  data = list(N = n,
                              p = p,
-                             X = X.eg,
-                             y = y.eg,
-                             mu_beta = rep(0, p),
-                             Sigma_beta = sigma.2.beta.eg*diag(p)),
+                             X = X,
+                             y = y,
+                             mu_beta = mu.beta,
+                             Sigma_beta = Sigma.beta),
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,

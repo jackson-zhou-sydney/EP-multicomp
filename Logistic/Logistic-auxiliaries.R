@@ -41,11 +41,11 @@ I.r <- function(y, m, V) {
   }
 }
 
-ep.approx <- function(X, y, sigma.2.beta, alpha, lambda.init,
+ep.approx <- function(X, y, mu.beta, Sigma.beta,
+                      alpha, lambda.init,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian logistic regression
-  if (!is.matrix(X)) X <- as.matrix(X)
   n <- nrow(X)
   p <- ncol(X)
   stop.ep <- F
@@ -59,13 +59,16 @@ ep.approx <- function(X, y, sigma.2.beta, alpha, lambda.init,
   Q.values <- array(dim = c(p, p, n + 1))
   r.values <- matrix(nrow = n + 1, ncol = p)
   
+  Q.p <- force.sym(solve(Sigma.beta))
+  r.p <- force.sym(solve(Sigma.beta))%*%mu.beta
+  
   for (i in 1:(n + 1)) {
     if (i <= n) {
-      Q.values[, , i] <- (init.Sigma.inv - solve(sigma.2.beta*diag(p)))/n
-      r.values[i, ] <- (init.Sigma.inv%*%init.mu)/n
+      Q.values[, , i] <- (init.Sigma.inv - Q.p)/n
+      r.values[i, ] <- (init.Sigma.inv%*%init.mu - r.p)/n
     } else {
-      Q.values[, , i] <- solve(sigma.2.beta*diag(p))
-      r.values[i, ] <- rep(0, p)
+      Q.values[, , i] <- Q.p
+      r.values[i, ] <- r.p
     }
   }
   
