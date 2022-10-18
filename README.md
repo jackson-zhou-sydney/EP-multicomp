@@ -10,6 +10,7 @@ These include:
 - Heteroscedastic linear regression
 - Lasso linear regression
 - Elastic net linear regression
+- Quantile regression
 - Random intercept linear regression
 
 For each model, the performance of EP is compared to other standard Bayesian approaches (mainly Laplace and mean-field variational Bayes) on some simulated data and benchmark datasets.
