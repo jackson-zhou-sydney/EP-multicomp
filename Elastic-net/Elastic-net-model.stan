@@ -8,8 +8,8 @@ data {
   vector[N] y;
   real mu_kappa;
   real<lower=0> sigma_2_kappa;
-  real lambda_1;
-  real lambda_2;
+  real<lower=0> lambda_1;
+  real<lower=0> lambda_2;
 }
 
 parameters {
