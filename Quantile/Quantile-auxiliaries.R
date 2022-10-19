@@ -44,7 +44,7 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
   stop.ep <- F
   
   # Obtaining initial estimates
-  init.mu <- c(unname(coef(rq(y ~ X[, -1]))), 0)
+  init.mu <- c(unname(coef(rq(y ~ X[, -1], tau))), 0)
   init.Sigma <- diag(p + 1)
   init.Sigma.inv <- force.sym(solve(init.Sigma))
   
