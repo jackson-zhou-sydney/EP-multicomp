@@ -1,8 +1,6 @@
 
 # Auxiliary functions and variables for elastic net linear regression
 
-library(glmnet) # Fast ridge regression estimates
-
 r.coef.1 <- function(n, p) {
   # r coefficient for likelihood sites
   c(rep(1/(n + 2), p), 1/(n + 2*p))

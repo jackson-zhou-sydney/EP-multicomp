@@ -1,8 +1,6 @@
 
 # EP code for Bayesian quantile regression
 
-library(quantreg)
-
 I.r <- function(y, tau, m, V, eta, mult, maxEval, tol) {
   # Hybrid integrals for sites
   m.1 <- m[1]

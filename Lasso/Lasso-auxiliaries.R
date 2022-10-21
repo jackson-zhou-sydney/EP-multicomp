@@ -1,8 +1,6 @@
 
 # Auxiliary functions and variables for lasso linear regression
 
-library(glmnet) # Fast ridge regression estimates
-
 r.coef.1 <- function(n, p) {
   # r coefficient for likelihood sites
   c(rep(1/(n + 1), p), 1/(n + p))

@@ -1,6 +1,10 @@
 
 # General auxiliary functions and variables for expectation propagation
 
+library(glmnet)   # Fast ridge regression estimates
+library(quantreg) # Quantile regression estimates
+library(lme4)     # Fast linear mixed model estimates
+
 err <- function(e) {
   # Return NA on error
   return(NA)

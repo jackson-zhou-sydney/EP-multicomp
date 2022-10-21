@@ -1,8 +1,6 @@
 
 # Auxiliary functions and variables for random intercept linear regression
 
-library(lme4) # Fast linear mixed model estimates
-
 r.coef.1 <- function(n, p, q, i, Z) {
   # r coefficient for likelihood sites
   k <- which(Z[i, ] == 1)
