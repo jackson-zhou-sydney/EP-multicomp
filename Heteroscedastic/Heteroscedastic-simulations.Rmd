@@ -43,7 +43,7 @@ laplace.Sigma <- laplace.res$Sigma
 set.seed(1)
 ep.res <- ep.approx(X.1, X.2, y, mu.theta, Sigma.theta, 
                     eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
-                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
+                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.01, 
                     rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
