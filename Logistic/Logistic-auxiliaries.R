@@ -36,7 +36,7 @@ I.r <- function(m, V) {
 }
 
 ep.approx <- function(X, y, mu.beta, Sigma.beta,
-                      alpha, lambda.init,
+                      alpha, Q.star, r.star, prec,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian logistic regression
@@ -45,30 +45,20 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
   p <- ncol(X)
   stop.ep <- F
   
-  # Obtaining initial estimates
-  init.mu <- as.vector(coef(glmnet(X[, -1], y, family = binomial(link = "logit"), alpha = 0, lambda = lambda.init)))
-  init.Sigma <- diag(p)
-  init.Sigma.inv <- force.sym(solve(init.Sigma))
-  
   # Parameter initialisation
-  Q.values <- array(dim = c(p, p, n + 1))
-  r.values <- matrix(nrow = n + 1, ncol = p)
+  Q.star.values <- array(dim = c(1, 1, n))
+  r.star.values <- matrix(nrow = n, ncol = 1)
   
-  Q.p <- force.sym(solve(Sigma.beta))
-  r.p <- force.sym(solve(Sigma.beta))%*%mu.beta
+  Q.sum <- prec*diag(p) + force.sym(solve(Sigma.beta))
+  r.sum <- rep(0, p)
   
-  for (i in 1:(n + 1)) {
-    if (i <= n) {
-      Q.values[, , i] <- (init.Sigma.inv - Q.p)/n
-      r.values[i, ] <- (init.Sigma.inv%*%init.mu - r.p)/n
-    } else {
-      Q.values[, , i] <- Q.p
-      r.values[i, ] <- r.p
-    }
+  for (i in 1:n) {
+    W <- Z[i, ]
+    Q.star.values[, , i] <- Q.star
+    r.star.values[i, ] <- r.star
+    Q.sum <- Q.sum + W%*%as.matrix(Q.star.values[, , i])%*%t(W)
+    r.sum <- r.sum + W%*%as.matrix(r.star.values[i, ])
   }
-  
-  Q.sum <- rowSums(Q.values, dims = 2)
-  r.sum <- colSums(r.values)
   
   # Delta initialisation
   deltas <- matrix(-1, nrow = max.passes*n, ncol = 5)
@@ -85,13 +75,13 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
     
     for (i in sample(1:n)) {
       # Setting up
-      Q.cavity <- Q.sum - Q.values[, , i]
+      W <- Z[i, ]
+      Q.cavity <- Q.sum - W%*%as.matrix(Q.star.values[, , i])%*%t(W)
       Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
       if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
-      r.cavity <- r.sum - r.values[i, ]
+      r.cavity <- r.sum - W%*%as.matrix(r.star.values[i, ])
       mu.cavity <- Q.cavity.inv%*%r.cavity
       Sigma.cavity <- Q.cavity.inv
-      W <- Z[i, ]
       m <- t(W)%*%mu.cavity
       V <- force.sym(t(W)%*%Sigma.cavity%*%W)
       if (det(V) < 0) {
@@ -134,7 +124,11 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
       Q.updated <- Sigma.hybrid.inv - Q.cavity
       r.updated <- Sigma.hybrid.inv%*%mu.hybrid - r.cavity
       
-      delta <- max(norm(r.updated - r.values[i, ], "2"), norm(Q.updated - Q.values[, , i], "F"))
+      W.r <- rowSums(as.matrix(W))
+      Q.star.updated <- (Q.updated/(W.r%*%t(W.r)))[p, p]
+      r.star.updated <- (r.updated/W.r)[p]
+      
+      delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(as.matrix(Q.star.updated - Q.star.values[, , i]), "F"))
       
       if (is.na(delta) || delta > tol.factor*prev.med.delta || delta > delta.limit) {
         deltas[index, ] <- c(index, iteration, i, delta, 1)
@@ -145,12 +139,12 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
         index <- index + 1
       }
       
-      Q.new <- (1 - alpha)*Q.values[, , i] + alpha*Q.updated
-      r.new <- (1 - alpha)*r.values[i, ] + alpha*r.updated
-      Q.sum <- Q.sum - Q.values[, , i] + Q.new
-      r.sum <- r.sum - r.values[i, ] + r.new
-      Q.values[, , i] <- Q.new
-      r.values[i, ] <- r.new
+      Q.star.new <- (1 - alpha)*Q.star.values[, , i] + alpha*Q.star.updated
+      r.star.new <- (1 - alpha)*r.star.values[i, ] + alpha*r.star.updated
+      Q.sum <- Q.sum - W%*%as.matrix(Q.star.values[, , i])%*%t(W) + W%*%as.matrix(Q.star.new)%*%t(W)
+      r.sum <- r.sum - W%*%as.matrix(r.star.values[i, ]) + W%*%as.matrix(r.star.new)
+      Q.star.values[, , i] <- Q.star.new
+      r.star.values[i, ] <- r.star.new
     }
     
     iteration.deltas <- deltas[deltas[, "iteration"] == iteration & deltas[, "skip"] == 0, ][, "delta"]
