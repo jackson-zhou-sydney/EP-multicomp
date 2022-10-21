@@ -1,8 +1,6 @@
 
 # Auxiliary functions and variables for heteroscedastic linear regression
 
-library(glmnet) # Fast ridge regression estimates
-
 log.joint.likelihood <- function(theta, X.1, X.2, y, mu.theta, Sigma.theta) {
   # Log joint likelihood
   n <- nrow(X.1)
@@ -60,7 +58,7 @@ I.r <- function(y, m, V, eta, mult, maxEval, tol) {
 }
 
 ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
-                      eta, alpha, lambda.init,
+                      eta, alpha, Q.star, r.star, prec,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian heteroscedastic linear regression
@@ -69,30 +67,20 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
   p.2 <- ncol(X.2)
   stop.ep <- F
   
-  # Obtaining initial estimates
-  init.mu <- c(as.vector(coef(glmnet(X.1[, -1], y, alpha = 0, lambda = lambda.init))), rep(0, p.2))
-  init.Sigma <- diag(p.1 + p.2)
-  init.Sigma.inv <- force.sym(solve(init.Sigma))
-  
   # Parameter initialisation
-  Q.values <- array(dim = c(p.1 + p.2, p.1 + p.2, n + 1))
-  r.values <- matrix(nrow = n + 1, ncol = p.1 + p.2)
+  Q.star.values <- array(dim = c(2, 2, n))
+  r.star.values <- matrix(nrow = n, ncol = 2)
   
-  Q.p <- force.sym(solve(Sigma.theta))
-  r.p <- force.sym(solve(Sigma.theta))%*%mu.theta
+  Q.sum <- prec*diag(p.1 + p.2) + force.sym(solve(Sigma.theta))
+  r.sum <- rep(0, p.1 + p.2)
   
-  for (i in 1:(n + 1)) {
-    if (i <= n) {
-      Q.values[, , i] <- (init.Sigma.inv - Q.p)/n
-      r.values[i, ] <- (init.Sigma.inv%*%init.mu - r.p)/n
-    } else {
-      Q.values[, , i] <- Q.p
-      r.values[i, ] <- r.p
-    }
+  for (i in 1:n) {
+    W <- cbind(c(X.1[i, ], rep(0, p.2)), c(rep(0, p.1), X.2[i, ]))
+    Q.star.values[, , i] <- Q.star
+    r.star.values[i, ] <- r.star
+    Q.sum <- Q.sum + W%*%Q.star.values[, , i]%*%t(W)
+    r.sum <- r.sum + W%*%r.star.values[i, ]
   }
-  
-  Q.sum <- rowSums(Q.values, dims = 2)
-  r.sum <- colSums(r.values)
   
   # Delta initialisation
   deltas <- matrix(-1, nrow = max.passes*n, ncol = 5)
@@ -109,13 +97,13 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
     
     for (i in sample(1:n)) {
       # Setting up
-      Q.cavity <- Q.sum - eta*Q.values[, , i]
+      W <- cbind(c(X.1[i, ], rep(0, p.2)), c(rep(0, p.1), X.2[i, ]))
+      Q.cavity <- Q.sum - eta*W%*%Q.star.values[, , i]%*%t(W)
       Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
       if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
-      r.cavity <- r.sum - eta*r.values[i, ]
+      r.cavity <- r.sum - eta*W%*%r.star.values[i, ]
       mu.cavity <- Q.cavity.inv%*%r.cavity
       Sigma.cavity <- Q.cavity.inv
-      W <- cbind(c(X.1[i, ], rep(0, p.2)), c(rep(0, p.1), X.2[i, ]))
       m <- t(W)%*%mu.cavity
       V <- force.sym(t(W)%*%Sigma.cavity%*%W)
       if (det(V) < 0) {
@@ -158,7 +146,11 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
       Q.updated <- (Sigma.hybrid.inv - Q.cavity)/eta
       r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
       
-      delta <- max(norm(r.updated - r.values[i, ], "2"), norm(Q.updated - Q.values[, , i], "F"))
+      W.r <- rowSums(W)
+      Q.star.updated <- (Q.updated/(W.r%*%t(W.r)))[c(p.1, p.1 + p.2), c(p.1, p.1 + p.2)]
+      r.star.updated <- (r.updated/W.r)[c(p.1, p.1 + p.2)]
+      
+      delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(Q.star.updated - Q.star.values[, , i], "F"))
       
       if (is.na(delta) || delta > tol.factor*prev.med.delta || delta > delta.limit) {
         deltas[index, ] <- c(index, iteration, i, delta, 1)
@@ -169,12 +161,12 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
         index <- index + 1
       }
       
-      Q.new <- (1 - alpha)*Q.values[, , i] + alpha*Q.updated
-      r.new <- (1 - alpha)*r.values[i, ] + alpha*r.updated
-      Q.sum <- Q.sum - Q.values[, , i] + Q.new
-      r.sum <- r.sum - r.values[i, ] + r.new
-      Q.values[, , i] <- Q.new
-      r.values[i, ] <- r.new
+      Q.star.new <- (1 - alpha)*Q.star.values[, , i] + alpha*Q.star.updated
+      r.star.new <- (1 - alpha)*r.star.values[i, ] + alpha*r.star.updated
+      Q.sum <- Q.sum - W%*%Q.star.values[, , i]%*%t(W) + W%*%Q.star.new%*%t(W)
+      r.sum <- r.sum - W%*%r.star.values[i, ] + W%*%r.star.new
+      Q.star.values[, , i] <- Q.star.new
+      r.star.values[i, ] <- r.star.new
     }
     
     iteration.deltas <- deltas[deltas[, "iteration"] == iteration & deltas[, "skip"] == 0, ][, "delta"]
