@@ -23,22 +23,16 @@ B.2 <- function(mu, sigma.2) {
   sum(p.8*(pnorm(mu*s.8/sqrt(1 + sigma.2*s.8^2)) - ((mu*sigma.2*s.8^3)/((1 + sigma.2*s.8^2)^1.5))*dnorm(mu*s.8/sqrt(1 + sigma.2*s.8^2))))
 }
 
-I.r <- function(y, m, V) {
+I.r <- function(m, V) {
   # Hybrid integrals for sites
   m <- as.numeric(m); v <- as.numeric(V)
   B.0 <- B.0(m, v)
   B.1 <- B.1(m, v)
   B.2 <- B.2(m, v)
   
-  if (y == 1) {
-    list(I.0 = B.0, 
-         I.1 = m*B.0 + sqrt(v)*B.1, 
-         I.2 = m^2*B.0 + 2*m*sqrt(v)*B.1 + v*B.2)
-  } else {
-    list(I.0 = 1 - B.0, 
-         I.1 = m - (m*B.0 + sqrt(v)*B.1), 
-         I.2 = m^2 + v - (m^2*B.0 + 2*m*sqrt(v)*B.1 + v*B.2))
-  }
+  list(I.0 = B.0, 
+       I.1 = m*B.0 + sqrt(v)*B.1, 
+       I.2 = m^2*B.0 + 2*m*sqrt(v)*B.1 + v*B.2)
 }
 
 ep.approx <- function(X, y, mu.beta, Sigma.beta,
@@ -46,6 +40,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
                       max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian logistic regression
+  Z <- X*(2*y - 1)
   n <- nrow(X)
   p <- ncol(X)
   stop.ep <- F
@@ -96,7 +91,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
       r.cavity <- r.sum - r.values[i, ]
       mu.cavity <- Q.cavity.inv%*%r.cavity
       Sigma.cavity <- Q.cavity.inv
-      W <- X[i, ]
+      W <- Z[i, ]
       m <- t(W)%*%mu.cavity
       V <- force.sym(t(W)%*%Sigma.cavity%*%W)
       if (det(V) < 0) {
@@ -108,7 +103,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
       U <- Sigma.cavity%*%W
       
       # Computing function values, gradients and Hessians at 0
-      I.r.res <- tryCatch(I.r(y[i], m, V), error = err)
+      I.r.res <- tryCatch(I.r(m, V), error = err)
       if (!is.list(I.r.res)) {
         print(paste0("Warning: error in hybrid integral at i = ", i))
         deltas[index, ] <- c(index, iteration, i, NA, 1)
