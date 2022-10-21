@@ -47,8 +47,11 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
   Q.star.values <- array(dim = c(1, 1, n))
   r.star.values <- matrix(nrow = n, ncol = 1)
   
-  Q.sum <- prec*diag(p) + force.sym(solve(Sigma.beta))
-  r.sum <- rep(0, p)
+  Q.p <- force.sym(solve(Sigma.beta))
+  r.p <- Q.p%*%mu.beta
+  
+  Q.sum <- prec*diag(p) + Q.p
+  r.sum <- r.p
   
   for (i in 1:n) {
     W <- Z[i, ]
