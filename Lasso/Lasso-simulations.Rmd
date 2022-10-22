@@ -43,8 +43,8 @@ y <- rnorm(n, X%*%beta, sigma)
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                     lambda, eta = 0.9, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
-                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.01, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -95,8 +95,8 @@ y <- rnorm(n, X%*%beta, sigma)
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                     lambda, eta = 0.9, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
-                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.01, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -147,8 +147,8 @@ y <- rnorm(n, X%*%beta, sigma)
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                     lambda, eta = 0.9, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
-                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.01, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -195,8 +195,8 @@ p <- ncol(X)
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                     lambda, eta = 0.9, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
-                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.01, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -243,8 +243,8 @@ p <- ncol(X)
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                     lambda, eta = 0.9, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
-                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.01, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -291,8 +291,8 @@ p <- ncol(X)
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                     lambda, eta = 0.9, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
-                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 600, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 600, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
