@@ -59,8 +59,8 @@ I.r <- function(y, m, V, eta, mult, maxEval, tol) {
 
 ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
                       eta, alpha, Q.star, r.star, prec,
-                      max.passes, tol.factor, stop.factor, abs.thresh, 
-                      rel.thresh, delta.limit, patience, verbose) {
+                      min.passes, max.passes, tol.factor, stop.factor, 
+                      abs.thresh, rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian heteroscedastic linear regression
   n <- nrow(X.1)
   p.1 <- ncol(X.1)
@@ -71,14 +71,17 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
   Q.star.values <- array(dim = c(2, 2, n))
   r.star.values <- matrix(nrow = n, ncol = 2)
   
-  Q.sum <- prec*diag(p.1 + p.2) + force.sym(solve(Sigma.theta))
-  r.sum <- rep(0, p.1 + p.2)
+  Q.p <- force.sym(solve(Sigma.theta))
+  r.p <- Q.p%*%mu.theta
+  
+  Q.sum <- prec*diag(p.1 + p.2) + Q.p
+  r.sum <- r.p
   
   for (i in 1:n) {
     W <- cbind(c(X.1[i, ], rep(0, p.2)), c(rep(0, p.1), X.2[i, ]))
     Q.star.values[, , i] <- Q.star
     r.star.values[i, ] <- r.star
-    Q.sum <- Q.sum + W%*%Q.star.values[, , i]%*%t(W)
+    Q.sum <- Q.sum + force.sym(W%*%Q.star.values[, , i]%*%t(W))
     r.sum <- r.sum + W%*%r.star.values[i, ]
   }
   
@@ -98,7 +101,7 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
     for (i in sample(1:n)) {
       # Setting up
       W <- cbind(c(X.1[i, ], rep(0, p.2)), c(rep(0, p.1), X.2[i, ]))
-      Q.cavity <- Q.sum - eta*W%*%Q.star.values[, , i]%*%t(W)
+      Q.cavity <- Q.sum - eta*force.sym(W%*%Q.star.values[, , i]%*%t(W))
       Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
       if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
       r.cavity <- r.sum - eta*W%*%r.star.values[i, ]
@@ -147,8 +150,11 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
       r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
       
       W.r <- rowSums(W)
-      Q.star.updated <- (Q.updated/(W.r%*%t(W.r)))[c(p.1, p.1 + p.2), c(p.1, p.1 + p.2)]
-      r.star.updated <- (r.updated/W.r)[c(p.1, p.1 + p.2)]
+      Q.ratio <- Q.updated/(W.r%*%t(W.r))
+      r.ratio <- r.updated/W.r
+      
+      Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:p.1, (p.1 + 1):(p.1 + p.2))))
+      r.star.updated <- c(mean(r.ratio[1:p.1]), mean(r.ratio[(p.1 + 1):(p.1 + p.2)]))
       
       delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(Q.star.updated - Q.star.values[, , i], "F"))
       
@@ -163,7 +169,7 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
       
       Q.star.new <- (1 - alpha)*Q.star.values[, , i] + alpha*Q.star.updated
       r.star.new <- (1 - alpha)*r.star.values[i, ] + alpha*r.star.updated
-      Q.sum <- Q.sum - W%*%Q.star.values[, , i]%*%t(W) + W%*%Q.star.new%*%t(W)
+      Q.sum <- Q.sum - force.sym(W%*%Q.star.values[, , i]%*%t(W)) + force.sym(W%*%Q.star.new%*%t(W))
       r.sum <- r.sum - W%*%r.star.values[i, ] + W%*%r.star.new
       Q.star.values[, , i] <- Q.star.new
       r.star.values[i, ] <- r.star.new
@@ -178,7 +184,7 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
     }
     
     if (stop.ep) {print("Too many numerical errors; stopping EP"); break}
-    if (max.delta < abs.thresh) {print("EP has converged; stopping EP"); break}
+    if (max.delta < abs.thresh && iteration > min.passes) {print("EP has converged; stopping EP"); break}
     if (max.delta > stop.factor*prev.max.delta) {print("Unstable deltas; stopping EP"); break}
     if (max.delta > rel.thresh*prev.max.delta) pcount <- pcount + 1 else pcount <- 0
     if (pcount == patience) {print("Out of patience; stopping EP"); break}
