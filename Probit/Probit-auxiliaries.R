@@ -30,8 +30,8 @@ I.r <- function(m, V) {
 
 ep.approx <- function(X, y, mu.beta, Sigma.beta, 
                       alpha, Q.star, r.star, prec,
-                      max.passes, tol.factor, stop.factor, abs.thresh, 
-                      rel.thresh, delta.limit, patience, verbose) {
+                      min.passes, max.passes, tol.factor, stop.factor, 
+                      abs.thresh, rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian probit regression
   Z <- X*(2*y - 1)
   n <- nrow(X)
@@ -52,7 +52,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
     W <- Z[i, ]
     Q.star.values[, , i] <- Q.star
     r.star.values[i, ] <- r.star
-    Q.sum <- Q.sum + W%*%as.matrix(Q.star.values[, , i])%*%t(W)
+    Q.sum <- Q.sum + force.sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W))
     r.sum <- r.sum + W%*%as.matrix(r.star.values[i, ])
   }
   
@@ -72,7 +72,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
     for (i in sample(1:n)) {
       # Setting up
       W <- Z[i, ]
-      Q.cavity <- Q.sum - W%*%as.matrix(Q.star.values[, , i])%*%t(W)
+      Q.cavity <- Q.sum - force.sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W))
       Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
       if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
       r.cavity <- r.sum - W%*%as.matrix(r.star.values[i, ])
@@ -121,8 +121,11 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
       r.updated <- Sigma.hybrid.inv%*%mu.hybrid - r.cavity
       
       W.r <- rowSums(as.matrix(W))
-      Q.star.updated <- (Q.updated/(W.r%*%t(W.r)))[p, p]
-      r.star.updated <- (r.updated/W.r)[p]
+      Q.ratio <- Q.updated/(W.r%*%t(W.r))
+      r.ratio <- r.updated/W.r
+      
+      Q.star.updated <- as.numeric(block.mean(Q.ratio, list(1:p)))
+      r.star.updated <- mean(r.ratio[1:p])
       
       delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(as.matrix(Q.star.updated - Q.star.values[, , i]), "F"))
       
@@ -137,7 +140,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
       
       Q.star.new <- (1 - alpha)*Q.star.values[, , i] + alpha*Q.star.updated
       r.star.new <- (1 - alpha)*r.star.values[i, ] + alpha*r.star.updated
-      Q.sum <- Q.sum - W%*%as.matrix(Q.star.values[, , i])%*%t(W) + W%*%as.matrix(Q.star.new)%*%t(W)
+      Q.sum <- Q.sum - force.sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W)) + force.sym(W%*%as.matrix(Q.star.new)%*%t(W))
       r.sum <- r.sum - W%*%as.matrix(r.star.values[i, ]) + W%*%as.matrix(r.star.new)
       Q.star.values[, , i] <- Q.star.new
       r.star.values[i, ] <- r.star.new
@@ -152,7 +155,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
     }
     
     if (stop.ep) {print("Too many numerical errors; stopping EP"); break}
-    if (max.delta < abs.thresh) {print("EP has converged; stopping EP"); break}
+    if (max.delta < abs.thresh && iteration > min.passes) {print("EP has converged; stopping EP"); break}
     if (max.delta > stop.factor*prev.max.delta) {print("Unstable deltas; stopping EP"); break}
     if (max.delta > rel.thresh*prev.max.delta) pcount <- pcount + 1 else pcount <- 0
     if (pcount == patience) {print("Out of patience; stopping EP"); break}

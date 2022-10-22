@@ -27,8 +27,8 @@ y <- rbinom(n = nrow(X), size = 1, prob = plogis(X%*%beta))
 set.seed(1)
 ep.res <- ep.approx(X, y, mu.beta, Sigma.beta, 
                     alpha = 1, Q.star = 0.01, r.star = 0, prec = 0,
-                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.01, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf, 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 ```
