@@ -17,6 +17,14 @@ force.sym <- function(m) {
   return(m.sym)
 }
 
+block.mean <- function(m, l) {
+  # Block-wise mean of matrix
+  weight <- matrix(0, nrow = nrow(m), ncol = length(l))
+  for (i in 1:length(l)) weight[l[[i]], i] <- 1
+  weight.c <- colSums(weight)
+  (t(weight)%*%m%*%weight)/(weight.c%*%t(weight.c))
+}
+
 GI.0 <- function(x) {
   # Gaussian integral (0th raw moment)
   a <- x[1]; b <- x[2]; c <- x[3]
