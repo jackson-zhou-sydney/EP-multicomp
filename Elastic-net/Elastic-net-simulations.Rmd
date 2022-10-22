@@ -6,10 +6,6 @@ output: html_document
 ---
 
 ```{r Sourcing auxiliary functions}
-library(tidyverse) # Data manipulation and plotting
-library(rstan)     # Robust MCMC and diagnostics
-library(EnvStats)  # Compute empirical densities
-
 source("../EP-general-auxiliaries.R")
 source("Elastic-net-auxiliaries.R")
 ```
