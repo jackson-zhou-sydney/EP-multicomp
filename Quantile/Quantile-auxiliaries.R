@@ -33,38 +33,31 @@ I.r <- function(y, tau, m, V, eta, mult, maxEval, tol) {
 }
 
 ep.approx <- function(X, y, mu.theta, Sigma.theta, 
-                      tau, eta, alpha, 
-                      max.passes, tol.factor, stop.factor, abs.thresh, 
-                      rel.thresh, delta.limit, patience, verbose) {
+                      tau, eta, alpha, Q.star, r.star, prec,
+                      min.passes, max.passes, tol.factor, stop.factor, 
+                      abs.thresh, rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian quantile regression
   n <- nrow(X)
   p <- ncol(X)
   stop.ep <- F
   
-  # Obtaining initial estimates
-  init.mu <- c(unname(coef(rq(y ~ X[, -1], tau))), 0)
-  init.Sigma <- diag(p + 1)
-  init.Sigma.inv <- force.sym(solve(init.Sigma))
-  
   # Parameter initialisation
-  Q.values <- array(dim = c(p + 1, p + 1, n + 1))
-  r.values <- matrix(nrow = n + 1, ncol = p + 1)
+  Q.star.values <- array(dim = c(2, 2, n))
+  r.star.values <- matrix(nrow = n, ncol = 2)
   
   Q.p <- force.sym(solve(Sigma.theta))
-  r.p <- force.sym(solve(Sigma.theta))%*%mu.theta
+  r.p <- Q.p%*%mu.theta
   
-  for (i in 1:(n + 1)) {
-    if (i <= n) {
-      Q.values[, , i] <- (init.Sigma.inv - Q.p)/n
-      r.values[i, ] <- (init.Sigma.inv%*%init.mu - r.p)/n
-    } else {
-      Q.values[, , i] <- Q.p
-      r.values[i, ] <- r.p
-    }
+  Q.sum <- prec*diag(p + 1) + Q.p
+  r.sum <- r.p
+  
+  for (i in 1:n) {
+    W <- cbind(c(X[i, ], 0), c(rep(0, p), 1))
+    Q.star.values[, , i] <- Q.star
+    r.star.values[i, ] <- r.star
+    Q.sum <- Q.sum + force.sym(W%*%Q.star.values[, , i]%*%t(W))
+    r.sum <- r.sum + W%*%r.star.values[i, ]
   }
-  
-  Q.sum <- rowSums(Q.values, dims = 2)
-  r.sum <- colSums(r.values)
   
   # Delta initialisation
   deltas <- matrix(-1, nrow = max.passes*n, ncol = 5)
@@ -81,13 +74,13 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
     
     for (i in sample(1:n)) {
       # Setting up
-      Q.cavity <- Q.sum - eta*Q.values[, , i]
+      W <- cbind(c(X[i, ], 0), c(rep(0, p), 1))
+      Q.cavity <- Q.sum - eta*force.sym(W%*%Q.star.values[, , i]%*%t(W))
       Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
       if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
-      r.cavity <- r.sum - eta*r.values[i, ]
+      r.cavity <- r.sum - eta*W%*%r.star.values[i, ]
       mu.cavity <- Q.cavity.inv%*%r.cavity
       Sigma.cavity <- Q.cavity.inv
-      W <- cbind(c(X[i, ], 0), c(rep(0, p), 1))
       m <- t(W)%*%mu.cavity
       V <- force.sym(t(W)%*%Sigma.cavity%*%W)
       if (det(V) < 0) {
@@ -130,7 +123,14 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
       Q.updated <- (Sigma.hybrid.inv - Q.cavity)/eta
       r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
       
-      delta <- max(norm(r.updated - r.values[i, ], "2"), norm(Q.updated - Q.values[, , i], "F"))
+      W.r <- rowSums(W)
+      Q.ratio <- Q.updated/(W.r%*%t(W.r))
+      r.ratio <- r.updated/W.r
+      
+      Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:p, p + 1)))
+      r.star.updated <- c(mean(r.ratio[1:p]), r.ratio[p + 1])
+      
+      delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(Q.star.updated - Q.star.values[, , i], "F"))
       
       if (is.na(delta) || delta > tol.factor*prev.med.delta || delta > delta.limit) {
         deltas[index, ] <- c(index, iteration, i, delta, 1)
@@ -141,12 +141,12 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
         index <- index + 1
       }
       
-      Q.new <- (1 - alpha)*Q.values[, , i] + alpha*Q.updated
-      r.new <- (1 - alpha)*r.values[i, ] + alpha*r.updated
-      Q.sum <- Q.sum - Q.values[, , i] + Q.new
-      r.sum <- r.sum - r.values[i, ] + r.new
-      Q.values[, , i] <- Q.new
-      r.values[i, ] <- r.new
+      Q.star.new <- (1 - alpha)*Q.star.values[, , i] + alpha*Q.star.updated
+      r.star.new <- (1 - alpha)*r.star.values[i, ] + alpha*r.star.updated
+      Q.sum <- Q.sum - force.sym(W%*%Q.star.values[, , i]%*%t(W)) + force.sym(W%*%Q.star.new%*%t(W))
+      r.sum <- r.sum - W%*%r.star.values[i, ] + W%*%r.star.new
+      Q.star.values[, , i] <- Q.star.new
+      r.star.values[i, ] <- r.star.new
     }
     
     iteration.deltas <- deltas[deltas[, "iteration"] == iteration & deltas[, "skip"] == 0, ][, "delta"]
@@ -158,7 +158,7 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
     }
     
     if (stop.ep) {print("Too many numerical errors; stopping EP"); break}
-    if (max.delta < abs.thresh) {print("EP has converged; stopping EP"); break}
+    if (max.delta < abs.thresh && iteration > min.passes) {print("EP has converged; stopping EP"); break}
     if (max.delta > stop.factor*prev.max.delta) {print("Unstable deltas; stopping EP"); break}
     if (max.delta > rel.thresh*prev.max.delta) pcount <- pcount + 1 else pcount <- 0
     if (pcount == patience) {print("Out of patience; stopping EP"); break}
