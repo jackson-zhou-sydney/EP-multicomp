@@ -1,6 +1,39 @@
 
 # Auxiliary functions and variables for random intercept linear regression
 
+log.joint.likelihood <- function(theta, X, Z, y, mu.bk, Sigma.bk) {
+  # Log joint likelihood
+  n <- nrow(X)
+  p <- ncol(X)
+  q <- ncol(Z)
+  
+  beta <- theta[1:p]
+  u <- theta[(p + 1):(p + q)]
+  kappa.y <- theta[p + q + 1]
+  kappa.u <- theta[p + q + 2]
+  bk <- c(beta, kappa.y, kappa.u)
+  
+  as.numeric(-0.5*(2*n*kappa.y + sum((y - X%*%beta - Z%*%u)^2)/exp(2*kappa.y)) - 0.5*(2*q*kappa.u + sum(u^2)/exp(2*kappa.u)) - 0.5*t(bk - mu.bk)%*%solve(Sigma.bk)%*%(bk - mu.bk))
+}
+
+laplace.approx <- function(X, Z, y, mu.bk, Sigma.bk, maxit) {
+  # Laplace approximation
+  p <- ncol(X)
+  q <- ncol(Z)
+  
+  combined.df <- as.data.frame(cbind(X[, -1], group = as.vector(Z%*%1:q), y))
+  combined.df$group <- as.factor(combined.df$group)
+  lmer.res <- lmer(eval(parse(text = paste0("y ~ (1 | group) + ", paste0("V", 1:(p - 1), collapse = " + ")))), 
+                   data = combined.df)
+  start <- c(lmer.res@beta, lmer.res@u, log(as.data.frame(VarCorr(lmer.res))$sdcor[2:1]))
+  optim.res <- optim(start, fn = log.joint.likelihood, 
+                     method = "BFGS", 
+                     control = list(fnscale = -1, maxit = maxit),
+                     hessian = T,
+                     X = X, Z = Z, y = y, mu.bk = mu.bk, Sigma.bk = Sigma.bk)
+  return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
+}
+
 I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
   # Hybrid integrals for likelihood sites
   m.1 <- m[1]
