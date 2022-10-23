@@ -1,47 +1,6 @@
 
 # Auxiliary functions and variables for random intercept linear regression
 
-r.coef.1 <- function(n, p, q, i, Z) {
-  # r coefficient for likelihood sites
-  k <- which(Z[i, ] == 1)
-  n.k <- sum(Z[, k])
-  current.vector <- numeric(p + q + 2)
-  current.vector[1:p] <- 1/n
-  current.vector[p + k] <- 1/(n.k + 1)
-  current.vector[p + q + 1] <- 1/n
-  return(current.vector)
-}
-
-r.coef.2 <- function(n, p, q, k, Z) {
-  # r coefficient for random effect sites
-  n.k <- sum(Z[, k])
-  current.vector <- numeric(p + q + 2)
-  current.vector[p + k] <- 1/(n.k + 1)
-  current.vector[p + q + 2] <- 1/q
-  return(current.vector)
-}
-
-Q.coef.1 <- function(n, p, q, i, Z) {
-  # Q coefficient for likelihood sites
-  k <- which(Z[i, ] == 1)
-  n.k <- sum(Z[, k])
-  current.matrix <- matrix(0, nrow = p + q + 2, ncol = p + q + 2)
-  current.matrix[c(1:p, p + q + 1), c(1:p, p + q + 1)] <- 1/n
-  current.matrix[p + k, c(1:p, p + q + 1)] <- 1/n.k
-  current.matrix[c(1:p, p + q + 1), p + k] <- 1/n.k
-  diag(current.matrix) <- r.coef.1(n, p, q, i, Z)
-  return(current.matrix)
-}
-
-Q.coef.2 <- function(n, p, q, k, Z) {
-  # Q coefficient for random effect sites
-  current.matrix <- matrix(0, nrow = p + q + 2, ncol = p + q + 2)
-  current.matrix[p + k, p + q + 2] <- 1
-  current.matrix[p + q + 2, p + k] <- 1
-  diag(current.matrix) <- r.coef.2(n, p, q, k, Z)
-  return(current.matrix)
-}
-
 I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
   # Hybrid integrals for likelihood sites
   m.1 <- m[1]
@@ -105,8 +64,8 @@ I.r.2 <- function(m, V, eta, mult, maxEval, tol) {
 }
 
 ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
-                      eta, alpha,
-                      max.passes, tol.factor, stop.factor, abs.thresh, 
+                      eta, alpha, Q.star, r.star, prec,
+                      min.passes, max.passes, tol.factor, stop.factor, abs.thresh, 
                       rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian random intercept linear regression
   n <- nrow(X)
@@ -114,18 +73,9 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
   q <- ncol(Z)
   stop.ep <- F
   
-  # Obtaining initial estimates
-  combined.df <- as.data.frame(cbind(X[, -1], group = as.vector(Z%*%1:q), y))
-  combined.df$group <- as.factor(combined.df$group)
-  lmer.res <- lmer(eval(parse(text = paste0("y ~ (1 | group) + ", paste0("V", 1:(p - 1), collapse = " + ")))), 
-                   data = combined.df)
-  init.mu <- c(lmer.res@beta, lmer.res@u, log(as.data.frame(VarCorr(lmer.res))$sdcor[2:1]))
-  init.Sigma <- diag(p + q + 2)
-  init.Sigma.inv <- force.sym(solve(init.Sigma))
-  
   # Parameter initialisation
-  Q.values <- array(dim = c(p + q + 2, p + q + 2, n + q + 1))
-  r.values <- matrix(nrow = n + q + 1, ncol = p + q + 2)
+  Q.star.values <- array(dim = c(2, 2, n + q))
+  r.star.values <- matrix(nrow = n + q, ncol = 2)
   
   Q.bk <- force.sym(solve(Sigma.bk))
   r.bk <- Q.bk%*%mu.bk
@@ -136,25 +86,26 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
   Q.p[(p + q + 1):(p + q + 2), 1:p] <- Q.bk[(p + 1):(p + 2), 1:p]
   Q.p[(p + q + 1):(p + q + 2), (p + q + 1):(p + q + 2)] <- Q.bk[(p + 1):(p + 2), (p + 1):(p + 2)]
   r.p <- c(r.bk[1:p], rep(0, q), r.bk[(p + 1):(p + 2)])
-  Q.diff <- init.Sigma.inv - Q.p
-  r.diff <- init.Sigma.inv%*%init.mu - r.p
   
-  for (i in 1:(n + q + 1)) {
+  Q.sum <- prec*diag(p + q + 2) + Q.p
+  r.sum <- r.p
+  
+  for (i in 1:(n + q)) {
+    W <- matrix(0, nrow = p + q + 2, ncol = 2)
     if (i <= n) {
-      Q.values[, , i] <- Q.coef.1(n, p, q, i, Z)*Q.diff
-      r.values[i, ] <- r.coef.1(n, p, q, i, Z)*r.diff
-    } else if (i <= n + q) {
-      k <- i - n
-      Q.values[, , i] <- Q.coef.2(n, p, q, k, Z)*Q.diff
-      r.values[i, ] <- r.coef.2(n, p, q, k, Z)*r.diff
+      W[1:p, 1] <- X[i, ]
+      W[(p + 1):(p + q), 1] <- Z[i, ]
+      W[p + q + 1, 2] <- 1
     } else {
-      Q.values[, , i] <- Q.p
-      r.values[i, ] <- r.p
+      W[p + i - n, 1] <- 1
+      W[p + q + 2, 2] <- 1
     }
+    
+    Q.star.values[, , i] <- Q.star
+    r.star.values[i, ] <- r.star
+    Q.sum <- Q.sum + force.sym(W%*%Q.star.values[, , i]%*%t(W))
+    r.sum <- r.sum + W%*%r.star.values[i, ]
   }
-  
-  Q.sum <- rowSums(Q.values, dims = 2)
-  r.sum <- colSums(r.values)
   
   # Delta initialisation
   deltas <- matrix(-1, nrow = max.passes*(n + q), ncol = 5)
@@ -171,13 +122,6 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
     
     for (i in sample(1:(n + q))) {
       # Setting up
-      Q.cavity <- Q.sum - eta*Q.values[, , i]
-      Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
-      if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
-      r.cavity <- r.sum - eta*r.values[i, ]
-      mu.cavity <- Q.cavity.inv%*%r.cavity
-      Sigma.cavity <- Q.cavity.inv
-      
       W <- matrix(0, nrow = p + q + 2, ncol = 2)
       if (i <= n) {
         W[1:p, 1] <- X[i, ]
@@ -188,6 +132,12 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
         W[p + q + 2, 2] <- 1
       }
       
+      Q.cavity <- Q.sum - eta*force.sym(W%*%Q.star.values[, , i]%*%t(W))
+      Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
+      if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
+      r.cavity <- r.sum - eta*W%*%r.star.values[i, ]
+      mu.cavity <- Q.cavity.inv%*%r.cavity
+      Sigma.cavity <- Q.cavity.inv
       m <- t(W)%*%mu.cavity
       V <- force.sym(t(W)%*%Sigma.cavity%*%W)
       if (det(V) < 0) {
@@ -235,7 +185,20 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
       Q.updated <- (Sigma.hybrid.inv - Q.cavity)/eta
       r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
       
-      delta <- max(norm(r.updated - r.values[i, ], "2"), norm(Q.updated - Q.values[, , i], "F"))
+      W.r <- rowSums(W)
+      Q.ratio <- Q.updated/(W.r%*%t(W.r))
+      Q.ratio[!is.finite(Q.ratio)] <- 0 # Ensures block.mean works
+      r.ratio <- r.updated/W.r
+      
+      if (i <= n) {
+        Q.star.updated <- force.sym(block.mean(Q.ratio, list(c(1:p, which(X[i, ] == 1)), p + q + 1)))
+        r.star.updated <- c(mean(r.ratio[c(1:p, which(X[i, ] == 1))]), r.ratio[p + q + 1])
+      } else {
+        Q.star.updated <- force.sym(Q.ratio[c(p + i - n, p + q + 2), c(p + i - n, p + q + 2)])
+        r.star.updated <- r.ratio[c(p + i - n, p + q + 2)]
+      }
+      
+      delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(Q.star.updated - Q.star.values[, , i], "F"))
       
       if (is.na(delta) || delta > tol.factor*prev.med.delta || delta > delta.limit) {
         deltas[index, ] <- c(index, iteration, i, delta, 1)
@@ -246,12 +209,12 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
         index <- index + 1
       }
       
-      Q.new <- (1 - alpha)*Q.values[, , i] + alpha*Q.updated
-      r.new <- (1 - alpha)*r.values[i, ] + alpha*r.updated
-      Q.sum <- Q.sum - Q.values[, , i] + Q.new
-      r.sum <- r.sum - r.values[i, ] + r.new
-      Q.values[, , i] <- Q.new
-      r.values[i, ] <- r.new
+      Q.star.new <- (1 - alpha)*Q.star.values[, , i] + alpha*Q.star.updated
+      r.star.new <- (1 - alpha)*r.star.values[i, ] + alpha*r.star.updated
+      Q.sum <- Q.sum - force.sym(W%*%Q.star.values[, , i]%*%t(W)) + force.sym(W%*%Q.star.new%*%t(W))
+      r.sum <- r.sum - W%*%r.star.values[i, ] + W%*%r.star.new
+      Q.star.values[, , i] <- Q.star.new
+      r.star.values[i, ] <- r.star.new
     }
     
     iteration.deltas <- deltas[deltas[, "iteration"] == iteration & deltas[, "skip"] == 0, ][, "delta"]
@@ -263,7 +226,7 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
     }
     
     if (stop.ep) {print("Too many numerical errors; stopping EP"); break}
-    if (max.delta < abs.thresh) {print("EP has converged; stopping EP"); break}
+    if (max.delta < abs.thresh && iteration > min.passes) {print("EP has converged; stopping EP"); break}
     if (max.delta > stop.factor*prev.max.delta) {print("Unstable deltas; stopping EP"); break}
     if (max.delta > rel.thresh*prev.max.delta) pcount <- pcount + 1 else pcount <- 0
     if (pcount == patience) {print("Out of patience; stopping EP"); break}
