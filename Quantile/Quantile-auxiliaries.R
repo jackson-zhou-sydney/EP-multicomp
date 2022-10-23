@@ -1,6 +1,33 @@
 
 # EP code for Bayesian quantile regression
 
+rho <- function(x, tau) {
+  # Quantile loss function
+  0.5*(abs(x) + (2*tau - 1)*x)
+}
+
+log.joint.likelihood <- function(theta, X, y, mu.theta, Sigma.theta, tau) {
+  # Log joint likelihood
+  n <- nrow(X)
+  p <- ncol(X)
+  
+  beta <- theta[1:p]
+  kappa <- theta[p + 1]
+  
+  as.numeric(-n*kappa - sum(rho(y - X%*%beta, tau))/exp(kappa) - 0.5*t(theta - mu.theta)%*%solve(Sigma.theta)%*%(theta - mu.theta))
+}
+
+laplace.approx <- function(X, y, mu.theta, Sigma.theta, tau, maxit) {
+  # Laplace approximation
+  start <- c(unname(coef(rq(y ~ X[, -1], tau))), 0)
+  optim.res <- optim(start, fn = log.joint.likelihood, 
+                     method = "BFGS", 
+                     control = list(fnscale = -1, maxit = maxit),
+                     hessian = T,
+                     X = X, y = y, mu.theta = mu.theta, Sigma.theta = Sigma.theta, tau = tau)
+  return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
+}
+
 I.r <- function(y, tau, m, V, eta, mult, maxEval, tol) {
   # Hybrid integrals for sites
   m.1 <- m[1]

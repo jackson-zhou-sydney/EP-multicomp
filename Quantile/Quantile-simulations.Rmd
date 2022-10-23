@@ -25,6 +25,12 @@ sigma <- 0.2
 y <- rnorm(n, X%*%beta, sigma)
 ```
 
+```{r Laplace approximation}
+laplace.res <- laplace.approx(X, y, mu.theta, Sigma.theta, tau, maxit = 50000)
+laplace.mu <- laplace.res$mu
+laplace.Sigma <- laplace.res$Sigma
+```
+
 ```{r EP approximation}
 ep.res <- ep.approx(X, y, mu.theta, Sigma.theta, 
                     tau, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
@@ -47,7 +53,7 @@ stan.res <- stan(file = "Quantile-model.stan",
                  chains = 1,
                  iter = 50000,
                  warmup = 5000,
-                 init = "random") 
+                 init = "random")
 
 mcmc.samples <- rstan::extract(stan.res)$theta
 mcmc.mu <- colMeans(mcmc.samples)
@@ -60,6 +66,7 @@ for (j in 1:(p + 1)) {
         from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
         to = mcmc.mu[j] + 5*sqrt(mcmc.Sigma[j, j]))
   abline(v = mcmc.mu[j], lty = 2)
+  curve(dnorm(x, laplace.mu[j], sqrt(laplace.Sigma[j, j])), col = "blue", add = TRUE)
   curve(dnorm(x, ep.mu[j], sqrt(ep.Sigma[j, j])), col = "red", add = TRUE)
 }
 ```
