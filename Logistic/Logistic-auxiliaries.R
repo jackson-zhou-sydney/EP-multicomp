@@ -1,6 +1,23 @@
 
 # Auxiliary functions and variables for lasso linear regression
 
+log.joint.likelihood <- function(beta, X, y, mu.beta, Sigma.beta) {
+  # Log joint likelihood
+  Z <- X*(2*y - 1)
+  as.numeric(sum(plogis(Z%*%beta, log.p = TRUE)) - 0.5*t(beta - mu.beta)%*%solve(Sigma.beta)%*%(beta - mu.beta))
+}
+
+laplace.approx <- function(X, y, mu.beta, Sigma.beta, lambda.init, maxit) {
+  # Laplace approximation
+  start <- as.vector(coef(glmnet(X[, -1], y, family = binomial(link = "logit"), alpha = 0, lambda = lambda.init)))
+  optim.res <- optim(start, fn = log.joint.likelihood, 
+                     method = "BFGS", 
+                     control = list(fnscale = -1, maxit = maxit),
+                     hessian = T,
+                     X = X, y = y, mu.beta = mu.beta, Sigma.beta = Sigma.beta)
+  return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
+}
+
 p.8 <- c(0.003246343272134, 0.051517477033972, 0.195077912673858, 0.315569823632818,
          0.274149576158423, 0.131076880695470, 0.027912418727972, 0.001449567805354)
 s.8 <- c(1.365340806296348, 1.059523971016916, 0.830791313765644, 0.650732166639391,

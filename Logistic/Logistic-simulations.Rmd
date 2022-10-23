@@ -23,6 +23,12 @@ beta <- c(rbind(rep(2, p/2), rep(-2, p/2)))/p
 y <- rbinom(n = nrow(X), size = 1, prob = plogis(X%*%beta))
 ```
 
+```{r Laplace approximation}
+laplace.res <- laplace.approx(X, y, mu.beta, Sigma.beta, lambda.init = 0.5, maxit = 50000)
+laplace.mu <- laplace.res$mu
+laplace.Sigma <- laplace.res$Sigma
+```
+
 ```{r EP approximation}
 set.seed(1)
 ep.res <- ep.approx(X, y, mu.beta, Sigma.beta, 
@@ -58,6 +64,7 @@ for (j in 1:p) {
         from = mcmc.mu[j] - 5*sqrt(mcmc.Sigma[j, j]),
         to = mcmc.mu[j] + 5*sqrt(mcmc.Sigma[j, j]))
   abline(v = mcmc.mu[j], lty = 2)
+  curve(dnorm(x, laplace.mu[j], sqrt(laplace.Sigma[j, j])), col = "blue", add = TRUE)
   curve(dnorm(x, ep.mu[j], sqrt(ep.Sigma[j, j])), col = "red", add = TRUE)
 }
 ```

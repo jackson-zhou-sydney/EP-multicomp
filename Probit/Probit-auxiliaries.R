@@ -1,6 +1,23 @@
 
 # Auxiliary functions and variables for probit regression
 
+log.joint.likelihood <- function(beta, X, y, mu.beta, Sigma.beta) {
+  # Log joint likelihood
+  Z <- X*(2*y - 1)
+  as.numeric(sum(pnorm(Z%*%beta, log.p = TRUE)) - 0.5*t(beta - mu.beta)%*%solve(Sigma.beta)%*%(beta - mu.beta))
+}
+
+laplace.approx <- function(X, y, mu.beta, Sigma.beta, lambda.init, maxit) {
+  # Laplace approximation
+  start <- as.vector(coef(glmnet(X[, -1], y, family = binomial(link = "probit"), alpha = 0, lambda = lambda.init)))
+  optim.res <- optim(start, fn = log.joint.likelihood, 
+                     method = "BFGS", 
+                     control = list(fnscale = -1, maxit = maxit),
+                     hessian = T,
+                     X = X, y = y, mu.beta = mu.beta, Sigma.beta = Sigma.beta)
+  return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
+}
+
 A.0 <- function(a, b.2) {
   # Normal CDF-PDF integral (0th order)
   pnorm(a/sqrt(b.2 + 1))
