@@ -39,9 +39,9 @@ y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
-                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
-                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -92,9 +92,9 @@ y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
-                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
-                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -145,9 +145,9 @@ y <- rnorm(n, X%*%beta, sigma)
 
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
-                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
-                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -194,9 +194,9 @@ p <- ncol(X)
 
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
-                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
-                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -243,9 +243,9 @@ p <- ncol(X)
 
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
-                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
-                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 0.5, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
@@ -292,9 +292,9 @@ p <- ncol(X)
 
 # EP approximation
 ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
-                    lambda.1, lambda.2, eta = 0.5, alpha = 1, lambda.init = 0.5,
-                    max.passes = 200, tol.factor = Inf, stop.factor = Inf , abs.thresh = 7000, 
-                    rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                    lambda.1, lambda.2, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
+                    min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                    abs.thresh = 5, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
 ep.mu <- ep.res$mu
 ep.Sigma <- ep.res$Sigma
 
