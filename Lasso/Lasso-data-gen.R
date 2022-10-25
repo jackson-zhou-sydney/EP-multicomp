@@ -1,11 +1,10 @@
 
 # Data generation for lasso linear regression
 
-library(stringr)
+source("EP-general-auxiliaries.R")
+source("Lasso/Lasso-auxiliaries.R")
 
 set.seed(1)
-
-num.sim <- 50
 sigma <- 0.1
 
 ## Simulation 1
@@ -55,7 +54,7 @@ for (iteration in 1:num.sim) {
 load("Benchmark-data/efron2004.Rdata")
 X <- cbind(1, scale(efron2004$x))
 y <- as.vector(efron2004$y)
-write.table(cbind(X, y), file = paste0("Lasso/Lasso-data/Bench-1.csv"),
+write.table(cbind(X, y), file = "Lasso/Lasso-data/Bench-1.csv",
             row.names = F, col.names = F, sep = ",")
 
 ## Benchmark 2
@@ -63,7 +62,7 @@ write.table(cbind(X, y), file = paste0("Lasso/Lasso-data/Bench-1.csv"),
 load("Benchmark-data/Prostate.RData")
 X <- cbind(1, scale(Prostate[, -9]))
 y <- Prostate[, 9]
-write.table(cbind(X, y), file = paste0("Lasso/Lasso-data/Bench-2.csv"),
+write.table(cbind(X, y), file = "Lasso/Lasso-data/Bench-2.csv",
             row.names = F, col.names = F, sep = ",")
 
 ## Benchmark 3
@@ -71,5 +70,5 @@ write.table(cbind(X, y), file = paste0("Lasso/Lasso-data/Bench-2.csv"),
 load("Benchmark-data/eyedata.RData")
 X <- cbind(1, scale(unname(x)))
 y <- y
-write.table(cbind(X, y), file = paste0("Lasso/Lasso-data/Bench-3.csv"),
+write.table(cbind(X, y), file = "Lasso/Lasso-data/Bench-3.csv",
             row.names = F, col.names = F, sep = ",")
