@@ -7,6 +7,13 @@ library(EnvStats)  # Compute empirical densities
 library(glmnet)    # Fast ridge regression estimates
 library(quantreg)  # Quantile regression estimates
 library(lme4)      # Fast linear mixed model estimates
+library(stringr)   # String manipulation
+
+num.each.type <- 3
+num.sim <- 50
+mcmc.chains <- 1
+mcmc.iter <- 50000
+mcmc.warmup <- 5000
 
 err <- function(e) {
   # Return NA on error

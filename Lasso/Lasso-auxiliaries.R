@@ -1,6 +1,11 @@
 
 # Auxiliary functions and variables for lasso linear regression
 
+mu.kappa <- 0
+sigma.2.kappa <- 10000
+lambda <- 0.5
+sigma <- 0.1
+
 I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
   # Hybrid integrals for likelihood sites
   m.1 <- m[1]

@@ -5,7 +5,6 @@ source("EP-general-auxiliaries.R")
 source("Lasso/Lasso-auxiliaries.R")
 
 set.seed(1)
-sigma <- 0.1
 
 ## Simulation 1
 
