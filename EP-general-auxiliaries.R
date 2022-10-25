@@ -8,6 +8,7 @@ library(glmnet)    # Fast ridge regression estimates
 library(quantreg)  # Quantile regression estimates
 library(lme4)      # Fast linear mixed model estimates
 library(stringr)   # String manipulation
+library(knitr)     # Crop plots
 
 num.each.type <- 3
 num.sim <- 50
