@@ -15,7 +15,7 @@ expec.lnig <- function(A, B, C, D, upper = 100) {
 }
 
 mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
-                        lambda, max.iter, tol, verbose) {
+                        lambda, maxit, tol, verbose) {
   # MFVB for Bayesian lasso linear regression
   n <- nrow(X)
   p <- ncol(X)
@@ -30,7 +30,7 @@ mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
   expec.a <- rep(1, p)
   
   # Main MFVB loop
-  for (iteration in 1:max.iter) {
+  for (iteration in 1:maxit) {
     # Storing old values
     mu.beta.old <- mu.beta
     
