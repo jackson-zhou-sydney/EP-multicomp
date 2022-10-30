@@ -14,7 +14,7 @@ beta <- rep(c(2, -2)/p, p/2)
 beta[1:p/2] <- 0
 
 for (iteration in 1:num.sim) {
-  X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
+  X <- cbind(1, scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
   y <- rnorm(n, X%*%beta, sigma)
   save(X, y, file = paste0("Lasso/Lasso-data/Sim-1-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
 }
@@ -27,7 +27,7 @@ beta <- rep(c(2, -2)/p, p/2)
 beta[1:p/2] <- 0
 
 for (iteration in 1:num.sim) {
-  X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
+  X <- cbind(1, scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
   y <- rnorm(n, X%*%beta, sigma)
   save(X, y, file = paste0("Lasso/Lasso-data/Sim-2-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
 }
@@ -40,7 +40,7 @@ beta <- rep(c(2, -2)/p, p/2)
 beta[1:p/2] <- 0
 
 for (iteration in 1:num.sim) {
-  X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
+  X <- cbind(1, scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
   y <- rnorm(n, X%*%beta, sigma)
   save(X, y, file = paste0("Lasso/Lasso-data/Sim-3-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
 }
