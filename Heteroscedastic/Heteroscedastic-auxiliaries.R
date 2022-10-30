@@ -1,6 +1,8 @@
 
 # Auxiliary functions and variables for heteroscedastic linear regression
 
+sigma.2.theta <- 10000
+
 log.joint.likelihood <- function(theta, X.1, X.2, y, mu.theta, Sigma.theta) {
   # Log joint likelihood
   n <- nrow(X.1)
