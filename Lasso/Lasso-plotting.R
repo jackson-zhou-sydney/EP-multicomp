@@ -9,18 +9,22 @@ source("Lasso/Lasso-auxiliaries.R")
 sim.plot.df <- data.frame()
 
 for (type.iter in 1:num.each.type) {
+  df <- read.csv(paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-01.csv"), header = F)
+  p <- ncol(df) - 1
+  
   mcmc.df <- read.csv(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MCMC.csv")) %>% mutate(method = "mcmc")
-  vb.df <- read.csv(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-VB.csv")) %>% mutate(method = "vb")
+  mfvb.df <- read.csv(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MFVB.csv")) %>% mutate(method = "mfvb")
   ep.df <- read.csv(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-EP.csv")) %>% mutate(method = "ep")
   
-  combined.df <- rbind(mcmc.df, vb.df, ep.df) %>% 
+  combined.df <- rbind(mcmc.df, mfvb.df, ep.df) %>% 
+    filter(j <= p) %>% 
     pivot_wider(names_from = method, values_from = c(mu, sigma_2)) %>% 
-    mutate(mu_vb = (mu_vb - mu_mcmc)/mu_mcmc,
+    mutate(mu_mfvb = (mu_mfvb - mu_mcmc)/mu_mcmc,
            mu_ep = (mu_ep - mu_mcmc)/mu_mcmc,
-           sigma2_vb = (sigma_2_vb - sigma_2_mcmc)/sigma_2_mcmc,
+           sigma2_mfvb = (sigma_2_mfvb - sigma_2_mcmc)/sigma_2_mcmc,
            sigma2_ep = (sigma_2_ep - sigma_2_mcmc)/sigma_2_mcmc) %>% 
-    select(iteration, j, mu_vb, mu_ep, sigma2_vb, sigma2_ep) %>% 
-    pivot_longer(cols = c(mu_vb, mu_ep, sigma2_vb, sigma2_ep)) %>% 
+    select(iteration, j, mu_mfvb, mu_ep, sigma2_mfvb, sigma2_ep) %>% 
+    pivot_longer(cols = c(mu_mfvb, mu_ep, sigma2_mfvb, sigma2_ep)) %>% 
     separate(col = name, into = c("statistic", "method")) %>% 
     pivot_wider(names_from = statistic, values_from = value) %>% 
     group_by(iteration, method) %>% 
@@ -40,11 +44,11 @@ sim.plot <- ggplot(data = sim.plot.df,
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_vline(xintercept = 0, linetype = "dashed") +
   scale_shape_manual(name = "Method",
-                     labels = c("ep" = "EP", "vb" = "VB"),
-                     values = c("ep" = 19, "vb" = 17)) +
+                     labels = c("ep" = "EP", "mfvb" = "MFVB"),
+                     values = c("ep" = 19, "mfvb" = 17)) +
   scale_colour_manual(name = "Method",
-                      labels = c("ep" = "EP", "vb" = "VB"),
-                      values = c("ep" = "black", "vb" = "darkgray")) +
+                      labels = c("ep" = "EP", "mfvb" = "MFVB"),
+                      values = c("ep" = "black", "mfvb" = "darkgray")) +
   facet_wrap(~sim, scales = "free",
              labeller = as_labeller(c("1" = "n = 200, p = 40",
                                       "2" = "n = 40, p = 40",
@@ -63,18 +67,22 @@ plot_crop("Lasso/Lasso-plots/Lasso-sim-plots.png")
 bench.plot.df <- data.frame()
 
 for (type.iter in 1:num.each.type) {
+  df <- read.csv(paste0("Lasso/Lasso-data/Bench-", type.iter, ".csv"), header = F)
+  p <- ncol(df) - 1
+  
   mcmc.df <- read.csv(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MCMC.csv")) %>% mutate(method = "mcmc")
-  vb.df <- read.csv(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-VB.csv")) %>% mutate(method = "vb")
+  mfvb.df <- read.csv(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MFVB.csv")) %>% mutate(method = "mfvb")
   ep.df <- read.csv(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-EP.csv")) %>% mutate(method = "ep")
   
-  combined.df <- rbind(mcmc.df, vb.df, ep.df) %>% 
+  combined.df <- rbind(mcmc.df, mfvb.df, ep.df) %>% 
+    filter(j <= p) %>% 
     pivot_wider(names_from = method, values_from = c(mu, sigma_2)) %>% 
-    mutate(mu_vb = (mu_vb - mu_mcmc)/mu_mcmc,
+    mutate(mu_mfvb = (mu_mfvb - mu_mcmc)/mu_mcmc,
            mu_ep = (mu_ep - mu_mcmc)/mu_mcmc,
-           sigma2_vb = (sigma_2_vb - sigma_2_mcmc)/sigma_2_mcmc,
+           sigma2_mfvb = (sigma_2_mfvb - sigma_2_mcmc)/sigma_2_mcmc,
            sigma2_ep = (sigma_2_ep - sigma_2_mcmc)/sigma_2_mcmc) %>% 
-    select(j, mu_vb, mu_ep, sigma2_vb, sigma2_ep) %>% 
-    pivot_longer(cols = c(mu_vb, mu_ep, sigma2_vb, sigma2_ep)) %>% 
+    select(j, mu_mfvb, mu_ep, sigma2_mfvb, sigma2_ep) %>% 
+    pivot_longer(cols = c(mu_mfvb, mu_ep, sigma2_mfvb, sigma2_ep)) %>% 
     separate(col = name, into = c("statistic", "method")) %>% 
     pivot_wider(names_from = statistic, values_from = value) %>% 
     mutate(mu_sqrt = sign(mu)*sqrt(abs(mu)),
@@ -90,11 +98,11 @@ bench.plot <- ggplot(data = bench.plot.df,
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_vline(xintercept = 0, linetype = "dashed") +
   scale_shape_manual(name = "Method",
-                     labels = c("ep" = "EP", "vb" = "VB"),
-                     values = c("ep" = 19, "vb" = 17)) +
+                     labels = c("ep" = "EP", "mfvb" = "MFVB"),
+                     values = c("ep" = 19, "mfvb" = 17)) +
   scale_colour_manual(name = "Method",
-                      labels = c("ep" = "EP", "vb" = "VB"),
-                      values = c("ep" = "black", "vb" = "darkgray")) +
+                      labels = c("ep" = "EP", "mfvb" = "MFVB"),
+                      values = c("ep" = "black", "mfvb" = "darkgray")) +
   facet_wrap(~bench, scales = "free",
              labeller = as_labeller(c("1" = "Diabetes (n = 442, p = 11)",
                                       "2" = "Prostate (n = 97, p = 9)",
