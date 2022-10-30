@@ -275,7 +275,7 @@ ep.approx <- function(X, y, mu.kappa, sigma.2.kappa,
     }
     
     if (stop.ep) {print("Too many numerical errors; stopping EP"); break}
-    if (max.delta < abs.thresh && iteration > min.passes) {print("EP has converged; stopping EP"); break}
+    if (max.delta < abs.thresh && iteration > min.passes) {if (verbose) print("EP has converged; stopping EP"); break}
     if (max.delta > stop.factor*prev.max.delta) {print("Unstable deltas; stopping EP"); break}
     if (max.delta > rel.thresh*prev.max.delta) pcount <- pcount + 1 else pcount <- 0
     if (pcount == patience) {print("Out of patience; stopping EP"); break}

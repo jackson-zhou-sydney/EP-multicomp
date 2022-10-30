@@ -16,8 +16,7 @@ beta[1:p/2] <- 0
 for (iteration in 1:num.sim) {
   X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
   y <- rnorm(n, X%*%beta, sigma)
-  write.table(cbind(X, y), file = paste0("Lasso/Lasso-data/Sim-1-iter-", str_pad(iteration, 2, pad = "0"), ".csv"),
-              row.names = F, col.names = F, sep = ",")
+  save(X, y, file = paste0("Lasso/Lasso-data/Sim-1-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
 }
 
 ## Simulation 2
@@ -30,8 +29,7 @@ beta[1:p/2] <- 0
 for (iteration in 1:num.sim) {
   X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
   y <- rnorm(n, X%*%beta, sigma)
-  write.table(cbind(X, y), file = paste0("Lasso/Lasso-data/Sim-2-iter-", str_pad(iteration, 2, pad = "0"), ".csv"),
-              row.names = F, col.names = F, sep = ",")
+  save(X, y, file = paste0("Lasso/Lasso-data/Sim-2-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
 }
 
 ## Simulation 3
@@ -44,8 +42,7 @@ beta[1:p/2] <- 0
 for (iteration in 1:num.sim) {
   X <- cbind(rep(1, n), scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
   y <- rnorm(n, X%*%beta, sigma)
-  write.table(cbind(X, y), file = paste0("Lasso/Lasso-data/Sim-3-iter-", str_pad(iteration, 2, pad = "0"), ".csv"),
-              row.names = F, col.names = F, sep = ",")
+  save(X, y, file = paste0("Lasso/Lasso-data/Sim-3-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
 }
 
 ## Benchmark 1
@@ -53,21 +50,18 @@ for (iteration in 1:num.sim) {
 load("Benchmark-data/efron2004.Rdata")
 X <- cbind(1, scale(efron2004$x))
 y <- as.vector(efron2004$y)
-write.table(cbind(X, y), file = "Lasso/Lasso-data/Bench-1.csv",
-            row.names = F, col.names = F, sep = ",")
+save(X, y, file = "Lasso/Lasso-data/Bench-1.RData")
 
 ## Benchmark 2
 
 load("Benchmark-data/Prostate.RData")
 X <- cbind(1, scale(Prostate[, -9]))
 y <- Prostate[, 9]
-write.table(cbind(X, y), file = "Lasso/Lasso-data/Bench-2.csv",
-            row.names = F, col.names = F, sep = ",")
+save(X, y, file = "Lasso/Lasso-data/Bench-2.RData")
 
 ## Benchmark 3
 
 load("Benchmark-data/eyedata.RData")
 X <- cbind(1, scale(unname(x)))
 y <- y
-write.table(cbind(X, y), file = "Lasso/Lasso-data/Bench-3.csv",
-            row.names = F, col.names = F, sep = ",")
+save(X, y, file = "Lasso/Lasso-data/Bench-3.RData")

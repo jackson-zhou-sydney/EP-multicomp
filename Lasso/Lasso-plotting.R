@@ -9,12 +9,15 @@ source("Lasso/Lasso-auxiliaries.R")
 sim.plot.df <- data.frame()
 
 for (type.iter in 1:num.each.type) {
-  df <- read.csv(paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-01.csv"), header = F)
-  p <- ncol(df) - 1
+  load(paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-01.RData"))
+  p <- ncol(X)
   
-  mcmc.df <- read.csv(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MCMC.csv")) %>% mutate(method = "mcmc")
-  mfvb.df <- read.csv(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MFVB.csv")) %>% mutate(method = "mfvb")
-  ep.df <- read.csv(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-EP.csv")) %>% mutate(method = "ep")
+  load(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MCMC.RData"))
+  mcmc.df <- results.df %>% mutate(method = "mcmc")
+  load(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MFVB.RData"))
+  mfvb.df <- results.df %>% mutate(method = "mfvb")
+  load(paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-EP.RData"))
+  ep.df <- results.df %>% mutate(method = "ep")
   
   combined.df <- rbind(mcmc.df, mfvb.df, ep.df) %>% 
     filter(j <= p) %>% 
@@ -67,12 +70,15 @@ plot_crop("Lasso/Lasso-plots/Lasso-sim-plots.png")
 bench.plot.df <- data.frame()
 
 for (type.iter in 1:num.each.type) {
-  df <- read.csv(paste0("Lasso/Lasso-data/Bench-", type.iter, ".csv"), header = F)
-  p <- ncol(df) - 1
+  load(paste0("Lasso/Lasso-data/Bench-", type.iter, ".RData"))
+  p <- ncol(X)
   
-  mcmc.df <- read.csv(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MCMC.csv")) %>% mutate(method = "mcmc")
-  mfvb.df <- read.csv(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MFVB.csv")) %>% mutate(method = "mfvb")
-  ep.df <- read.csv(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-EP.csv")) %>% mutate(method = "ep")
+  load(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MCMC.RData"))
+  mcmc.df <- results.df %>% mutate(method = "mcmc")
+  load(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MFVB.RData"))
+  mfvb.df <- results.df %>% mutate(method = "mfvb")
+  load(paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-EP.RData"))
+  ep.df <- results.df %>% mutate(method = "ep")
   
   combined.df <- rbind(mcmc.df, mfvb.df, ep.df) %>% 
     filter(j <= p) %>% 

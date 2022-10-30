@@ -17,11 +17,9 @@ for (type.iter in 1:num.each.type) {
   for (iteration in 1:num.sim) {
     print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim))
     
-    df <- read.csv(paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".csv"), header = F)
-    n <- nrow(df)
-    p <- ncol(df) - 1
-    X <- unname(as.matrix(df[, 1:p]))
-    y <- as.numeric(df[, p + 1])
+    load(paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
+    n <- nrow(X)
+    p <- ncol(X)
     
     mfvb.res <- mfvb.approx(X, y, mu.kappa, sigma.2.kappa,
                             lambda, max.iter = 1000, tol = 1.0E-10, verbose = F)
@@ -37,7 +35,7 @@ for (type.iter in 1:num.each.type) {
     }
   }
   
-  write.table(results.df, file = paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MFVB.csv"), row.names = F, sep = ",")
+  save(results.df, file = paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MFVB.RData"))
 }
 
 ## Benchmarks
@@ -49,11 +47,9 @@ for (type.iter in 1:num.each.type) {
   
   print(paste0("Current progress: Benchmark ", type.iter))
   
-  df <- read.csv(paste0("Lasso/Lasso-data/Bench-", type.iter, ".csv"), header = F)
-  n <- nrow(df)
-  p <- ncol(df) - 1
-  X <- unname(as.matrix(df[, 1:p]))
-  y <- as.numeric(df[, p + 1])
+  load(paste0("Lasso/Lasso-data/Bench-", type.iter, ".RData"))
+  n <- nrow(X)
+  p <- ncol(X)
   
   mfvb.res <- mfvb.approx(X, y, mu.kappa, sigma.2.kappa,
                           lambda, max.iter = 1000, tol = 1.0E-10, verbose = F)
@@ -67,5 +63,5 @@ for (type.iter in 1:num.each.type) {
                                          sigma_2 = mfvb.Sigma[j, j])
   }
   
-  write.table(results.df, file = paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MFVB.csv"), row.names = F, sep = ",")
+  save(results.df, file = paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MFVB.RData"))
 }

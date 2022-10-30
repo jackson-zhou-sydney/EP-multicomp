@@ -17,16 +17,14 @@ for (type.iter in 1:num.each.type) {
   for (iteration in 1:num.sim) {
     print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim))
     
-    df <- read.csv(paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".csv"), header = F)
-    n <- nrow(df)
-    p <- ncol(df) - 1
-    X <- unname(as.matrix(df[, 1:p]))
-    y <- as.numeric(df[, p + 1])
+    load(paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
+    n <- nrow(X)
+    p <- ncol(X)
     
     ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                         lambda, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
                         min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
-                        abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                        abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
     
@@ -38,7 +36,7 @@ for (type.iter in 1:num.each.type) {
     }
   }
   
-  write.table(results.df, file = paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-EP.csv"), row.names = F, sep = ",")
+  save(results.df, file = paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-EP.RData"))
 }
 
 ## Benchmarks
@@ -50,16 +48,14 @@ for (type.iter in 1:num.each.type) {
   
   print(paste0("Current progress: Benchmark ", type.iter))
   
-  df <- read.csv(paste0("Lasso/Lasso-data/Bench-", type.iter, ".csv"), header = F)
-  n <- nrow(df)
-  p <- ncol(df) - 1
-  X <- unname(as.matrix(df[, 1:p]))
-  y <- as.numeric(df[, p + 1])
+  load(paste0("Lasso/Lasso-data/Bench-", type.iter, ".RData"))
+  n <- nrow(X)
+  p <- ncol(X)
   
   ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                       lambda, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
                       min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
-                      abs.thresh = if (type.iter == 3) 10 else 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = T)
+                      abs.thresh = if (type.iter == 3) 10 else 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
   ep.mu <- ep.res$mu
   ep.Sigma <- ep.res$Sigma
   
@@ -69,5 +65,5 @@ for (type.iter in 1:num.each.type) {
                                          sigma_2 = ep.Sigma[j, j])
   }
   
-  write.table(results.df, file = paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-EP.csv"), row.names = F, sep = ",")
+  save(results.df, file = paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-EP.RData"))
 }
