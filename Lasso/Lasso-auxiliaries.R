@@ -6,6 +6,59 @@ sigma.2.kappa <- 10000
 lambda <- 0.5
 sigma <- 0.1
 
+expec.lnig <- function(A, B, C, D, upper = 100) {
+  # Expectation of product of log-normal and inverse gamma densities
+  p <- function(x) -A*log(x) - (log(x) - B)^2/(2*C) - D/(2*x^2)
+  p.max <- optimise(p, c(0, upper), maximum = TRUE)$objective
+  q <- function(x) exp(-A*log(x) - (log(x) - B)^2/(2*C) - D/(2*x^2) - p.max)
+  integrate(function(x) q(x)/(x^2), 0, Inf, abs.tol = 0)$value/integrate(q, 0, Inf, abs.tol = 0)$value
+}
+
+mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
+                        lambda, max.iter, tol, verbose) {
+  # MFVB for Bayesian lasso linear regression
+  n <- nrow(X)
+  p <- ncol(X)
+  
+  XTX <- t(X)%*%X
+  XTy <- t(X)%*%y
+  
+  # Initialisations
+  mu.beta <- rep(0, p)
+  Sigma.beta <- diag(p)
+  expec.inv.sigma.2 <- 1
+  expec.a <- rep(1, p)
+  
+  # Main MFVB loop
+  for (iteration in 1:max.iter) {
+    # Storing old values
+    mu.beta.old <- mu.beta
+    
+    # Update q(beta)
+    Q.inv <- XTX + lambda^2*diag(expec.a)
+    Q <- solve(Q.inv, tol = 1.0E-99)
+    mu.beta <- as.vector(Q%*%XTy)
+    Sigma.beta <- Q/expec.inv.sigma.2
+    
+    # Update q(sigma)
+    expec.inv.sigma.2 <- expec.lnig(n + p + 1, mu.kappa, sigma.2.kappa, 
+                                    sum((y - X%*%mu.beta)^2) + 
+                                    lambda^2*sum(expec.a*mu.beta^2) + 
+                                    sum(diag(Q.inv%*%Sigma.beta)))
+    
+    # Update q(a)
+    expec.a <- sqrt(1/(expec.inv.sigma.2*(mu.beta^2 + diag(Sigma.beta))))/lambda
+    
+    # Checking for convergence
+    delta <- norm(mu.beta - mu.beta.old, "2")
+    if (verbose) print(paste0("Iteration ", iteration, ", current delta is: ", delta))
+    if (delta < tol) break
+  }
+  
+  # Returning only beta
+  return(list(mu = mu.beta, Sigma = Sigma.beta))
+}
+
 I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
   # Hybrid integrals for likelihood sites
   m.1 <- m[1]
