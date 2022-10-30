@@ -17,9 +17,12 @@ log.joint.likelihood <- function(theta, X.1, X.2, y, mu.theta, Sigma.theta) {
 
 laplace.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init, maxit) {
   # Laplace approximation
+  p.1 <- ncol(X.2)
   p.2 <- ncol(X.2)
   
-  start <- c(as.vector(coef(glmnet(X.1[, -1], y, alpha = 0, lambda = lambda.init))), rep(0, p.2))
+  start <- if (p.1 > 2) c(as.vector(coef(glmnet(X.1[, -1], y, alpha = 0, lambda = lambda.init))), rep(0, p.2)) else
+                        c(as.vector(coef(lm(y ~ X.1[, -1]))), rep(0, p.2))
+  
   optim.res <- optim(start, fn = log.joint.likelihood, 
                      method = "BFGS", 
                      control = list(fnscale = -1, maxit = maxit),

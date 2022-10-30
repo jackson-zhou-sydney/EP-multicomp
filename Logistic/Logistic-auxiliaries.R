@@ -9,7 +9,11 @@ log.joint.likelihood <- function(beta, X, y, mu.beta, Sigma.beta) {
 
 laplace.approx <- function(X, y, mu.beta, Sigma.beta, lambda.init, maxit) {
   # Laplace approximation
-  start <- as.vector(coef(glmnet(X[, -1], y, family = binomial(link = "logit"), alpha = 0, lambda = lambda.init)))
+  p <- ncol(X)
+  
+  start <- if (p > 2) as.vector(coef(glmnet(X[, -1], y, family = binomial(link = "logit"), alpha = 0, lambda = lambda.init))) else
+                      as.vector(coef(glm(y ~ X[, -1], family = binomial(link = "logit"))))
+  
   optim.res <- optim(start, fn = log.joint.likelihood, 
                      method = "BFGS", 
                      control = list(fnscale = -1, maxit = maxit),
