@@ -31,7 +31,7 @@ laplace.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init, maxi
   return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
 }
 
-I.r <- function(y, m, V, eta, mult, maxEval, tol) {
+I.r <- function(y, m, V, eta, mult) {
   # Hybrid integrals for sites
   m.1 <- m[1]
   m.2 <- m[2]
@@ -50,12 +50,12 @@ I.r <- function(y, m, V, eta, mult, maxEval, tol) {
   lb <- m.2 - mult*sqrt(V[2, 2])
   ub <- m.2 + mult*sqrt(V[2, 2])
   
-  ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub)$value
-  ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub)$value
-  ret.12 <- integrate(Vectorize(function(x) x*GI.0(abc(x))), lb, ub)$value
-  ret.211 <- integrate(Vectorize(function(x) GI.2(abc(x))), lb, ub)$value
-  ret.212 <- integrate(Vectorize(function(x) x*GI.1(abc(x))), lb, ub)$value
-  ret.222 <- integrate(Vectorize(function(x) x^2*GI.0(abc(x))), lb, ub)$value
+  ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.12 <- integrate(Vectorize(function(x) x*GI.0(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.211 <- integrate(Vectorize(function(x) GI.2(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.212 <- integrate(Vectorize(function(x) x*GI.1(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.222 <- integrate(Vectorize(function(x) x^2*GI.0(abc(x))), lb, ub, abs.tol = 0)$value
   
   list(I.0 = ret.0/sqrt(det(2*pi*V)), 
        I.1 = c(ret.11, ret.12)/sqrt(det(2*pi*V)), 
@@ -123,7 +123,7 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
       U <- Sigma.cavity%*%W
       
       # Computing function values, gradients and Hessians at 0
-      I.r.res <- tryCatch(I.r(y[i], m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
+      I.r.res <- tryCatch(I.r(y[i], m, V, eta, mult = 3), error = err)
       if (!is.list(I.r.res)) {
         print(paste0("Warning: error in hybrid integral at i = ", i))
         deltas[index, ] <- c(index, iteration, i, NA, 1)
