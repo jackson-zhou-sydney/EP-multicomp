@@ -109,8 +109,8 @@ bench.plot <- ggplot(data = bench.plot.df,
              labeller = as_labeller(c("1" = "Food (n = 40, p.1 = 2, p.2 = 2)",
                                       "2" = "Salary (n = 725, p.1 = 6, p.2 = 2)",
                                       "3" = "Sniffer (n = 125, p.1 = 5, p.2 = 5)"))) +
-  labs(x = "Mean difference in mu",
-       y = "Mean difference in sigma squared",
+  labs(x = "Difference in mu",
+       y = "Difference in sigma squared",
        shape = "Method") +
   theme_bw() +
   theme(legend.position = "top")
