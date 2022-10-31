@@ -31,7 +31,7 @@ laplace.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init, maxi
   return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
 }
 
-I.r <- function(y, m, V, eta, mult) {
+I.r <- function(y, m, V, eta, mult, lb.min, ub.max) {
   # Hybrid integrals for sites
   m.1 <- m[1]
   m.2 <- m[2]
@@ -47,8 +47,8 @@ I.r <- function(y, m, V, eta, mult) {
       V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + y^2/exp(2*x)))
   }
   
-  lb <- m.2 - mult*sqrt(V[2, 2])
-  ub <- m.2 + mult*sqrt(V[2, 2])
+  lb <- max(m.2 - mult*sqrt(V[2, 2]), lb.min)
+  ub <- min(m.2 + mult*sqrt(V[2, 2]), ub.max)
   
   ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub, abs.tol = 0)$value
   ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub, abs.tol = 0)$value
@@ -123,7 +123,7 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
       U <- Sigma.cavity%*%W
       
       # Computing function values, gradients and Hessians at 0
-      I.r.res <- tryCatch(I.r(y[i], m, V, eta, mult = 3), error = err)
+      I.r.res <- tryCatch(I.r(y[i], m, V, eta, mult = 5, lb.min = -5, ub.max = Inf), error = err)
       if (!is.list(I.r.res)) {
         print(paste0("Warning: error in hybrid integral at i = ", i))
         deltas[index, ] <- c(index, iteration, i, NA, 1)
@@ -155,11 +155,11 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
       r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
       
       W.r <- rowSums(W)
-      Q.ratio <- Q.updated/(W.r%*%t(W.r))
-      r.ratio <- r.updated/W.r
+      Q.ratio <- Q.updated/(W.r%*%t(W.r)); Q.ratio[!is.finite(Q.ratio)] <- NA
+      r.ratio <- r.updated/W.r; r.ratio[!is.finite(r.ratio)] <- NA
       
-      Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:p.1, (p.1 + 1):(p.1 + p.2))))
-      r.star.updated <- c(mean(r.ratio[1:p.1]), mean(r.ratio[(p.1 + 1):(p.1 + p.2)]))
+      Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:p.1, (p.1 + 1):(p.1 + p.2)), na.rm = T))
+      r.star.updated <- c(mean(r.ratio[1:p.1], na.rm = T), mean(r.ratio[(p.1 + 1):(p.1 + p.2)], na.rm = T))
       
       delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(Q.star.updated - Q.star.values[, , i], "F"))
       

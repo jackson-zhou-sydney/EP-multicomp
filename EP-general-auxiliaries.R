@@ -29,12 +29,15 @@ force.sym <- function(m) {
   return(m.sym)
 }
 
-block.mean <- function(m, l) {
+block.mean <- function(m, l, na.rm) {
   # Block-wise mean of matrix
-  weight <- matrix(0, nrow = nrow(m), ncol = length(l))
-  for (i in 1:length(l)) weight[l[[i]], i] <- 1
-  weight.c <- colSums(weight)
-  (t(weight)%*%m%*%weight)/(weight.c%*%t(weight.c))
+  ret.mat <- matrix(nrow = length(l), ncol = length(l))
+  for (i in 1:length(l)) {
+    for (j in 1:length(l)) {
+      ret.mat[i, j] <- mean(m[l[[i]], l[[j]]], na.rm = na.rm)
+    }
+  }
+  return(ret.mat)
 }
 
 GI.0 <- function(x) {
