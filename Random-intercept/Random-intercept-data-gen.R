@@ -55,7 +55,7 @@ for (iteration in 1:num.sim) {
 
 load("Benchmark-data/ChickWeight.RData")
 X <- as.matrix(cbind(1, createDummyFeatures(ChickWeight[, 4], method = "reference"), scale(ChickWeight[, 2])))
-Z <- as.matrix(createDummyFeatures(factor(ChickWeight[, 3], levels = 1:48), method = "1-of-n"))
+Z <- as.matrix(createDummyFeatures(factor(as.numeric(ChickWeight[, 3]), levels = 1:50), method = "1-of-n"))
 y <- as.vector(scale(ChickWeight[, 1]))
 save(X, Z, y, file = "Random-intercept/Random-intercept-data/Bench-1.RData")
 
