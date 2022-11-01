@@ -24,7 +24,7 @@ for (type.iter in 1:num.each.type) {
     ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                         lambda, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
                         min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
-                        abs.thresh = 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
+                        abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
     
@@ -55,7 +55,7 @@ for (type.iter in 1:num.each.type) {
   ep.res <- ep.approx(X, y, mu.kappa, sigma.2.kappa, 
                       lambda, eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
                       min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
-                      abs.thresh = if (type.iter == 3) 10 else 0.01, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
+                      abs.thresh = if (type.iter == 3) 10 else 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
   ep.mu <- ep.res$mu
   ep.Sigma <- ep.res$Sigma
   

@@ -34,15 +34,13 @@ for (type.iter in 1:num.each.type) {
     summarise(mean_mu = mean(mu),
               mean_sigma2 = mean(sigma2)) %>% 
     ungroup() %>% 
-    mutate(mean_mu_sqrt = sign(mean_mu)*sqrt(abs(mean_mu)),
-           mean_sigma2_sqrt = sign(mean_sigma2)*sqrt(abs(mean_sigma2)),
-           sim = type.iter)
+    mutate(sim = type.iter)
   
   sim.plot.df <- rbind(sim.plot.df, combined.df)
 }
 
 sim.plot <- ggplot(data = sim.plot.df,
-                   mapping = aes(x = mean_mu_sqrt, y = mean_sigma2_sqrt, shape = method, colour = method)) +
+                   mapping = aes(x = mean_mu, y = mean_sigma2, shape = method, colour = method)) +
   geom_point() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_vline(xintercept = 0, linetype = "dashed") +
@@ -91,15 +89,13 @@ for (type.iter in 1:num.each.type) {
     pivot_longer(cols = c(mu_mfvb, mu_ep, sigma2_mfvb, sigma2_ep)) %>% 
     separate(col = name, into = c("statistic", "method")) %>% 
     pivot_wider(names_from = statistic, values_from = value) %>% 
-    mutate(mu_sqrt = sign(mu)*sqrt(abs(mu)),
-           sigma2_sqrt = sign(sigma2)*sqrt(abs(sigma2)),
-           bench = type.iter)
+    mutate(bench = type.iter)
   
   bench.plot.df <- rbind(bench.plot.df, combined.df)
 }
 
 bench.plot <- ggplot(data = bench.plot.df,
-                     mapping = aes(x = mu_sqrt, y = sigma2_sqrt, shape = method, colour = method)) +
+                     mapping = aes(x = mu, y = sigma2, shape = method, colour = method)) +
   geom_point() +
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_vline(xintercept = 0, linetype = "dashed") +
@@ -113,8 +109,8 @@ bench.plot <- ggplot(data = bench.plot.df,
              labeller = as_labeller(c("1" = "Diabetes (n = 442, p = 11)",
                                       "2" = "Prostate (n = 97, p = 9)",
                                       "3" = "Eye (n = 120, p = 201)"))) +
-  labs(x = "Mean difference in mu",
-       y = "Mean difference in sigma squared",
+  labs(x = "Difference in mu",
+       y = "Difference in sigma squared",
        shape = "Method") +
   theme_bw() +
   theme(legend.position = "top")

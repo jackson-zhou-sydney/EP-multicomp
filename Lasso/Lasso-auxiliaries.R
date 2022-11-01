@@ -59,7 +59,7 @@ mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
   return(list(mu = mu.beta, Sigma = Sigma.beta))
 }
 
-I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
+I.r.1 <- function(y, m, V, eta, mult, lb.min, ub.max) {
   # Hybrid integrals for likelihood sites
   m.1 <- m[1]
   m.2 <- m[2]
@@ -75,22 +75,22 @@ I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
       V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + y^2/exp(2*x)))
   }
   
-  lb <- m.2 - mult*sqrt(V[2, 2])
-  ub <- m.2 + mult*sqrt(V[2, 2])
+  lb <- max(m.2 - mult*sqrt(V[2, 2]), lb.min)
+  ub <- min(m.2 + mult*sqrt(V[2, 2]), ub.max)
   
-  ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub)$value
-  ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub)$value
-  ret.12 <- integrate(Vectorize(function(x) x*GI.0(abc(x))), lb, ub)$value
-  ret.211 <- integrate(Vectorize(function(x) GI.2(abc(x))), lb, ub)$value
-  ret.212 <- integrate(Vectorize(function(x) x*GI.1(abc(x))), lb, ub)$value
-  ret.222 <- integrate(Vectorize(function(x) x^2*GI.0(abc(x))), lb, ub)$value
+  ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.12 <- integrate(Vectorize(function(x) x*GI.0(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.211 <- integrate(Vectorize(function(x) GI.2(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.212 <- integrate(Vectorize(function(x) x*GI.1(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.222 <- integrate(Vectorize(function(x) x^2*GI.0(abc(x))), lb, ub, abs.tol = 0)$value
   
   list(I.0 = ret.0/sqrt(det(2*pi*V)), 
        I.1 = c(ret.11, ret.12)/sqrt(det(2*pi*V)), 
        I.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*V)), nrow = 2))
 }
 
-I.r.2 <- function(lambda, m, V, eta, mult, maxEval, tol) {
+I.r.2 <- function(lambda, m, V, eta, mult, lb.min, ub.max) {
   # Hybrid integrals for Laplace-based prior sites
   m.1 <- m[1]
   m.2 <- m[2]
@@ -106,15 +106,15 @@ I.r.2 <- function(lambda, m, V, eta, mult, maxEval, tol) {
       V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*2*x)
   }
   
-  lb <- m.2 - mult*sqrt(V[2, 2])
-  ub <- m.2 + mult*sqrt(V[2, 2])
+  lb <- max(m.2 - mult*sqrt(V[2, 2]), lb.min)
+  ub <- min(m.2 + mult*sqrt(V[2, 2]), ub.max)
   
-  ret.0 <- integrate(Vectorize(function(x) TGI.minus.0(abc(x, T), 0) + TGI.plus.0(abc(x, F), 0)), lb, ub)$value
-  ret.11 <- integrate(Vectorize(function(x) TGI.minus.1(abc(x, T), 0) + TGI.plus.1(abc(x, F), 0)), lb, ub)$value
-  ret.12 <- integrate(Vectorize(function(x) x*(TGI.minus.0(abc(x, T), 0) + TGI.plus.0(abc(x, F), 0))), lb, ub)$value
-  ret.211 <- integrate(Vectorize(function(x) TGI.minus.2(abc(x, T), 0) + TGI.plus.2(abc(x, F), 0)), lb, ub)$value
-  ret.212 <- integrate(Vectorize(function(x) x*(TGI.minus.1(abc(x, T), 0) + TGI.plus.1(abc(x, F), 0))), lb, ub)$value
-  ret.222 <- integrate(Vectorize(function(x) x^2*(TGI.minus.0(abc(x, T), 0) + TGI.plus.0(abc(x, F), 0))), lb, ub)$value
+  ret.0 <- integrate(Vectorize(function(x) TGI.minus.0(abc(x, T), 0) + TGI.plus.0(abc(x, F), 0)), lb, ub, abs.tol = 0)$value
+  ret.11 <- integrate(Vectorize(function(x) TGI.minus.1(abc(x, T), 0) + TGI.plus.1(abc(x, F), 0)), lb, ub, abs.tol = 0)$value
+  ret.12 <- integrate(Vectorize(function(x) x*(TGI.minus.0(abc(x, T), 0) + TGI.plus.0(abc(x, F), 0))), lb, ub, abs.tol = 0)$value
+  ret.211 <- integrate(Vectorize(function(x) TGI.minus.2(abc(x, T), 0) + TGI.plus.2(abc(x, F), 0)), lb, ub, abs.tol = 0)$value
+  ret.212 <- integrate(Vectorize(function(x) x*(TGI.minus.1(abc(x, T), 0) + TGI.plus.1(abc(x, F), 0))), lb, ub, abs.tol = 0)$value
+  ret.222 <- integrate(Vectorize(function(x) x^2*(TGI.minus.0(abc(x, T), 0) + TGI.plus.0(abc(x, F), 0))), lb, ub, abs.tol = 0)$value
   
   list(I.0 = ret.0/sqrt(det(2*pi*V)), 
        I.1 = c(ret.11, ret.12)/sqrt(det(2*pi*V)), 
@@ -200,9 +200,9 @@ ep.approx <- function(X, y, mu.kappa, sigma.2.kappa,
       
       # Computing function values, gradients and Hessians at 0
       if (i <= n) {
-        I.r.res <- tryCatch(I.r.1(y[i], m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
+        I.r.res <- tryCatch(I.r.1(y[i], m, V, eta, mult = 5, lb.min = -5, ub.max = Inf), error = err)
       } else {
-        I.r.res <- tryCatch(I.r.2(lambda, m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
+        I.r.res <- tryCatch(I.r.2(lambda, m, V, eta, mult = 5, lb.min = -10, ub.max = Inf), error = err)
       }
       
       if (!is.list(I.r.res)) {
@@ -236,12 +236,12 @@ ep.approx <- function(X, y, mu.kappa, sigma.2.kappa,
       r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
       
       W.r <- rowSums(W)
-      Q.ratio <- Q.updated/(W.r%*%t(W.r))
-      r.ratio <- r.updated/W.r
+      Q.ratio <- Q.updated/(W.r%*%t(W.r)); Q.ratio[!is.finite(Q.ratio)] <- NA
+      r.ratio <- r.updated/W.r; r.ratio[!is.finite(r.ratio)] <- NA
       
       if (i <= n) {
-        Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:p, p + 1)))
-        r.star.updated <- c(mean(r.ratio[1:p]), r.ratio[p + 1])
+        Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:p, p + 1), na.rm = T))
+        r.star.updated <- c(mean(r.ratio[1:p], na.rm = T), r.ratio[p + 1])
       } else {
         Q.star.updated <- force.sym(Q.ratio[c(i - n, p + 1), c(i - n, p + 1)])
         r.star.updated <- r.ratio[c(i - n, p + 1)]

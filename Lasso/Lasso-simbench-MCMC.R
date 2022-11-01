@@ -33,7 +33,7 @@ for (type.iter in 1:num.each.type) {
                      iter = mcmc.iter,
                      warmup = mcmc.warmup,
                      refresh = 0,
-                     init = "random")
+                     init = rep(0, p + 1))
     
     mcmc.samples <- rstan::extract(stan.res)$theta
     mcmc.mu <- colMeans(mcmc.samples)
@@ -75,7 +75,7 @@ for (type.iter in 1:num.each.type) {
                    iter = mcmc.iter,
                    warmup = mcmc.warmup,
                    refresh = 0,
-                   init = "random")
+                   init = rep(0, p + 1))
   
   mcmc.samples <- rstan::extract(stan.res)$theta
   mcmc.mu <- colMeans(mcmc.samples)
