@@ -1,6 +1,10 @@
 
 # Auxiliary functions and variables for random intercept linear regression
 
+sigma.2.bk <- 10000
+kappa.y <- -1
+kappa.u <- -0.5
+
 log.joint.likelihood <- function(theta, X, Z, y, mu.bk, Sigma.bk) {
   # Log joint likelihood
   n <- nrow(X)
@@ -21,7 +25,7 @@ laplace.approx <- function(X, Z, y, mu.bk, Sigma.bk, maxit) {
   p <- ncol(X)
   q <- ncol(Z)
   
-  combined.df <- as.data.frame(cbind(X[, -1], group = as.vector(Z%*%1:q), y))
+  combined.df <- as.data.frame(cbind(unname(X[, -1]), group = unname(as.vector(Z%*%1:q)), y))
   combined.df$group <- as.factor(combined.df$group)
   lmer.res <- lmer(eval(parse(text = paste0("y ~ (1 | group) + ", paste0("V", 1:(p - 1), collapse = " + ")))), 
                    data = combined.df)
@@ -34,7 +38,7 @@ laplace.approx <- function(X, Z, y, mu.bk, Sigma.bk, maxit) {
   return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
 }
 
-I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
+I.r.1 <- function(y, m, V, eta, mult, lb.min, ub.max) {
   # Hybrid integrals for likelihood sites
   m.1 <- m[1]
   m.2 <- m[2]
@@ -50,22 +54,22 @@ I.r.1 <- function(y, m, V, eta, mult, maxEval, tol) {
       V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + y^2/exp(2*x)))
   }
   
-  lb <- m.2 - mult*sqrt(V[2, 2])
-  ub <- m.2 + mult*sqrt(V[2, 2])
+  lb <- max(m.2 - mult*sqrt(V[2, 2]), lb.min)
+  ub <- min(m.2 + mult*sqrt(V[2, 2]), ub.max)
   
-  ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub)$value
-  ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub)$value
-  ret.12 <- integrate(Vectorize(function(x) x*GI.0(abc(x))), lb, ub)$value
-  ret.211 <- integrate(Vectorize(function(x) GI.2(abc(x))), lb, ub)$value
-  ret.212 <- integrate(Vectorize(function(x) x*GI.1(abc(x))), lb, ub)$value
-  ret.222 <- integrate(Vectorize(function(x) x^2*GI.0(abc(x))), lb, ub)$value
+  ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.12 <- integrate(Vectorize(function(x) x*GI.0(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.211 <- integrate(Vectorize(function(x) GI.2(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.212 <- integrate(Vectorize(function(x) x*GI.1(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.222 <- integrate(Vectorize(function(x) x^2*GI.0(abc(x))), lb, ub, abs.tol = 0)$value
   
   list(I.0 = ret.0/sqrt(det(2*pi*V)), 
        I.1 = c(ret.11, ret.12)/sqrt(det(2*pi*V)), 
        I.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*V)), nrow = 2))
 }
 
-I.r.2 <- function(m, V, eta, mult, maxEval, tol) {
+I.r.2 <- function(m, V, eta, mult, lb.min, ub.max) {
   # Hybrid integrals for random effect sites
   m.1 <- m[1]
   m.2 <- m[2]
@@ -81,15 +85,15 @@ I.r.2 <- function(m, V, eta, mult, maxEval, tol) {
       V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*2*x)
   }
   
-  lb <- m.2 - mult*sqrt(V[2, 2])
-  ub <- m.2 + mult*sqrt(V[2, 2])
+  lb <- max(m.2 - mult*sqrt(V[2, 2]), lb.min)
+  ub <- min(m.2 + mult*sqrt(V[2, 2]), ub.max)
   
-  ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub)$value
-  ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub)$value
-  ret.12 <- integrate(Vectorize(function(x) x*GI.0(abc(x))), lb, ub)$value
-  ret.211 <- integrate(Vectorize(function(x) GI.2(abc(x))), lb, ub)$value
-  ret.212 <- integrate(Vectorize(function(x) x*GI.1(abc(x))), lb, ub)$value
-  ret.222 <- integrate(Vectorize(function(x) x^2*GI.0(abc(x))), lb, ub)$value
+  ret.0 <- integrate(Vectorize(function(x) GI.0(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.11 <- integrate(Vectorize(function(x) GI.1(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.12 <- integrate(Vectorize(function(x) x*GI.0(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.211 <- integrate(Vectorize(function(x) GI.2(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.212 <- integrate(Vectorize(function(x) x*GI.1(abc(x))), lb, ub, abs.tol = 0)$value
+  ret.222 <- integrate(Vectorize(function(x) x^2*GI.0(abc(x))), lb, ub, abs.tol = 0)$value
   
   list(I.0 = ret.0/sqrt(det(2*pi*V)), 
        I.1 = c(ret.11, ret.12)/sqrt(det(2*pi*V)), 
@@ -183,9 +187,9 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
       
       # Computing function values, gradients and Hessians at 0
       if (i <= n) {
-        I.r.res <- tryCatch(I.r.1(y[i], m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
+        I.r.res <- tryCatch(I.r.1(y[i], m, V, eta, mult = 5, lb.min = -5, ub.max = Inf), error = err)
       } else {
-        I.r.res <- tryCatch(I.r.2(m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
+        I.r.res <- tryCatch(I.r.2(m, V, eta, mult = 5, lb.min = -5, ub.max = Inf), error = err)
       }
       
       if (!is.list(I.r.res)) {
@@ -219,13 +223,12 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
       r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
       
       W.r <- rowSums(W)
-      Q.ratio <- Q.updated/(W.r%*%t(W.r))
-      Q.ratio[!is.finite(Q.ratio)] <- 0 # Ensures block.mean works
-      r.ratio <- r.updated/W.r
+      Q.ratio <- Q.updated/(W.r%*%t(W.r)); Q.ratio[!is.finite(Q.ratio)] <- NA
+      r.ratio <- r.updated/W.r; r.ratio[!is.finite(r.ratio)] <- NA
       
       if (i <= n) {
-        Q.star.updated <- force.sym(block.mean(Q.ratio, list(c(1:p, which(X[i, ] == 1)), p + q + 1)))
-        r.star.updated <- c(mean(r.ratio[c(1:p, which(X[i, ] == 1))]), r.ratio[p + q + 1])
+        Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:(p + q), p + q + 1), na.rm = T))
+        r.star.updated <- c(mean(r.ratio[1:(p + q)], na.rm = T), r.ratio[p + q + 1])
       } else {
         Q.star.updated <- force.sym(Q.ratio[c(p + i - n, p + q + 2), c(p + i - n, p + q + 2)])
         r.star.updated <- r.ratio[c(p + i - n, p + q + 2)]
@@ -259,7 +262,7 @@ ep.approx <- function(X, Z, y, mu.bk, Sigma.bk,
     }
     
     if (stop.ep) {print("Too many numerical errors; stopping EP"); break}
-    if (max.delta < abs.thresh && iteration > min.passes) {print("EP has converged; stopping EP"); break}
+    if (max.delta < abs.thresh && iteration > min.passes) {if (verbose) print("EP has converged; stopping EP"); break}
     if (max.delta > stop.factor*prev.max.delta) {print("Unstable deltas; stopping EP"); break}
     if (max.delta > rel.thresh*prev.max.delta) pcount <- pcount + 1 else pcount <- 0
     if (pcount == patience) {print("Out of patience; stopping EP"); break}
