@@ -22,8 +22,8 @@ for (type.iter in 1:num.each.type) {
   combined.df <- rbind(mcmc.df, laplace.df, ep.df) %>% 
     filter(j <= p) %>% 
     pivot_wider(names_from = method, values_from = c(mu, sigma_2)) %>% 
-    mutate(mu_laplace = (mu_laplace - mu_mcmc)/mu_mcmc,
-           mu_ep = (mu_ep - mu_mcmc)/mu_mcmc,
+    mutate(mu_laplace = (mu_laplace - mu_mcmc)/sigma_2_mcmc,
+           mu_ep = (mu_ep - mu_mcmc)/sigma_2_mcmc,
            sigma2_laplace = (sigma_2_laplace - sigma_2_mcmc)/sigma_2_mcmc,
            sigma2_ep = (sigma_2_ep - sigma_2_mcmc)/sigma_2_mcmc) %>% 
     select(iteration, j, mu_laplace, mu_ep, sigma2_laplace, sigma2_ep) %>% 
@@ -81,8 +81,8 @@ for (type.iter in 1:num.each.type) {
   combined.df <- rbind(mcmc.df, laplace.df, ep.df) %>% 
     filter(j <= p) %>% 
     pivot_wider(names_from = method, values_from = c(mu, sigma_2)) %>% 
-    mutate(mu_laplace = (mu_laplace - mu_mcmc)/mu_mcmc,
-           mu_ep = (mu_ep - mu_mcmc)/mu_mcmc,
+    mutate(mu_laplace = (mu_laplace - mu_mcmc)/sigma_2_mcmc,
+           mu_ep = (mu_ep - mu_mcmc)/sigma_2_mcmc,
            sigma2_laplace = (sigma_2_laplace - sigma_2_mcmc)/sigma_2_mcmc,
            sigma2_ep = (sigma_2_ep - sigma_2_mcmc)/sigma_2_mcmc) %>% 
     select(j, mu_laplace, mu_ep, sigma2_laplace, sigma2_ep) %>% 
