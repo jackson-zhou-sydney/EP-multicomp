@@ -10,6 +10,7 @@ library(lme4)      # Fast linear mixed model estimates
 library(stringr)   # String manipulation
 library(knitr)     # Crop plots
 library(haven)     # Load in DTA files
+library(mlr)       # Generate dummy columns
 
 num.each.type <- 3
 num.sim <- 50
