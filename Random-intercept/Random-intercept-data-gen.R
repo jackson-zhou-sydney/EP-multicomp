@@ -54,8 +54,8 @@ for (iteration in 1:num.sim) {
 ## Benchmark 1
 
 load("Benchmark-data/ChickWeight.RData")
-X <- cbind(1, createDummyFeatures(ChickWeight[, 4], method = "reference"), scale(ChickWeight[, 2]))
-Z <- createDummyFeatures(factor(ChickWeight[, 3], levels = 1:48), method = "1-of-n")
+X <- as.matrix(cbind(1, createDummyFeatures(ChickWeight[, 4], method = "reference"), scale(ChickWeight[, 2])))
+Z <- as.matrix(createDummyFeatures(factor(ChickWeight[, 3], levels = 1:48), method = "1-of-n"))
 y <- as.vector(scale(ChickWeight[, 1]))
 save(X, Z, y, file = "Random-intercept/Random-intercept-data/Bench-1.RData")
 
@@ -63,8 +63,8 @@ save(X, Z, y, file = "Random-intercept/Random-intercept-data/Bench-1.RData")
 
 load("Benchmark-data/PEFR.RData")
 PEFR <- PEFR %>% arrange(item)
-X <- cbind(1, createDummyFeatures(PEFR[, 1], method = "reference"))
-Z <- createDummyFeatures(factor(PEFR[, 2]), method = "1-of-n")
+X <- as.matrix(cbind(1, createDummyFeatures(PEFR[, 1], method = "reference")))
+Z <- as.matrix(createDummyFeatures(factor(PEFR[, 2]), method = "1-of-n"))
 y <- as.vector(scale(PEFR[, 4]))
 save(X, Z, y, file = "Random-intercept/Random-intercept-data/Bench-2.RData")
 
@@ -72,7 +72,7 @@ save(X, Z, y, file = "Random-intercept/Random-intercept-data/Bench-2.RData")
 
 load("Benchmark-data/jsp.RData")
 jsp <- jsp %>% filter(school %in% as.character(1:10)) %>% mutate(school = factor(school, levels = 1:10))
-X <- cbind(1, createDummyFeatures(jsp[, 3], method = "reference"), scale(jsp[, 7:9]))
-Z <- createDummyFeatures(jsp[, 1], method = "1-of-n")
+X <- as.matrix(cbind(1, createDummyFeatures(jsp[, 3], method = "reference"), scale(jsp[, 7:9])))
+Z <- as.matrix(createDummyFeatures(jsp[, 1], method = "1-of-n"))
 y <- as.vector(scale(jsp[, 5]))
 save(X, Z, y, file = "Random-intercept/Random-intercept-data/Bench-3.RData")
