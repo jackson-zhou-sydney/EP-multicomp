@@ -6,12 +6,23 @@ sigma.2.kappa <- 10000
 lambda <- 0.5
 sigma <- 0.1
 
-expec.lnig <- function(A, B, C, D, upper = 100) {
-  # Expectation of product of log-normal and inverse gamma densities
-  p <- function(x) -A*log(x) - (log(x) - B)^2/(2*C) - D/(2*x^2)
-  p.max <- optimise(p, c(0, upper), maximum = TRUE)$objective
-  q <- function(x) exp(-A*log(x) - (log(x) - B)^2/(2*C) - D/(2*x^2) - p.max)
-  integrate(function(x) q(x)/(x^2), 0, Inf, abs.tol = 0)$value/integrate(q, 0, Inf, abs.tol = 0)$value
+expec.lnig <- function(A, B, C, D, fun, radius = 100) {
+  # Expectation of product of reparameterised log-normal and inverse gamma densities
+  p <- function(x) -A*x - (x - B)^2/(2*C) - D/(2*exp(2*x))
+  p.max <- optimise(p, c(-radius, radius), maximum = TRUE)$objective
+  q <- function(x) exp(-A*x - (x - B)^2/(2*C) - D/(2*exp(2*x)) - p.max)
+  
+  if (fun == "x") {
+    r <- function(x) exp(-A*x - (x - B)^2/(2*C) - D/(2*exp(2*x)) - p.max)*x
+  } else if (fun == "x^2") {
+    r <- function(x) exp(-A*x - (x - B)^2/(2*C) - D/(2*exp(2*x)) - p.max)*x^2
+  } else if (fun == "1/exp(2*x)") {
+    r <- function(x) exp(-A*x - (x - B)^2/(2*C) - D/(2*exp(2*x)) - p.max - 2*x)
+  } else {
+    stop("fun must be one of: x, x^2, or 1/exp(2*x)")
+  }
+  
+  integrate(r, -Inf, Inf, abs.tol = 0)$value/integrate(q, -Inf, Inf, abs.tol = 0)$value
 }
 
 mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
@@ -26,7 +37,7 @@ mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
   # Initialisations
   mu.beta <- rep(0, p)
   Sigma.beta <- diag(p)
-  expec.inv.sigma.2 <- 1
+  expec.ie.2.kappa <- 1
   expec.a <- rep(1, p)
   
   # Main MFVB loop
@@ -38,16 +49,17 @@ mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
     Q.inv <- XTX + lambda^2*diag(expec.a)
     Q <- solve(Q.inv, tol = 1.0E-99)
     mu.beta <- as.vector(Q%*%XTy)
-    Sigma.beta <- Q/expec.inv.sigma.2
+    Sigma.beta <- Q/expec.ie.2.kappa
     
     # Update q(sigma)
-    expec.inv.sigma.2 <- expec.lnig(n + p + 1, mu.kappa, sigma.2.kappa, 
-                                    sum((y - X%*%mu.beta)^2) + 
-                                    lambda^2*sum(expec.a*mu.beta^2) + 
-                                    sum(diag(Q.inv%*%Sigma.beta)))
+    expec.ie.2.kappa <- expec.lnig(n + p, mu.kappa, sigma.2.kappa,
+                                   sum((y - X%*%mu.beta)^2) + 
+                                   lambda^2*sum(expec.a*mu.beta^2) + 
+                                   sum(diag(Q.inv%*%Sigma.beta)),
+                                   fun = "1/exp(2*x)")
     
     # Update q(a)
-    expec.a <- sqrt(1/(expec.inv.sigma.2*(mu.beta^2 + diag(Sigma.beta))))/lambda
+    expec.a <- sqrt(1/(expec.ie.2.kappa*(mu.beta^2 + diag(Sigma.beta))))/lambda
     
     # Checking for convergence
     delta <- norm(mu.beta - mu.beta.old, "2")
@@ -55,8 +67,28 @@ mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
     if (delta < tol) break
   }
   
-  # Returning only beta
-  return(list(mu = mu.beta, Sigma = Sigma.beta))
+  # Returning parameters
+  mu.kappa.q <- expec.lnig(n + p, mu.kappa, sigma.2.kappa,
+                           sum((y - X%*%mu.beta)^2) + 
+                           lambda^2*sum(expec.a*mu.beta^2) + 
+                           sum(diag(Q.inv%*%Sigma.beta)),
+                           fun = "x")
+  
+  sigma.2.kappa.q <- expec.lnig(n + p, mu.kappa, sigma.2.kappa,
+                                sum((y - X%*%mu.beta)^2) + 
+                                lambda^2*sum(expec.a*mu.beta^2) + 
+                                sum(diag(Q.inv%*%Sigma.beta)),
+                                fun = "x^2") - mu.kappa.q^2
+  
+  mu.theta <- numeric(p + 1)
+  mu.theta[1:p] <- mu.beta
+  mu.theta[p + 1] <- mu.kappa.q
+  
+  Sigma.theta <- matrix(0, nrow = p + 1, ncol = p + 1)
+  Sigma.theta[1:p, 1:p] <- Sigma.beta
+  Sigma.theta[p + 1, p + 1] <- sigma.2.kappa.q
+  
+  return(list(mu = mu.theta, Sigma = Sigma.theta))
 }
 
 I.r.1 <- function(y, m, V, eta, mult, lb.min, ub.max) {

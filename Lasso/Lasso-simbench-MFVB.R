@@ -27,7 +27,7 @@ for (type.iter in 1:num.each.type) {
     mfvb.mu <- mfvb.res$mu
     mfvb.Sigma <- mfvb.res$Sigma
     
-    for (j in 1:p) {
+    for (j in 1:(p + 1)) {
       results.df <- results.df %>% add_row(iteration = iteration,
                                            j = j,
                                            mu = mfvb.mu[j],
@@ -57,7 +57,7 @@ for (type.iter in 1:num.each.type) {
   mfvb.mu <- mfvb.res$mu
   mfvb.Sigma <- mfvb.res$Sigma
   
-  for (j in 1:p) {
+  for (j in 1:(p + 1)) {
     results.df <- results.df %>% add_row(j = j,
                                          mu = mfvb.mu[j],
                                          sigma_2 = mfvb.Sigma[j, j])
