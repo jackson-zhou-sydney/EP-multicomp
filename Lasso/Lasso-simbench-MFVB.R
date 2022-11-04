@@ -22,7 +22,7 @@ for (type.iter in 1:num.each.type) {
     p <- ncol(X)
     
     mfvb.res <- mfvb.approx(X, y, mu.kappa, sigma.2.kappa,
-                            lambda, maxit = 1000, tol = 1.0E-10, verbose = F)
+                            lambda, maxit = 1000, tol = 1.0E-20, verbose = F)
 
     mfvb.mu <- mfvb.res$mu
     mfvb.Sigma <- mfvb.res$Sigma
@@ -52,7 +52,7 @@ for (type.iter in 1:num.each.type) {
   p <- ncol(X)
   
   mfvb.res <- mfvb.approx(X, y, mu.kappa, sigma.2.kappa,
-                          lambda, maxit = 1000, tol = 1.0E-10, verbose = F)
+                          lambda, maxit = 1000, tol = 1.0E-20, verbose = F)
 
   mfvb.mu <- mfvb.res$mu
   mfvb.Sigma <- mfvb.res$Sigma
