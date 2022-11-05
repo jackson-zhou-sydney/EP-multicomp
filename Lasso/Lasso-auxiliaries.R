@@ -6,6 +6,14 @@ sigma.2.kappa <- 10000
 lambda <- 0.5
 sigma <- 0.1
 
+sim.settings <- list(c(n = 200, p = 40),
+                     c(n = 40, p = 40),
+                     c(n = 10, p = 40))
+
+bench.settings <- list(c(n = 442, p = 11),
+                       c(n = 97, p = 9),
+                       c(n = 120, p = 201))
+
 expec.lnig <- function(A, B, C, D, fun, radius = 100) {
   # Expectation of product of reparameterised log-normal and inverse gamma densities
   p <- function(x) -A*x - (x - B)^2/(2*C) - D/(2*exp(2*x))
