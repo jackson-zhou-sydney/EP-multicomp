@@ -6,49 +6,21 @@ source("Heteroscedastic/Heteroscedastic-auxiliaries.R")
 
 set.seed(1)
 
-## Simulation 1
+## Simulations
 
-n <- 200
-p.1 <- 40
-p.2 <- 10
-beta.1 <- rep(c(2, -2)/p.1, p.1/2)
-beta.2 <- rep(c(2, -2)/p.2, p.2/2)
-
-for (iteration in 1:num.sim) {
-  X.1 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.1 - 1)), nrow = n)))
-  X.2 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.2 - 1)), nrow = n)))
-  y <- as.vector(scale(rnorm(n, X.1%*%beta.1, sqrt(exp(X.2%*%beta.2)))))
-  save(X.1, X.2, y, file = paste0("Heteroscedastic/Heteroscedastic-data/Sim-1-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
-}
-
-## Simulation 2
-
-n <- 200
-p.1 <- 20
-p.2 <- 20
-beta.1 <- rep(c(2, -2)/p.1, p.1/2)
-beta.2 <- rep(c(2, -2)/p.2, p.2/2)
-
-for (iteration in 1:num.sim) {
-  X.1 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.1 - 1)), nrow = n)))
-  X.2 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.2 - 1)), nrow = n)))
-  y <- as.vector(scale(rnorm(n, X.1%*%beta.1, sqrt(exp(X.2%*%beta.2)))))
-  save(X.1, X.2, y, file = paste0("Heteroscedastic/Heteroscedastic-data/Sim-2-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
-}
-
-## Simulation 3
-
-n <- 200
-p.1 <- 10
-p.2 <- 40
-beta.1 <- rep(c(2, -2)/p.1, p.1/2)
-beta.2 <- rep(c(2, -2)/p.2, p.2/2)
-
-for (iteration in 1:num.sim) {
-  X.1 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.1 - 1)), nrow = n)))
-  X.2 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.2 - 1)), nrow = n)))
-  y <- as.vector(scale(rnorm(n, X.1%*%beta.1, sqrt(exp(X.2%*%beta.2)))))
-  save(X.1, X.2, y, file = paste0("Heteroscedastic/Heteroscedastic-data/Sim-3-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
+for (type.iter in 1:num.each.type) {
+  n <- sim.settings[[type.iter]][["n"]]
+  p.1 <- sim.settings[[type.iter]][["p.1"]]
+  p.2 <- sim.settings[[type.iter]][["p.2"]]
+  beta.1 <- rep(c(2, -2)/p.1, p.1/2)
+  beta.2 <- rep(c(2, -2)/p.2, p.2/2)
+  
+  for (iteration in 1:num.sim) {
+    X.1 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.1 - 1)), nrow = n)))
+    X.2 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.2 - 1)), nrow = n)))
+    y <- as.vector(scale(rnorm(n, X.1%*%beta.1, sqrt(exp(X.2%*%beta.2)))))
+    save(X.1, X.2, y, file = paste0("Heteroscedastic/Heteroscedastic-data/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
+  }
 }
 
 ## Benchmark 1

@@ -3,6 +3,14 @@
 
 sigma.2.theta <- 10000
 
+sim.settings <- list(c(n = 200, p.1 = 40, p.2 = 10),
+                     c(n = 200, p.1 = 20, p.2 = 20),
+                     c(n = 200, p.1 = 10, p.2 = 40))
+
+bench.settings <- list(c(n = 40, p.1 = 2, p.2 = 2),
+                       c(n = 725, p.1 = 6, p.2 = 2),
+                       c(n = 125, p.1 = 5, p.2 = 5))
+
 log.joint.likelihood <- function(theta, X.1, X.2, y, mu.theta, Sigma.theta) {
   # Log joint likelihood
   n <- nrow(X.1)
