@@ -76,10 +76,10 @@ sim.plot.2 <- sim.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-### Variance regression parameters
-
 ggsave("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-sim-plot-2.png", sim.plot.2, width = 8, height = 5)
 plot_crop("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-sim-plot-2.png")
+
+### Variance regression parameters
 
 sim.plot.3 <- sim.plot.df %>% 
   filter(j > as.numeric(map(sim, ~sim.settings[[.]][["p.1"]]))) %>% 
