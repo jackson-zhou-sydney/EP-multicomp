@@ -5,6 +5,14 @@ sigma.2.bk <- 10000
 kappa.y <- -1
 kappa.u <- -0.5
 
+sim.settings <- list(c(n = 200, p = 40, q = 10),
+                     c(n = 200, p = 20, q = 20),
+                     c(n = 200, p = 10, q = 40))
+
+bench.settings <- list(c(n = 578, p = 5, q = 50),
+                       c(n = 68, p = 2, q = 17),
+                       c(n = 606, p = 5, q = 10))
+
 log.joint.likelihood <- function(theta, X, Z, y, mu.bk, Sigma.bk) {
   # Log joint likelihood
   n <- nrow(X)
