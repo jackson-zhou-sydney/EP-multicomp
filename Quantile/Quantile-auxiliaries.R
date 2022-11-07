@@ -1,6 +1,8 @@
 
 # EP code for Bayesian quantile regression
 
+sigma.2.theta <- 10000
+tau <- 0.75
 sigma <- 0.2
 n.binom <- 10
 
