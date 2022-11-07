@@ -59,7 +59,7 @@ mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
     mu.beta <- as.vector(Q%*%XTy)
     Sigma.beta <- Q/expec.ie.2.kappa
     
-    # Update q(sigma)
+    # Update q(kappa)
     expec.ie.2.kappa <- expec.lnig(n + p, mu.kappa, sigma.2.kappa,
                                    sum((y - X%*%mu.beta)^2) + 
                                    lambda^2*sum(expec.a*mu.beta^2) + 
