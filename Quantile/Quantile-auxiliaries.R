@@ -1,34 +1,100 @@
 
 # EP code for Bayesian quantile regression
 
-rho <- function(x, tau) {
-  # Quantile loss function
-  0.5*(abs(x) + (2*tau - 1)*x)
+expec.lnig <- function(A, B, C, D, E, fun, radius = 100, lb) {
+  # Expectation of product of reparameterised log-normal and inverse gamma densities
+  p <- function(x) -A/exp(2*x) + B/exp(x) - C*x - (x - D)^2/(2*E)
+  p.max <- optimise(p, c(-radius, radius), maximum = TRUE)$objective
+  q <- function(x) exp(-A/exp(2*x) + B/exp(x) - C*x - (x - D)^2/(2*E) - p.max)
+  
+  if (fun == "x") {
+    r <- function(x) exp(-A/exp(2*x) + B/exp(x) - C*x - (x - D)^2/(2*E) - p.max)*x
+  } else if (fun == "x^2") {
+    r <- function(x) exp(-A/exp(2*x) + B/exp(x) - C*x - (x - D)^2/(2*E) - p.max)*x^2
+  } else if (fun == "1/exp(x)") {
+    r <- function(x) exp(-A/exp(2*x) + B/exp(x) - C*x - (x - D)^2/(2*E) - p.max - x)
+  } else if (fun == "1/exp(2*x)") {
+    r <- function(x) exp(-A/exp(2*x) + B/exp(x) - C*x - (x - D)^2/(2*E) - p.max - 2*x)
+  } else {
+    stop("fun must be one of: x, x^2, 1/exp(x) or 1/exp(2*x)")
+  }
+  
+  integrate(r, lb, Inf, abs.tol = 0)$value/integrate(q, lb, Inf, abs.tol = 0)$value
 }
 
-log.joint.likelihood <- function(theta, X, y, mu.theta, Sigma.theta, tau) {
-  # Log joint likelihood
+mfvb.approx <- function(X, y, mu.beta, Sigma.beta, mu.kappa, sigma.2.kappa,
+                        tau, maxit, tol, verbose) {
+  # MFVB for Bayesian quantile regression
   n <- nrow(X)
   p <- ncol(X)
   
-  beta <- theta[1:p]
-  kappa <- theta[p + 1]
+  mu.beta.p <- mu.beta
+  Sigma.beta.p <- Sigma.beta
+  Sigma.beta.p.inv <- solve(Sigma.beta.p, tol = 1.0E-99)
+  X.colSums <- colSums(X)
   
-  as.numeric(-n*kappa - sum(rho(y - X%*%beta, tau))/exp(kappa) - 0.5*t(theta - mu.theta)%*%solve(Sigma.theta)%*%(theta - mu.theta))
+  # Initialisations
+  mu.beta <- rep(0, p)
+  Sigma.beta <- diag(p)
+  expec.ie.kappa <- 1
+  expec.ie.2.kappa <- 1
+  expec.a <- rep(1, n)
+  
+  expec.y.X.beta.2 <- as.vector((y - X%*%mu.beta)^2 + diag(X%*%Sigma.beta%*%t(X)))
+  A <- diag(expec.a)
+  
+  # Main MFVB loop
+  for (iteration in 1:maxit) {
+    # Storing old values
+    mu.beta.old <- mu.beta
+    
+    # Update q(beta)
+    Q.inv <- expec.ie.2.kappa*tau*(1 - tau)*t(X)%*%A%*%X + Sigma.beta.p.inv
+    Q <- solve(Q.inv, tol = 1.0E-99)
+    mu.beta <- as.vector(Q%*%(expec.ie.2.kappa*tau*(1 - tau)*t(X)%*%A%*%y - 
+                              expec.ie.kappa*(0.5 - tau)*X.colSums + 
+                              Sigma.beta.p.inv%*%mu.beta.p))
+    Sigma.beta <- Q
+    expec.y.X.beta.2 <- as.vector((y - X%*%mu.beta)^2 + diag(X%*%Sigma.beta%*%t(X)))
+    
+    # Update q(kappa)
+    expec.ie.kappa <- expec.lnig(0.5*tau*(1 - tau)*as.numeric(t(expec.a)%*%expec.y.X.beta.2),
+                                 (0.5 - tau)*sum(y - X%*%mu.beta), n, mu.kappa, sigma.2.kappa,
+                                 fun = "1/exp(x)", lb = -5)
+    expec.ie.2.kappa <- expec.lnig(0.5*tau*(1 - tau)*as.numeric(t(expec.a)%*%expec.y.X.beta.2),
+                                   (0.5 - tau)*sum(y - X%*%mu.beta), n, mu.kappa, sigma.2.kappa,
+                                   fun = "1/exp(2*x)", lb = -5)
+    
+    # Update q(a)
+    expec.a <- 0.5/(tau*(1 - tau))*(expec.ie.2.kappa*expec.y.X.beta.2)^-0.5
+    A <- diag(expec.a)
+    
+    # Checking for convergence
+    delta <- norm(mu.beta - mu.beta.old, "2")
+    if (verbose) print(paste0("Iteration ", iteration, ", current delta is: ", delta))
+    if (delta < tol) break
+  }
+  
+  # Returning parameters
+  mu.kappa.q <- expec.lnig(0.5*tau*(1 - tau)*as.numeric(t(expec.a)%*%expec.y.X.beta.2),
+                           (0.5 - tau)*sum(y - X%*%mu.beta), n, mu.kappa, sigma.2.kappa,
+                           fun = "x", lb = -5)
+  sigma.2.kappa.q <- expec.lnig(0.5*tau*(1 - tau)*as.numeric(t(expec.a)%*%expec.y.X.beta.2),
+                                (0.5 - tau)*sum(y - X%*%mu.beta), n, mu.kappa, sigma.2.kappa,
+                                fun = "x^2", lb = -5) - mu.kappa.q^2
+  
+  mu.theta <- numeric(p + 1)
+  mu.theta[1:p] <- mu.beta
+  mu.theta[p + 1] <- mu.kappa.q
+  
+  Sigma.theta <- matrix(0, nrow = p + 1, ncol = p + 1)
+  Sigma.theta[1:p, 1:p] <- Sigma.beta
+  Sigma.theta[p + 1, p + 1] <- sigma.2.kappa.q
+  
+  return(list(mu = mu.theta, Sigma = Sigma.theta))
 }
 
-laplace.approx <- function(X, y, mu.theta, Sigma.theta, tau, maxit) {
-  # Laplace approximation
-  start <- c(unname(coef(rq(y ~ X[, -1], tau))), 0)
-  optim.res <- optim(start, fn = log.joint.likelihood, 
-                     method = "BFGS", 
-                     control = list(fnscale = -1, maxit = maxit),
-                     hessian = T,
-                     X = X, y = y, mu.theta = mu.theta, Sigma.theta = Sigma.theta, tau = tau)
-  return(list(mu = optim.res$par, Sigma = solve(-optim.res$hessian)))
-}
-
-I.r <- function(y, tau, m, V, eta, mult, maxEval, tol) {
+I.r <- function(y, tau, m, V, eta, mult, lb.min, ub.max) {
   # Hybrid integrals for sites
   m.1 <- m[1]
   m.2 <- m[2]
@@ -44,15 +110,15 @@ I.r <- function(y, tau, m, V, eta, mult, maxEval, tol) {
       V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + (2*tau - 1 + ifelse(lower, 1, -1))*y/exp(x)))
   }
   
-  lb <- m.2 - mult*sqrt(V[2, 2])
-  ub <- m.2 + mult*sqrt(V[2, 2])
+  lb <- max(m.2 - mult*sqrt(V[2, 2]), lb.min)
+  ub <- min(m.2 + mult*sqrt(V[2, 2]), ub.max)
   
-  ret.0 <- integrate(Vectorize(function(x) TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y)), lb, ub)$value
-  ret.11 <- integrate(Vectorize(function(x) TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y)), lb, ub)$value
-  ret.12 <- integrate(Vectorize(function(x) x*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub)$value
-  ret.211 <- integrate(Vectorize(function(x) TGI.minus.2(abc(x, T), y) + TGI.plus.2(abc(x, F), y)), lb, ub)$value
-  ret.212 <- integrate(Vectorize(function(x) x*(TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y))), lb, ub)$value
-  ret.222 <- integrate(Vectorize(function(x) x^2*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub)$value
+  ret.0 <- integrate(Vectorize(function(x) TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y)), lb, ub, abs.tol = 0)$value
+  ret.11 <- integrate(Vectorize(function(x) TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y)), lb, ub, abs.tol = 0)$value
+  ret.12 <- integrate(Vectorize(function(x) x*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub, abs.tol = 0)$value
+  ret.211 <- integrate(Vectorize(function(x) TGI.minus.2(abc(x, T), y) + TGI.plus.2(abc(x, F), y)), lb, ub, abs.tol = 0)$value
+  ret.212 <- integrate(Vectorize(function(x) x*(TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y))), lb, ub, abs.tol = 0)$value
+  ret.222 <- integrate(Vectorize(function(x) x^2*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub, abs.tol = 0)$value
   
   list(I.0 = ret.0/sqrt(det(2*pi*V)), 
        I.1 = c(ret.11, ret.12)/sqrt(det(2*pi*V)), 
@@ -119,7 +185,7 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
       U <- Sigma.cavity%*%W
       
       # Computing function values, gradients and Hessians at 0
-      I.r.res <- tryCatch(I.r(y[i], tau, m, V, eta, mult = 5, maxEval = 0, tol = 0.0001), error = err)
+      I.r.res <- tryCatch(I.r(y[i], tau, m, V, eta, mult = 5, lb.min = -10, ub.max = Inf), error = err)
       if (!is.list(I.r.res)) {
         print(paste0("Warning: error in hybrid integral at i = ", i))
         deltas[index, ] <- c(index, iteration, i, NA, 1)
@@ -151,11 +217,11 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
       r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
       
       W.r <- rowSums(W)
-      Q.ratio <- Q.updated/(W.r%*%t(W.r))
-      r.ratio <- r.updated/W.r
+      Q.ratio <- Q.updated/(W.r%*%t(W.r)); Q.ratio[!is.finite(Q.ratio)] <- NA
+      r.ratio <- r.updated/W.r; r.ratio[!is.finite(r.ratio)] <- NA
       
-      Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:p, p + 1)))
-      r.star.updated <- c(mean(r.ratio[1:p]), r.ratio[p + 1])
+      Q.star.updated <- force.sym(block.mean(Q.ratio, list(1:p, p + 1), na.rm = T))
+      r.star.updated <- c(mean(r.ratio[1:p], na.rm = T), r.ratio[p + 1])
       
       delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(Q.star.updated - Q.star.values[, , i], "F"))
       
@@ -185,7 +251,7 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
     }
     
     if (stop.ep) {print("Too many numerical errors; stopping EP"); break}
-    if (max.delta < abs.thresh && iteration > min.passes) {print("EP has converged; stopping EP"); break}
+    if (max.delta < abs.thresh && iteration > min.passes) {if (verbose) print("EP has converged; stopping EP"); break}
     if (max.delta > stop.factor*prev.max.delta) {print("Unstable deltas; stopping EP"); break}
     if (max.delta > rel.thresh*prev.max.delta) pcount <- pcount + 1 else pcount <- 0
     if (pcount == patience) {print("Out of patience; stopping EP"); break}
