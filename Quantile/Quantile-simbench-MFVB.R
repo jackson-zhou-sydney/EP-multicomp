@@ -67,7 +67,6 @@ for (type.iter in 1:num.each.type) {
   
   mfvb.res <- mfvb.approx(X, y, mu.beta, Sigma.beta, mu.kappa, sigma.2.kappa, 
                           tau, maxit = 1000, tol = 1.0E-14, verbose = F)
-
   mfvb.mu <- mfvb.res$mu
   mfvb.Sigma <- mfvb.res$Sigma
   

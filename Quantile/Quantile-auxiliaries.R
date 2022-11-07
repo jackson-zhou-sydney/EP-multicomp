@@ -10,9 +10,9 @@ sim.settings <- list(c(n = 200, p = 40, dist = "normal"),
                      c(n = 200, p = 40, dist = "poisson"),
                      c(n = 200, p = 40, dist = "binomial"))
 
-bench.settings <- list(c(n = 442, p = 11),
-                       c(n = 97, p = 9),
-                       c(n = 120, p = 201))
+bench.settings <- list(c(n = 298, p = 2),
+                       c(n = 235, p = 2),
+                       c(n = 21, p = 4))
 
 expec.lnig <- function(A, B, C, D, E, fun, radius = 100, lb) {
   # Expectation of product of reparameterised log-normal and inverse gamma densities

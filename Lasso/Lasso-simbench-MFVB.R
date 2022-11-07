@@ -23,7 +23,6 @@ for (type.iter in 1:num.each.type) {
     
     mfvb.res <- mfvb.approx(X, y, mu.kappa, sigma.2.kappa,
                             lambda, maxit = 1000, tol = 1.0E-20, verbose = F)
-
     mfvb.mu <- mfvb.res$mu
     mfvb.Sigma <- mfvb.res$Sigma
     
