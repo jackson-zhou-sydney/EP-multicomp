@@ -1,6 +1,17 @@
 
 # EP code for Bayesian quantile regression
 
+sigma <- 0.2
+n.binom <- 10
+
+sim.settings <- list(c(n = 200, p = 40, dist = "normal"),
+                     c(n = 200, p = 40, dist = "poisson"),
+                     c(n = 200, p = 40, dist = "binomial"))
+
+bench.settings <- list(c(n = 442, p = 11),
+                       c(n = 97, p = 9),
+                       c(n = 120, p = 201))
+
 expec.lnig <- function(A, B, C, D, E, fun, radius = 100, lb) {
   # Expectation of product of reparameterised log-normal and inverse gamma densities
   p <- function(x) -A/exp(2*x) + B/exp(x) - C*x - (x - D)^2/(2*E)
