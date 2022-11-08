@@ -101,7 +101,7 @@ sim.plot.3 <- sim.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Lasso/Lasso-plots/Lasso-sim-plot-3.png", sim.plot.3, width = 8, height = 5)
+ggsave("Lasso/Lasso-plots/Lasso-sim-plot-3.png", sim.plot.3, width = 8, height = 3)
 plot_crop("Lasso/Lasso-plots/Lasso-sim-plot-3.png")
 
 ## Benchmarks
@@ -155,7 +155,7 @@ bench.plot.1 <- bench.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Lasso/Lasso-plots/Lasso-bench-plot-1.png", bench.plot.1, width = 8, height = 5)
+ggsave("Lasso/Lasso-plots/Lasso-bench-plot-1.png", bench.plot.1, width = 8, height = 3)
 plot_crop("Lasso/Lasso-plots/Lasso-bench-plot-1.png")
 
 ### Scale parameter
@@ -180,5 +180,5 @@ bench.plot.2 <- bench.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Lasso/Lasso-plots/Lasso-bench-plot-2.png", bench.plot.2, width = 8, height = 5)
+ggsave("Lasso/Lasso-plots/Lasso-bench-plot-2.png", bench.plot.2, width = 8, height = 3)
 plot_crop("Lasso/Lasso-plots/Lasso-bench-plot-2.png")
