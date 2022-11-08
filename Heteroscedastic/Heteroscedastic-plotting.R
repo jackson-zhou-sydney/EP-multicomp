@@ -176,7 +176,7 @@ bench.plot.1 <- bench.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-bench-plot-1.png", bench.plot.1, width = 8, height = 5)
+ggsave("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-bench-plot-1.png", bench.plot.1, width = 8, height = 3)
 plot_crop("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-bench-plot-1.png")
 
 ### Variance regression parameters
@@ -201,5 +201,5 @@ bench.plot.2 <- bench.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-bench-plot-2.png", bench.plot.2, width = 8, height = 5)
+ggsave("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-bench-plot-2.png", bench.plot.2, width = 8, height = 3)
 plot_crop("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-bench-plot-2.png")
