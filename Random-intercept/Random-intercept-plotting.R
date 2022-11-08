@@ -152,7 +152,7 @@ sim.plot.5 <- sim.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Random-intercept/Random-intercept-plots/Random-intercept-sim-plot-5.png", sim.plot.5, width = 8, height = 5)
+ggsave("Random-intercept/Random-intercept-plots/Random-intercept-sim-plot-5.png", sim.plot.5, width = 8, height = 3)
 plot_crop("Random-intercept/Random-intercept-plots/Random-intercept-sim-plot-5.png")
 
 ### Scale parameter for random intercepts
@@ -178,7 +178,7 @@ sim.plot.6 <- sim.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Random-intercept/Random-intercept-plots/Random-intercept-sim-plot-6.png", sim.plot.6, width = 8, height = 5)
+ggsave("Random-intercept/Random-intercept-plots/Random-intercept-sim-plot-6.png", sim.plot.6, width = 8, height = 3)
 plot_crop("Random-intercept/Random-intercept-plots/Random-intercept-sim-plot-6.png")
 
 ## Benchmarks
@@ -232,7 +232,7 @@ bench.plot.1 <- bench.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-1.png", bench.plot.1, width = 8, height = 5)
+ggsave("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-1.png", bench.plot.1, width = 8, height = 3)
 plot_crop("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-1.png")
 
 ### Random intercepts
@@ -259,7 +259,7 @@ bench.plot.2 <- bench.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-2.png", bench.plot.2, width = 8, height = 5)
+ggsave("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-2.png", bench.plot.2, width = 8, height = 3)
 plot_crop("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-2.png")
 
 ### Scale parameter for response
@@ -285,7 +285,7 @@ bench.plot.3 <- bench.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-3.png", bench.plot.3, width = 8, height = 5)
+ggsave("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-3.png", bench.plot.3, width = 8, height = 3)
 plot_crop("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-3.png")
 
 ### Scale parameter for random intercepts
@@ -311,5 +311,5 @@ bench.plot.4 <- bench.plot.df %>%
   theme_bw() +
   theme(legend.position = "top")
 
-ggsave("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-4.png", bench.plot.4, width = 8, height = 5)
+ggsave("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-4.png", bench.plot.4, width = 8, height = 3)
 plot_crop("Random-intercept/Random-intercept-plots/Random-intercept-bench-plot-4.png")
