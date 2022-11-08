@@ -16,7 +16,7 @@ for (type.iter in 1:num.each.type) {
   
   for (iteration in 1:num.sim) {
     X <- cbind(1, scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
-    y <- rnorm(n, X%*%beta, sigma)
+    y <- rnorm(n, X%*%beta, exp(kappa))
     save(X, y, file = paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
   }
 }

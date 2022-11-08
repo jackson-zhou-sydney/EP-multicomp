@@ -4,7 +4,7 @@
 mu.kappa <- 0
 sigma.2.kappa <- 10000
 lambda <- 0.5
-sigma <- 0.1
+kappa <- -1
 
 sim.settings <- list(c(n = 200, p = 40),
                      c(n = 40, p = 40),
