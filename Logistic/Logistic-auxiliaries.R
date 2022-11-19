@@ -68,7 +68,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
   Q.star.values <- array(dim = c(1, 1, n))
   r.star.values <- matrix(nrow = n, ncol = 1)
   
-  Q.p <- force.sym(solve(Sigma.beta))
+  Q.p <- sym(solve(Sigma.beta))
   r.p <- Q.p%*%mu.beta
   
   Q.sum <- prec*diag(p) + Q.p
@@ -78,7 +78,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
     W <- Z[i, ]
     Q.star.values[, , i] <- Q.star
     r.star.values[i, ] <- r.star
-    Q.sum <- Q.sum + force.sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W))
+    Q.sum <- Q.sum + sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W))
     r.sum <- r.sum + W%*%as.matrix(r.star.values[i, ])
   }
   
@@ -98,14 +98,14 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
     for (i in sample(1:n)) {
       # Setting up
       W <- Z[i, ]
-      Q.cavity <- Q.sum - force.sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W))
-      Q.cavity.inv <- tryCatch(force.sym(solve(Q.cavity)), error = err)
+      Q.cavity <- Q.sum - sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W))
+      Q.cavity.inv <- tryCatch(sym(solve(Q.cavity)), error = err)
       if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
       r.cavity <- r.sum - W%*%as.matrix(r.star.values[i, ])
       mu.cavity <- Q.cavity.inv%*%r.cavity
       Sigma.cavity <- Q.cavity.inv
       m <- t(W)%*%mu.cavity
-      V <- force.sym(t(W)%*%Sigma.cavity%*%W)
+      V <- sym(t(W)%*%Sigma.cavity%*%W)
       if (det(V) < 0) {
         print(paste0("Warning: bad V at i = ", i))
         deltas[index, ] <- c(index, iteration, i, NA, 1)
@@ -139,7 +139,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
       z.hybrid <- f.0*g.0
       mu.hybrid <- (f.0*g.grad.0 + f.grad.0*g.0)/z.hybrid
       Sigma.hybrid <- (f.hess.0*g.0 + f.grad.0%*%t(g.grad.0) + g.grad.0%*%t(f.grad.0) + f.0*g.hess.0)/z.hybrid - mu.hybrid%*%t(mu.hybrid)
-      Sigma.hybrid.inv <- tryCatch(force.sym(solve(Sigma.hybrid)), error = err)
+      Sigma.hybrid.inv <- tryCatch(sym(solve(Sigma.hybrid)), error = err)
       if (!is.matrix(Sigma.hybrid.inv)) {stop.ep <- T; break}
       
       # Moment matching and calculating deltas
@@ -166,7 +166,7 @@ ep.approx <- function(X, y, mu.beta, Sigma.beta,
       
       Q.star.new <- (1 - alpha)*Q.star.values[, , i] + alpha*Q.star.updated
       r.star.new <- (1 - alpha)*r.star.values[i, ] + alpha*r.star.updated
-      Q.sum <- Q.sum - force.sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W)) + force.sym(W%*%as.matrix(Q.star.new)%*%t(W))
+      Q.sum <- Q.sum - sym(W%*%as.matrix(Q.star.values[, , i])%*%t(W)) + sym(W%*%as.matrix(Q.star.new)%*%t(W))
       r.sum <- r.sum - W%*%as.matrix(r.star.values[i, ]) + W%*%as.matrix(r.star.new)
       Q.star.values[, , i] <- Q.star.new
       r.star.values[i, ] <- r.star.new

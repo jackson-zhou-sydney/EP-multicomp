@@ -23,7 +23,7 @@ err <- function(e) {
   return(NA)
 }
 
-force.sym <- function(m) {
+sym <- function(m) {
   # Force matrix to be symmetric
   m.sym <- m
   m.sym[lower.tri(m.sym)] <- t(m.sym)[lower.tri(m.sym)]
