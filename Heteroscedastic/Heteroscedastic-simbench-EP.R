@@ -25,7 +25,7 @@ for (type.iter in 1:num.each.type) {
     Sigma.theta <- sigma.2.theta*diag(p.1 + p.2)
     
     ep.res <- ep.approx(X.1, X.2, y, mu.theta, Sigma.theta, 
-                        eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
+                        eta = 0.5, alpha = 1, Q.star.init = 0.01*diag(2), r.star.init = rep(0, 2), offset = 0,
                         min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
                         abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
     ep.mu <- ep.res$mu
@@ -59,7 +59,7 @@ for (type.iter in 1:num.each.type) {
   Sigma.theta <- sigma.2.theta*diag(p.1 + p.2)
   
   ep.res <- ep.approx(X.1, X.2, y, mu.theta, Sigma.theta, 
-                      eta = 0.5, alpha = 1, Q.star = 0.01*diag(2), r.star = rep(0, 2), prec = 0,
+                      eta = 0.5, alpha = 1, Q.star.init = 0.01*diag(2), r.star.init = rep(0, 2), offset = 0,
                       min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
                       abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
   ep.mu <- ep.res$mu
