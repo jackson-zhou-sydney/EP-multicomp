@@ -107,24 +107,24 @@ mfvb.approx <- function(X, y, mu.beta, Sigma.beta, mu.kappa, sigma.2.kappa,
   return(list(mu = mu.theta, Sigma = Sigma.theta))
 }
 
-I.r <- function(y, tau, m, V, eta, mult, lb.min, ub.max) {
+I.h.r <- function(y, tau, mu, Sigma, eta, mult, lb.min, ub.max) {
   # Hybrid integrals for sites
-  m.1 <- m[1]
-  m.2 <- m[2]
+  mu.1 <- mu[1]
+  mu.2 <- mu[2]
   
-  V.inv <- solve(V)
-  V.11 <- V.inv[1, 1]
-  V.12 <- V.inv[1, 2]
-  V.22 <- V.inv[2, 2]
+  Q <- solve(Sigma)
+  Q.11 <- Q[1, 1]
+  Q.12 <- Q[1, 2]
+  Q.22 <- Q[2, 2]
   
   abc <- function(x, lower) {
-    c(V.11,
-      2*(V.12*(x - m.2) - V.11*m.1) + eta*(1 + ifelse(lower, -1, 1) - 2*tau)/exp(x),
-      V.11*m.1^2 + 2*V.12*m.1*(m.2 - x) + V.22*(x - m.2)^2 + eta*(2*x + (2*tau - 1 + ifelse(lower, 1, -1))*y/exp(x)))
+    c(Q.11,
+      2*(Q.12*(x - mu.2) - Q.11*mu.1) + eta*(1 + ifelse(lower, -1, 1) - 2*tau)/exp(x),
+      Q.11*mu.1^2 + 2*Q.12*mu.1*(mu.2 - x) + Q.22*(x - mu.2)^2 + eta*(2*x + (2*tau - 1 + ifelse(lower, 1, -1))*y/exp(x)))
   }
   
-  lb <- max(m.2 - mult*sqrt(V[2, 2]), lb.min)
-  ub <- min(m.2 + mult*sqrt(V[2, 2]), ub.max)
+  lb <- max(mu.2 - mult*sqrt(Sigma[2, 2]), lb.min)
+  ub <- min(mu.2 + mult*sqrt(Sigma[2, 2]), ub.max)
   
   ret.0 <- integrate(Vectorize(function(x) TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y)), lb, ub, abs.tol = 0)$value
   ret.11 <- integrate(Vectorize(function(x) TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y)), lb, ub, abs.tol = 0)$value
@@ -133,19 +133,20 @@ I.r <- function(y, tau, m, V, eta, mult, lb.min, ub.max) {
   ret.212 <- integrate(Vectorize(function(x) x*(TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y))), lb, ub, abs.tol = 0)$value
   ret.222 <- integrate(Vectorize(function(x) x^2*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub, abs.tol = 0)$value
   
-  list(I.0 = ret.0/sqrt(det(2*pi*V)), 
-       I.1 = c(ret.11, ret.12)/sqrt(det(2*pi*V)), 
-       I.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*V)), nrow = 2))
+  list(I.h.0 = ret.0/sqrt(det(2*pi*Sigma)), 
+       I.h.1 = c(ret.11, ret.12)/sqrt(det(2*pi*Sigma)), 
+       I.h.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*Sigma)), nrow = 2))
 }
 
 ep.approx <- function(X, y, mu.theta, Sigma.theta, 
-                      tau, eta, alpha, Q.star, r.star, prec,
-                      min.passes, max.passes, tol.factor, stop.factor, 
+                      tau, eta, alpha, Q.star.init, r.star.init, offset,
+                      min.passes, max.passes, tol.factor, stop.factor,
                       abs.thresh, rel.thresh, delta.limit, patience, verbose) {
   # Dampened power EP for Bayesian quantile regression
   n <- nrow(X)
   p <- ncol(X)
   stop.ep <- F
+  pcount <- 0
   
   # Parameter initialisation
   Q.star.values <- array(dim = c(2, 2, n))
@@ -154,23 +155,25 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
   Q.p <- sym(solve(Sigma.theta))
   r.p <- Q.p%*%mu.theta
   
-  Q.sum <- prec*diag(p + 1) + Q.p
-  r.sum <- r.p
+  Q.dot <- sym(offset) + Q.p
+  r.dot <- r.p
   
   for (i in 1:n) {
-    W <- cbind(c(X[i, ], 0), c(rep(0, p), 1))
-    Q.star.values[, , i] <- Q.star
-    r.star.values[i, ] <- r.star
-    Q.sum <- Q.sum + sym(W%*%Q.star.values[, , i]%*%t(W))
-    r.sum <- r.sum + W%*%r.star.values[i, ]
+    A <- cbind(c(X[i, ], 0), c(rep(0, p), 1))
+    Q.star.values[, , i] <- sym(Q.star.init)
+    r.star.values[i, ] <- r.star.init
+    Q.dot <- Q.dot + sym(A%*%Q.star.values[, , i]%*%t(A))
+    r.dot <- r.dot + A%*%r.star.values[i, ]
   }
+  
+  Sigma.dot <- sym(solve(Q.dot))
+  mu.dot <- Sigma.dot%*%r.dot
   
   # Delta initialisation
   deltas <- matrix(-1, nrow = max.passes*n, ncol = 5)
   colnames(deltas) <- c("index", "iteration", "i", "delta", "skip")
   prev.max.delta <- Inf
   prev.med.delta <- Inf
-  pcount <- 0
   index <- 1
   
   # Main EP loop
@@ -179,64 +182,29 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
     if (verbose) print(paste0("---- Current iteration: ", iteration, " ----"))
     
     for (i in sample(1:n)) {
-      # Setting up
-      W <- cbind(c(X[i, ], 0), c(rep(0, p), 1))
-      Q.cavity <- Q.sum - eta*sym(W%*%Q.star.values[, , i]%*%t(W))
-      Q.cavity.inv <- tryCatch(sym(solve(Q.cavity)), error = err)
-      if (!is.matrix(Q.cavity.inv)) {stop.ep <- T; break}
-      r.cavity <- r.sum - eta*W%*%r.star.values[i, ]
-      mu.cavity <- Q.cavity.inv%*%r.cavity
-      Sigma.cavity <- Q.cavity.inv
-      m <- t(W)%*%mu.cavity
-      V <- sym(t(W)%*%Sigma.cavity%*%W)
-      if (det(V) < 0) {
-        print(paste0("Warning: bad V at i = ", i))
-        deltas[index, ] <- c(index, iteration, i, NA, 1)
-        index <- index + 1
-        next
-      }
-      U <- Sigma.cavity%*%W
       
-      # Computing function values, gradients and Hessians at 0
-      I.r.res <- tryCatch(I.r(y[i], tau, m, V, eta, mult = 5, lb.min = -10, ub.max = Inf), error = err)
-      if (!is.list(I.r.res)) {
+      A <- cbind(c(X[i, ], 0), c(rep(0, p), 1))
+      Sigma.dot.star <- sym(t(A)%*%Sigma.dot%*%A); mu.dot.star <- t(A)%*%mu.dot
+      Q.dot.star <- sym(solve(Sigma.dot.star)); r.dot.star <- Q.dot.star%*%mu.dot.star
+      Q.m.star <- Q.dot.star - eta*Q.star.values[, , i]; r.m.star <- r.dot.star - eta*r.star.values[i, ]
+      Sigma.m.star <- sym(solve(Q.m.star)); mu.m.star <- Sigma.m.star%*%r.m.star
+      
+      I.h.r.res <- tryCatch(I.h.r(y[i], tau, mu.m.star, Sigma.m.star, eta, mult = 5, lb.min = -10, ub.max = Inf), error = err)
+      if (!is.list(I.h.r.res)) {
         print(paste0("Warning: error in hybrid integral at i = ", i))
         deltas[index, ] <- c(index, iteration, i, NA, 1)
         index <- index + 1
         next
       }
+      I.h.0 <- I.h.r.res$I.h.0; I.h.1 <- I.h.r.res$I.h.1; I.h.2 <- I.h.r.res$I.h.2
       
-      I.0 <- I.r.res$I.0
-      I.1 <- I.r.res$I.1
-      I.2 <- I.r.res$I.2
+      Sigma.h.star <- sym(I.h.2/I.h.0 - I.h.1%*%t(I.h.1)/I.h.0^2); mu.h.star <- I.h.1/I.h.0
+      Q.h.star <- sym(solve(Sigma.h.star)); r.h.star <- Q.h.star%*%mu.h.star
+      Q.star.tilde <- (1 - alpha)*Q.star.values[, , i] + (alpha/eta)*(Q.h.star - Q.m.star)
+      r.star.tilde <- (1 - alpha)*r.star.values[i, ] + (alpha/eta)*(r.h.star - r.m.star)
+      Q.star.tilde.d <- Q.star.tilde - Q.star.values[, , i]; r.star.tilde.d <- r.star.tilde - r.star.values[i, ]
       
-      f.0 <- 1
-      f.grad.0 <- mu.cavity
-      f.hess.0 <- mu.cavity%*%t(mu.cavity) + Sigma.cavity
-      
-      g.0 <- I.0
-      g.grad.0 <- U%*%solve(V)%*%(I.1 - m*I.0)
-      g.hess.0 <- U%*%solve(V)%*%(I.2 - I.1%*%t(m) - m%*%t(I.1) + m%*%t(m)*I.0)%*%solve(V)%*%t(U) - I.0*U%*%solve(V)%*%t(U)
-      
-      # Computing hybrid moments
-      z.hybrid <- f.0*g.0
-      mu.hybrid <- (f.0*g.grad.0 + f.grad.0*g.0)/z.hybrid
-      Sigma.hybrid <- (f.hess.0*g.0 + f.grad.0%*%t(g.grad.0) + g.grad.0%*%t(f.grad.0) + f.0*g.hess.0)/z.hybrid - mu.hybrid%*%t(mu.hybrid)
-      Sigma.hybrid.inv <- tryCatch(sym(solve(Sigma.hybrid)), error = err)
-      if (!is.matrix(Sigma.hybrid.inv)) {stop.ep <- T; break}
-      
-      # Moment matching and calculating deltas
-      Q.updated <- (Sigma.hybrid.inv - Q.cavity)/eta
-      r.updated <- (Sigma.hybrid.inv%*%mu.hybrid - r.cavity)/eta
-      
-      W.r <- rowSums(W)
-      Q.ratio <- Q.updated/(W.r%*%t(W.r)); Q.ratio[!is.finite(Q.ratio)] <- NA
-      r.ratio <- r.updated/W.r; r.ratio[!is.finite(r.ratio)] <- NA
-      
-      Q.star.updated <- sym(block.mean(Q.ratio, list(1:p, p + 1), na.rm = T))
-      r.star.updated <- c(mean(r.ratio[1:p], na.rm = T), r.ratio[p + 1])
-      
-      delta <- max(norm(r.star.updated - r.star.values[i, ], "2"), norm(Q.star.updated - Q.star.values[, , i], "F"))
+      delta <- max(norm(Q.star.tilde.d, "F"), norm(r.star.tilde.d, "2"))
       
       if (is.na(delta) || delta > tol.factor*prev.med.delta || delta > delta.limit) {
         deltas[index, ] <- c(index, iteration, i, delta, 1)
@@ -247,12 +215,10 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
         index <- index + 1
       }
       
-      Q.star.new <- (1 - alpha)*Q.star.values[, , i] + alpha*Q.star.updated
-      r.star.new <- (1 - alpha)*r.star.values[i, ] + alpha*r.star.updated
-      Q.sum <- Q.sum - sym(W%*%Q.star.values[, , i]%*%t(W)) + sym(W%*%Q.star.new%*%t(W))
-      r.sum <- r.sum - W%*%r.star.values[i, ] + W%*%r.star.new
-      Q.star.values[, , i] <- Q.star.new
-      r.star.values[i, ] <- r.star.new
+      Q.dot <- Q.dot + sym(A%*%Q.star.tilde.d%*%t(A)); r.dot <- r.dot + A%*%(r.star.tilde.d)
+      Sigma.dot <- Sigma.dot - sym((Sigma.dot%*%A)%*%solve(solve(Q.star.tilde.d) + Sigma.dot.star)%*%t(Sigma.dot%*%A)); mu.dot <- Sigma.dot%*%r.dot
+      Q.star.values[, , i] <- Q.star.tilde; r.star.values[i, ] <- r.star.tilde
+      
     }
     
     iteration.deltas <- deltas[deltas[, "iteration"] == iteration & deltas[, "skip"] == 0, ][, "delta"]
@@ -275,8 +241,5 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
   }
   
   # Returning in original parameterisation
-  Q.final <- Q.sum
-  Q.final.inv <- solve(Q.final)
-  r.final <- r.sum
-  return(list(mu = Q.final.inv%*%r.final, Sigma = Q.final.inv, deltas = deltas[deltas[, "index"] != -1, ]))
+  return(list(mu = mu.dot, Sigma = Sigma.dot, deltas = deltas[deltas[, "index"] != -1, ]))
 }
