@@ -10,7 +10,8 @@ sim.plot.df <- data.frame()
 
 for (type.iter in 1:num.each.type) {
   load(paste0("Quantile/Quantile-results/Sim-", type.iter, "-res-MCMC.RData"))
-  mcmc.df <- results.df %>% mutate(method = "mcmc")
+  print(paste0("Maximum R hat for simulation ", type.iter, " is ", max(results.df$r_hat)))
+  mcmc.df <- results.df %>% mutate(method = "mcmc") %>% select(-r_hat)
   load(paste0("Quantile/Quantile-results/Sim-", type.iter, "-res-MFVB.RData"))
   mfvb.df <- results.df %>% mutate(method = "mfvb")
   load(paste0("Quantile/Quantile-results/Sim-", type.iter, "-res-EP.RData"))
@@ -110,7 +111,8 @@ bench.plot.df <- data.frame()
 
 for (type.iter in 1:num.each.type) {
   load(paste0("Quantile/Quantile-results/Bench-", type.iter, "-res-MCMC.RData"))
-  mcmc.df <- results.df %>% mutate(method = "mcmc")
+  print(paste0("Maximum R hat for simulation ", type.iter, " is ", max(results.df$r_hat)))
+  mcmc.df <- results.df %>% mutate(method = "mcmc") %>% select(-r_hat)
   load(paste0("Quantile/Quantile-results/Bench-", type.iter, "-res-MFVB.RData"))
   mfvb.df <- results.df %>% mutate(method = "mfvb")
   load(paste0("Quantile/Quantile-results/Bench-", type.iter, "-res-EP.RData"))
