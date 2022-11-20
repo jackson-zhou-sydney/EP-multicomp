@@ -13,6 +13,7 @@ for (type.iter in 1:num.each.type) {
                            j = double(),
                            mu = double(),
                            sigma_2 = double())
+  results.samples <- vector(mode = "list", length = num.sim)
   
   for (iteration in 1:num.sim) {
     print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim))
@@ -33,6 +34,7 @@ for (type.iter in 1:num.each.type) {
     
     mfvb.mu <- mfvb.res$mu
     mfvb.Sigma <- mfvb.res$Sigma
+    mfvb.samples <- rmvnorm(match.size, mfvb.mu, mfvb.Sigma)
     
     for (j in 1:(p + 1)) {
       results.df <- results.df %>% add_row(iteration = iteration,
@@ -40,9 +42,11 @@ for (type.iter in 1:num.each.type) {
                                            mu = mfvb.mu[j],
                                            sigma_2 = mfvb.Sigma[j, j])
     }
+    
+    results.samples[[iteration]] <- mfvb.samples
   }
   
-  save(results.df, file = paste0("Quantile/Quantile-results/Sim-", type.iter, "-res-MFVB.RData"))
+  save(results.df, results.samples, file = paste0("Quantile/Quantile-results/Sim-", type.iter, "-res-MFVB.RData"))
 }
 
 ## Benchmarks
@@ -69,6 +73,7 @@ for (type.iter in 1:num.each.type) {
                           tau, maxit = 1000, tol = 1.0E-14, verbose = F)
   mfvb.mu <- mfvb.res$mu
   mfvb.Sigma <- mfvb.res$Sigma
+  mfvb.samples <- rmvnorm(match.size, mfvb.mu, mfvb.Sigma)
   
   for (j in 1:(p + 1)) {
     results.df <- results.df %>% add_row(j = j,
@@ -76,5 +81,7 @@ for (type.iter in 1:num.each.type) {
                                          sigma_2 = mfvb.Sigma[j, j])
   }
   
-  save(results.df, file = paste0("Quantile/Quantile-results/Bench-", type.iter, "-res-MFVB.RData"))
+  results.samples <- mfvb.samples
+  
+  save(results.df, results.samples, file = paste0("Quantile/Quantile-results/Bench-", type.iter, "-res-MFVB.RData"))
 }
