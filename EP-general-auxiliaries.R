@@ -33,6 +33,17 @@ sym <- function(m) {
   return(m.sym)
 }
 
+nbp.match.pairs <- function(X, Y) {
+  # Non-bipartite match pairs
+  X.size <- nrow(X)
+  Y.size <- nrow(Y)
+  df <- data.frame(rbind(X, Y))
+  df.rank <- apply(df, 2, function(s) rank(s, ties.method = "first"))
+  df.rank <- data.frame(cbind(1:nrow(df.rank), df.rank))
+  nbp.res <- nonbimatch(distancematrix(gendistance(df.rank, 1)))
+  return(sum((c(rep(1, X.size), rep(0, Y.size))[nbp.res$matches[1:X.size, 4]]) != 1))
+}
+
 block.mean <- function(m, l, na.rm) {
   # Block-wise mean of matrix
   ret.mat <- matrix(nrow = length(l), ncol = length(l))
