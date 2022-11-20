@@ -12,7 +12,9 @@ for (type.iter in 1:num.each.type) {
   results.df <- data.frame(iteration = integer(),
                            j = double(),
                            mu = double(),
-                           sigma_2 = double())
+                           sigma_2 = double(),
+                           r_hat = double())
+  results.samples <- vector(mode = "list", length = num.sim)
   
   for (iteration in 1:num.sim) {
     print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim))
@@ -38,16 +40,20 @@ for (type.iter in 1:num.each.type) {
     mcmc.samples <- rstan::extract(stan.res)$theta
     mcmc.mu <- colMeans(mcmc.samples)
     mcmc.Sigma <- var(mcmc.samples)
+    mcmc.summary <- summary(stan.res)$summary
     
     for (j in 1:(p + 1)) {
       results.df <- results.df %>% add_row(iteration = iteration,
                                            j = j,
                                            mu = mcmc.mu[j],
-                                           sigma_2 = mcmc.Sigma[j, j])
+                                           sigma_2 = mcmc.Sigma[j, j],
+                                           r_hat = mcmc.summary[paste0("theta[", j, "]"), "Rhat"])
     }
+    
+    results.samples[[iteration]] <- unname(tail(mcmc.samples, match.size))
   }
   
-  save(results.df, file = paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MCMC.RData"))
+  save(results.df, results.samples, file = paste0("Lasso/Lasso-results/Sim-", type.iter, "-res-MCMC.RData"))
 }
 
 ## Benchmarks
@@ -55,7 +61,8 @@ for (type.iter in 1:num.each.type) {
 for (type.iter in 1:num.each.type) {
   results.df <- data.frame(j = double(),
                            mu = double(),
-                           sigma_2 = double())
+                           sigma_2 = double(),
+                           r_hat = double())
   
   print(paste0("Current progress: Benchmark ", type.iter))
   
@@ -80,12 +87,16 @@ for (type.iter in 1:num.each.type) {
   mcmc.samples <- rstan::extract(stan.res)$theta
   mcmc.mu <- colMeans(mcmc.samples)
   mcmc.Sigma <- var(mcmc.samples)
+  mcmc.summary <- summary(stan.res)$summary
   
   for (j in 1:(p + 1)) {
     results.df <- results.df %>% add_row(j = j,
                                          mu = mcmc.mu[j],
-                                         sigma_2 = mcmc.Sigma[j, j])
+                                         sigma_2 = mcmc.Sigma[j, j],
+                                         r_hat = mcmc.summary[paste0("theta[", j, "]"), "Rhat"])
   }
   
-  save(results.df, file = paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MCMC.RData"))
+  results.samples <- unname(tail(mcmc.samples, match.size))
+  
+  save(results.df, results.samples, file = paste0("Lasso/Lasso-results/Bench-", type.iter, "-res-MCMC.RData"))
 }
