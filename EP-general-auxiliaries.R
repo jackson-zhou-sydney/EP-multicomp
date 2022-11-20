@@ -1,16 +1,18 @@
 
 # General auxiliary functions and variables for expectation propagation
 
-library(tidyverse) # Data manipulation and plotting
-library(rstan)     # Robust MCMC and diagnostics
-library(EnvStats)  # Compute empirical densities
-library(glmnet)    # Fast ridge regression estimates
-library(quantreg)  # Quantile regression estimates
-library(lme4)      # Fast linear mixed model estimates
-library(stringr)   # String manipulation
-library(knitr)     # Crop plots
-library(haven)     # Load in DTA files
-library(mlr)       # Generate dummy columns
+library(tidyverse)   # Data manipulation and plotting
+library(rstan)       # Robust MCMC and diagnostics
+library(EnvStats)    # Compute empirical densities
+library(glmnet)      # Fast ridge regression estimates
+library(quantreg)    # Quantile regression estimates
+library(lme4)        # Fast linear mixed model estimates
+library(stringr)     # String manipulation
+library(knitr)       # Crop plots
+library(haven)       # Load in DTA files
+library(mlr)         # Generate dummy columns
+library(mvtnorm)     # Sample from multivariate Gaussians
+library(nbpMatching) # Non-bipartite matching
 
 num.each.type <- 3
 num.sim <- 50
