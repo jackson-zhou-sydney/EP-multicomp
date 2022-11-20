@@ -13,6 +13,7 @@ for (type.iter in 1:num.each.type) {
                            j = double(),
                            mu = double(),
                            sigma_2 = double())
+  results.samples <- vector(mode = "list", length = num.sim)
   
   for (iteration in 1:num.sim) {
     print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim))
@@ -27,6 +28,7 @@ for (type.iter in 1:num.each.type) {
     laplace.res <- laplace.approx(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
     laplace.mu <- laplace.res$mu
     laplace.Sigma <- laplace.res$Sigma
+    laplace.samples <- rmvnorm(match.size, laplace.mu, laplace.Sigma)
     
     for (j in 1:(p.1 + p.2)) {
       results.df <- results.df %>% add_row(iteration = iteration,
@@ -34,9 +36,11 @@ for (type.iter in 1:num.each.type) {
                                            mu = laplace.mu[j],
                                            sigma_2 = laplace.Sigma[j, j])
     }
+    
+    results.samples[[iteration]] <- laplace.samples
   }
   
-  save(results.df, file = paste0("Heteroscedastic/Heteroscedastic-results/Sim-", type.iter, "-res-Laplace.RData"))
+  save(results.df, results.samples, file = paste0("Heteroscedastic/Heteroscedastic-results/Sim-", type.iter, "-res-Laplace.RData"))
 }
 
 ## Benchmarks
@@ -58,6 +62,7 @@ for (type.iter in 1:num.each.type) {
   laplace.res <- laplace.approx(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
   laplace.mu <- laplace.res$mu
   laplace.Sigma <- laplace.res$Sigma
+  laplace.samples <- rmvnorm(match.size, laplace.mu, laplace.Sigma)
   
   for (j in 1:(p.1 + p.2)) {
     results.df <- results.df %>% add_row(j = j,
@@ -65,5 +70,7 @@ for (type.iter in 1:num.each.type) {
                                          sigma_2 = laplace.Sigma[j, j])
   }
   
-  save(results.df, file = paste0("Heteroscedastic/Heteroscedastic-results/Bench-", type.iter, "-res-Laplace.RData"))
+  results.samples <- laplace.samples
+  
+  save(results.df, results.samples, file = paste0("Heteroscedastic/Heteroscedastic-results/Bench-", type.iter, "-res-Laplace.RData"))
 }
