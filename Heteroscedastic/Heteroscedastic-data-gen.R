@@ -18,7 +18,7 @@ for (type.iter in 1:num.each.type) {
   for (iteration in 1:num.sim) {
     X.1 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.1 - 1)), nrow = n)))
     X.2 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.2 - 1)), nrow = n)))
-    y <- as.vector(scale(rnorm(n, X.1%*%beta.1, sqrt(exp(X.2%*%beta.2)))))
+    y <- as.vector(scale(rnorm(n, X.1%*%beta.1, exp(X.2%*%beta.2))))
     save(X.1, X.2, y, file = paste0("Heteroscedastic/Heteroscedastic-data/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
   }
 }
