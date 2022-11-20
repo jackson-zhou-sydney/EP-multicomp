@@ -19,6 +19,7 @@ num.sim <- 50
 mcmc.chains <- 1
 mcmc.iter <- 50000
 mcmc.warmup <- 5000
+match.size <- 1000
 
 err <- function(e) {
   # Return NA on error
