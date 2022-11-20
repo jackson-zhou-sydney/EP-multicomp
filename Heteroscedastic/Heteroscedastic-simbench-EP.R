@@ -13,6 +13,7 @@ for (type.iter in 1:num.each.type) {
                            j = double(),
                            mu = double(),
                            sigma_2 = double())
+  results.samples <- vector(mode = "list", length = num.sim)
   
   for (iteration in 1:num.sim) {
     print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim))
@@ -30,6 +31,7 @@ for (type.iter in 1:num.each.type) {
                         abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
+    ep.samples <- rmvnorm(match.size, ep.mu, ep.Sigma)
     
     for (j in 1:(p.1 + p.2)) {
       results.df <- results.df %>% add_row(iteration = iteration,
@@ -37,9 +39,11 @@ for (type.iter in 1:num.each.type) {
                                            mu = ep.mu[j],
                                            sigma_2 = ep.Sigma[j, j])
     }
+    
+    results.samples[[iteration]] <- ep.samples
   }
   
-  save(results.df, file = paste0("Heteroscedastic/Heteroscedastic-results/Sim-", type.iter, "-res-EP.RData"))
+  save(results.df, results.samples, file = paste0("Heteroscedastic/Heteroscedastic-results/Sim-", type.iter, "-res-EP.RData"))
 }
 
 ## Benchmarks
@@ -64,6 +68,7 @@ for (type.iter in 1:num.each.type) {
                       abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
   ep.mu <- ep.res$mu
   ep.Sigma <- ep.res$Sigma
+  ep.samples <- rmvnorm(match.size, ep.mu, ep.Sigma)
   
   for (j in 1:(p.1 + p.2)) {
     results.df <- results.df %>% add_row(j = j,
@@ -71,5 +76,7 @@ for (type.iter in 1:num.each.type) {
                                          sigma_2 = ep.Sigma[j, j])
   }
   
-  save(results.df, file = paste0("Heteroscedastic/Heteroscedastic-results/Bench-", type.iter, "-res-EP.RData"))
+  results.samples <- ep.samples
+  
+  save(results.df, results.samples, file = paste0("Heteroscedastic/Heteroscedastic-results/Bench-", type.iter, "-res-EP.RData"))
 }
