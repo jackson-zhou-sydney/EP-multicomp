@@ -150,7 +150,7 @@ bench.plot.1 <- bench.plot.df %>%
   facet_wrap(~bench, nrow = 1, scales = "free",
              labeller = as_labeller(c("1" = "IgG (n = 298, p = 2)",
                                       "2" = "Engel (n = 235, p = 2)",
-                                      "3" = "Stack loss (n = 21, p = 4)"))) +
+                                      "3" = "Stack (n = 21, p = 4)"))) +
   labs(x = "Standardised difference in mu",
        y = "Standardised difference in sigma",
        colour = "Method") +
@@ -175,7 +175,7 @@ bench.plot.2 <- bench.plot.df %>%
   facet_wrap(~bench, nrow = 1, scales = "free",
              labeller = as_labeller(c("1" = "IgG (n = 298, p = 2)",
                                       "2" = "Engel (n = 235, p = 2)",
-                                      "3" = "Stack loss (n = 21, p = 4)"))) +
+                                      "3" = "Stack (n = 21, p = 4)"))) +
   labs(x = "Standardised difference in mu",
        y = "Standardised difference in sigma",
        colour = "Method") +
