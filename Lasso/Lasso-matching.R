@@ -46,9 +46,9 @@ sim.mplot <-  sim.match.df %>%
                     values = c("ep" = "gray", "mfvb" = "white")) +
   scale_x_discrete(labels = c("ep" = "EP", "mfvb" = "MFVB")) +
   facet_wrap(~sim, nrow = 1,
-             labeller = as_labeller(c("1" = "n = 200, p.1 = 40, p.2 = 10",
-                                      "2" = "n = 200, p.1 = 20, p.2 = 20",
-                                      "3" = "n = 200, p.1 = 10, p.2 = 40"))) +
+             labeller = as_labeller(c("1" = "n = 200, p = 40",
+                                      "2" = "n = 40, p = 40",
+                                      "3" = "n = 10, p = 40"))) +
   labs(x = "Method", y = "NBP matching pairs", fill = "Method") +
   theme_bw() +
   theme(legend.position = "none")
