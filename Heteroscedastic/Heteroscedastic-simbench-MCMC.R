@@ -140,6 +140,6 @@ for (type.iter in 1:num.each.type) {
   results.values <- mcmc.values
   results.samples <- unname(tail(mcmc.samples, match.size))
   
-  save(results.df, times.df, results.samples, results,values,
+  save(results.df, times.df, results.samples, results.values,
        file = paste0("Heteroscedastic/Heteroscedastic-results/Bench-", type.iter, "-res-MCMC.RData"))
 }
