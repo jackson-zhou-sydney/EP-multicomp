@@ -13,6 +13,7 @@ library(haven)       # Load in DTA files
 library(mlr)         # Generate dummy columns
 library(mvtnorm)     # Sample from multivariate Gaussians
 library(nbpMatching) # Non-bipartite matching
+library(pracma)      # Trapezoidal integration
 
 num.each.type <- 3
 num.sim <- 50
@@ -20,6 +21,7 @@ mcmc.chains <- 1
 mcmc.iter <- 50000
 mcmc.warmup <- 5000
 match.size <- 1000
+match.reps <- 10
 sd.multiple <- 5
 total.grid.points <- 1000
 
