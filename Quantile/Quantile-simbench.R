@@ -346,5 +346,6 @@ for (type.iter in 1:num.each.type) {
                                                    mfvb.mu = as.vector(mfvb.mu), mfvb.Sigma = mfvb.Sigma)
 }
 
-save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4, bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4,
+save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4, sim.res.list,
+     bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4, bench.res.list,
      file = "Quantile/Quantile-results.RData")
