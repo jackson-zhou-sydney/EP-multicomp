@@ -32,6 +32,8 @@ sim.res.df.4 <- data.frame(sim = integer(),
                            j = double(),
                            r_hat = double())
 
+sim.res.list <- list()
+
 for (type.iter in 1:num.each.type) {
   for (iteration in 1:num.sim) {
     print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim))
@@ -168,6 +170,12 @@ for (type.iter in 1:num.each.type) {
                                              iteration = iteration,
                                              method = "laplace",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+    
+    ### Means and covariances
+    
+    sim.res.list[[paste0("s", type.iter)]][[paste0("i", iteration)]] <- list(mcmc.mu = as.vector(mcmc.mu), mcmc.Sigma = mcmc.Sigma,
+                                                                             ep.mu = as.vector(ep.mu), ep.Sigma = ep.Sigma,
+                                                                             laplace.mu = as.vector(laplace.mu), laplace.Sigma = laplace.Sigma)
   }
 }
 
@@ -192,6 +200,8 @@ bench.res.df.3 <- data.frame(bench = integer(),
 bench.res.df.4 <- data.frame(bench = integer(),
                              j = double(),
                              r_hat = double())
+
+bench.res.list <- list()
 
 for (type.iter in 1:num.each.type) {
   print(paste0("Current progress: Benchmark ", type.iter))
@@ -320,7 +330,14 @@ for (type.iter in 1:num.each.type) {
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "laplace",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+  
+  ### Means and covariances
+  
+  bench.res.list[[paste0("b", type.iter)]] <- list(mcmc.mu = as.vector(mcmc.mu), mcmc.Sigma = mcmc.Sigma,
+                                                   ep.mu = as.vector(ep.mu), ep.Sigma = ep.Sigma,
+                                                   laplace.mu = as.vector(laplace.mu), laplace.Sigma = laplace.Sigma)
 }
 
-save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4, bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4,
+save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4, sim.res.list,
+     bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4, bench.res.list,
      file = "Heteroscedastic/Heteroscedastic-results.RData")
