@@ -15,7 +15,7 @@ sim.plot.1 <- sim.res.df.1 %>%
   ggplot() +
   aes(x = method, y = mean_l1) +
   geom_boxplot() +
-  scale_x_discrete(labels = c("ep" = "EP", "laplace" = "Laplace")) +
+  scale_x_discrete(labels = c("ep" = "EP", "mfvb" = "MFVB")) +
   facet_grid(rows = vars(block), cols = vars(sim),
              labeller = labeller(block = as_labeller(c("beta" = "β", 
                                                        "kappa" = "K")),
@@ -34,7 +34,7 @@ sim.plot.2 <- sim.res.df.2 %>%
   ggplot() +
   aes(x = method, y = mean_match_pairs) +
   geom_boxplot() +
-  scale_x_discrete(labels = c("ep" = "EP", "laplace" = "Laplace")) +
+  scale_x_discrete(labels = c("ep" = "EP", "mfvb" = "MFVB")) +
   facet_grid(cols = vars(sim),
              labeller = labeller(sim = as_labeller(c("1" = "n = 200, p = 40",
                                                      "2" = "n = 40, p = 40",
