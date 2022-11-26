@@ -1,5 +1,5 @@
 
-# Plots for heteroscedastic linear regression
+# Plots and tables for heteroscedastic linear regression
 
 source("EP-general-auxiliaries.R")
 source("Heteroscedastic/Heteroscedastic-auxiliaries.R")
