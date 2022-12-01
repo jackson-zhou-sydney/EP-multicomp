@@ -107,7 +107,7 @@ mfvb.approx <- function(X, y, mu.beta, Sigma.beta, mu.kappa, sigma.2.kappa,
   return(list(mu = mu.theta, Sigma = Sigma.theta))
 }
 
-I.h.r <- function(y, tau, mu, Sigma, eta, mult, lb.min, ub.max) {
+I.h.r <- function(y, tau, mu, Sigma, eta, mult, lb.min, ub.max, length) {
   # Hybrid integrals for sites
   mu.1 <- mu[1]
   mu.2 <- mu[2]
@@ -126,12 +126,27 @@ I.h.r <- function(y, tau, mu, Sigma, eta, mult, lb.min, ub.max) {
   lb <- max(mu.2 - mult*sqrt(Sigma[2, 2]), lb.min)
   ub <- min(mu.2 + mult*sqrt(Sigma[2, 2]), ub.max)
   
-  ret.0 <- integrate(Vectorize(function(x) TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y)), lb, ub, abs.tol = 0)$value
-  ret.11 <- integrate(Vectorize(function(x) TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y)), lb, ub, abs.tol = 0)$value
-  ret.12 <- integrate(Vectorize(function(x) x*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub, abs.tol = 0)$value
-  ret.211 <- integrate(Vectorize(function(x) TGI.minus.2(abc(x, T), y) + TGI.plus.2(abc(x, F), y)), lb, ub, abs.tol = 0)$value
-  ret.212 <- integrate(Vectorize(function(x) x*(TGI.minus.1(abc(x, T), y) + TGI.plus.1(abc(x, F), y))), lb, ub, abs.tol = 0)$value
-  ret.222 <- integrate(Vectorize(function(x) x^2*(TGI.minus.0(abc(x, T), y) + TGI.plus.0(abc(x, F), y))), lb, ub, abs.tol = 0)$value
+  x.values <- seq(from = lb, to = ub, length = length)
+  y.matrix <- matrix(nrow = 6, ncol = length)
+  
+  for (i in 1:length(x.values)) {
+    x <- x.values[i]
+    abc.l <- abc(x, T)
+    abc.u <- abc(x, F)
+    y.matrix[1, i] <- TGI.minus.0(abc.l, y) + TGI.plus.0(abc.u, y)
+    y.matrix[2, i] <- TGI.minus.1(abc.l, y) + TGI.plus.1(abc.u, y)
+    y.matrix[3, i] <- x*y.matrix[1, i]
+    y.matrix[4, i] <- TGI.minus.2(abc.l, y) + TGI.plus.2(abc.u, y)
+    y.matrix[5, i] <- x*y.matrix[2, i]
+    y.matrix[6, i] <- x^2*y.matrix[1, i]
+  }
+  
+  ret.0 <- trapz(x.values, y.matrix[1, ])
+  ret.11 <- trapz(x.values, y.matrix[2, ])
+  ret.12 <- trapz(x.values, y.matrix[3, ])
+  ret.211 <- trapz(x.values, y.matrix[4, ])
+  ret.212 <- trapz(x.values, y.matrix[5, ])
+  ret.222 <- trapz(x.values, y.matrix[6, ])
   
   list(I.h.0 = ret.0/sqrt(det(2*pi*Sigma)), 
        I.h.1 = c(ret.11, ret.12)/sqrt(det(2*pi*Sigma)), 
@@ -189,7 +204,7 @@ ep.approx <- function(X, y, mu.theta, Sigma.theta,
       Q.m.star <- Q.dot.star - eta*Q.star.values[, , i]; r.m.star <- r.dot.star - eta*r.star.values[i, ]
       Sigma.m.star <- sym(solve(Q.m.star)); mu.m.star <- Sigma.m.star%*%r.m.star
       
-      I.h.r.res <- tryCatch(I.h.r(y[i], tau, mu.m.star, Sigma.m.star, eta, mult = 5, lb.min = -10, ub.max = Inf), error = err)
+      I.h.r.res <- tryCatch(I.h.r(y[i], tau, mu.m.star, Sigma.m.star, eta, mult = 5, lb.min = -10, ub.max = Inf, length = 50), error = err)
       if (!is.list(I.h.r.res)) {
         print(paste0("Warning: error in hybrid integral at i = ", i))
         deltas[index, ] <- c(index, iteration, i, NA, 1)
