@@ -8,6 +8,7 @@ load("Heteroscedastic/Heteroscedastic-results.RData")
 ## Simulations
 
 sim.plot.1 <- sim.res.df.1 %>% 
+  mutate(method = factor(method, levels = c("mcmc-short", "ep", "laplace"))) %>% 
   mutate(block = case_when(j <= as.numeric(map(sim, ~sim.settings[[.]][["p.1"]])) ~ "beta_1",
                            TRUE ~ "beta_2")) %>% 
   group_by(sim, iteration, block, method) %>% 
@@ -15,7 +16,9 @@ sim.plot.1 <- sim.res.df.1 %>%
   ggplot() +
   aes(x = method, y = mean_l1) +
   geom_boxplot() +
-  scale_x_discrete(labels = c("ep" = "EP", "laplace" = "Laplace")) +
+  scale_x_discrete(labels = c("mcmc-short" = "MCMC-S",
+                              "ep" = "EP", 
+                              "laplace" = "Laplace")) +
   facet_wrap(block ~ sim, scales = "free_y",
              labeller = labeller(block = as_labeller(c("beta_1" = "β.1", 
                                                        "beta_2" = "β.2")),

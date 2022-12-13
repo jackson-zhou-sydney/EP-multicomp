@@ -8,6 +8,7 @@ load("Quantile/Quantile-results.RData")
 ## Simulations
 
 sim.plot.1 <- sim.res.df.1 %>% 
+  mutate(method = factor(method, levels = c("mcmc-short", "ep", "mfvb"))) %>% 
   mutate(block = case_when(j <= as.numeric(map(sim, ~sim.settings[[.]][["p"]])) ~ "beta",
                            TRUE ~ "kappa")) %>% 
   group_by(sim, iteration, block, method) %>% 
@@ -15,7 +16,9 @@ sim.plot.1 <- sim.res.df.1 %>%
   ggplot() +
   aes(x = method, y = mean_l1) +
   geom_boxplot() +
-  scale_x_discrete(labels = c("ep" = "EP", "mfvb" = "MFVB")) +
+  scale_x_discrete(labels = c("mcmc-short" = "MCMC-S",
+                              "ep" = "EP",
+                              "mfvb" = "MFVB")) +
   facet_wrap(block ~ sim, scales = "free_y",
              labeller = labeller(block = as_labeller(c("beta" = "β", 
                                                        "kappa" = "K")),
