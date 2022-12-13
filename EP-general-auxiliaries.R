@@ -20,6 +20,8 @@ num.sim <- 50
 mcmc.chains <- 1
 mcmc.iter <- 50000
 mcmc.warmup <- 5000
+mcmc.short.iter <- 2000
+mcmc.short.warmup <- 200
 match.size <- 1000
 match.reps <- 10
 sd.multiple <- 5

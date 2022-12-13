@@ -92,6 +92,47 @@ for (type.iter in 1:num.each.type) {
                                              method = "mcmc",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
+    ### MCMC-short
+    
+    start.time <- proc.time()
+    
+    stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                     data = list(N = n,
+                                 p_1 = p.1,
+                                 p_2 = p.2,
+                                 X_1 = X.1,
+                                 X_2 = X.2,
+                                 y = y,
+                                 mu_theta = mu.theta,
+                                 Sigma_theta = Sigma.theta),
+                     chains = mcmc.chains,
+                     iter = mcmc.short.iter,
+                     warmup = mcmc.short.warmup,
+                     refresh = 0,
+                     init = rep(0, p.1 + p.2))
+    
+    mcmc.short.samples <- rstan::extract(stan.res)$theta
+    mcmc.short.mu <- colMeans(mcmc.short.samples)
+    mcmc.short.Sigma <- var(mcmc.short.samples)
+    
+    total.time <- proc.time() - start.time
+    
+    for (j in 1:(p.1 + p.2)) {
+      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-short",
+                                               j = j,
+                                               l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - demp(grid.points[j, ], 
+                                                                                                            obs = mcmc.short.samples[, j])))/2,
+                                               diff_mu = (mcmc.short.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
+                                               diff_sigma = (sqrt(mcmc.short.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
+    }
+    
+    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+                                             iteration = iteration,
+                                             method = "mcmc-short",
+                                             time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+    
     ### EP
     
     start.time <- proc.time()
@@ -174,6 +215,7 @@ for (type.iter in 1:num.each.type) {
     ### Means and covariances
     
     sim.res.list[[paste0("s", type.iter)]][[paste0("i", iteration)]] <- list(mcmc.mu = as.vector(mcmc.mu), mcmc.Sigma = mcmc.Sigma,
+                                                                             mcmc.short.mu = as.vector(mcmc.short.mu), mcmc.short.Sigma = mcmc.short.Sigma,
                                                                              ep.mu = as.vector(ep.mu), ep.Sigma = ep.Sigma,
                                                                              laplace.mu = as.vector(laplace.mu), laplace.Sigma = laplace.Sigma)
   }
@@ -258,6 +300,45 @@ for (type.iter in 1:num.each.type) {
                                                method = "mcmc",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
+  ### MCMC-short
+  
+  start.time <- proc.time()
+  
+  stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                   data = list(N = n,
+                               p_1 = p.1,
+                               p_2 = p.2,
+                               X_1 = X.1,
+                               X_2 = X.2,
+                               y = y,
+                               mu_theta = mu.theta,
+                               Sigma_theta = Sigma.theta),
+                   chains = mcmc.chains,
+                   iter = mcmc.short.iter,
+                   warmup = mcmc.short.warmup,
+                   refresh = 0,
+                   init = rep(0, p.1 + p.2))
+  
+  mcmc.short.samples <- rstan::extract(stan.res)$theta
+  mcmc.short.mu <- colMeans(mcmc.short.samples)
+  mcmc.short.Sigma <- var(mcmc.short.samples)
+  
+  total.time <- proc.time() - start.time
+  
+  for (j in 1:(p.1 + p.2)) {
+    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-short",
+                                                 j = j,
+                                                 l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - demp(grid.points[j, ], 
+                                                                                                              obs = mcmc.short.samples[, j])))/2,
+                                                 diff_mu = (mcmc.short.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
+                                                 diff_sigma = (sqrt(mcmc.short.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
+  }
+  
+  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+                                               method = "mcmc-short",
+                                               time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+  
   ### EP
   
   start.time <- proc.time()
@@ -334,6 +415,7 @@ for (type.iter in 1:num.each.type) {
   ### Means and covariances
   
   bench.res.list[[paste0("b", type.iter)]] <- list(mcmc.mu = as.vector(mcmc.mu), mcmc.Sigma = mcmc.Sigma,
+                                                   mcmc.short.mu = as.vector(mcmc.short.mu), mcmc.short.Sigma = mcmc.short.Sigma,
                                                    ep.mu = as.vector(ep.mu), ep.Sigma = ep.Sigma,
                                                    laplace.mu = as.vector(laplace.mu), laplace.Sigma = laplace.Sigma)
 }
