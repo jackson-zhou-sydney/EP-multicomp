@@ -32,12 +32,15 @@ ggsave("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-sim-plot-1.png", s
 plot_crop("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-sim-plot-1.png")
 
 sim.plot.2 <- sim.res.df.2 %>% 
+  mutate(method = factor(method, levels = c("mcmc-short", "ep", "laplace"))) %>% 
   group_by(sim, iteration, method) %>% 
   summarise(mean_match_pairs = mean(match_pairs)) %>% 
   ggplot() +
   aes(x = method, y = mean_match_pairs) +
   geom_boxplot() +
-  scale_x_discrete(labels = c("ep" = "EP", "laplace" = "Laplace")) +
+  scale_x_discrete(labels = c("mcmc-short" = "MCMC-S",
+                              "ep" = "EP",
+                              "laplace" = "Laplace")) +
   facet_wrap(~sim, scales = "free_y",
              labeller = labeller(sim = as_labeller(c("1" = "n = 200, p.1 = 40, p.2 = 10",
                                                      "2" = "n = 200, p.1 = 20, p.2 = 20",

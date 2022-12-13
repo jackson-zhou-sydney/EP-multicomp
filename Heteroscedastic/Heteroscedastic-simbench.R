@@ -128,6 +128,34 @@ for (type.iter in 1:num.each.type) {
                                                diff_sigma = (sqrt(mcmc.short.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
     }
     
+    for (repetition in 1:match.reps) {
+      stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                       data = list(N = n,
+                                   p_1 = p.1,
+                                   p_2 = p.2,
+                                   X_1 = X.1,
+                                   X_2 = X.2,
+                                   y = y,
+                                   mu_theta = mu.theta,
+                                   Sigma_theta = Sigma.theta),
+                       chains = mcmc.chains,
+                       iter = mcmc.short.iter,
+                       warmup = mcmc.short.warmup,
+                       refresh = 0,
+                       init = rep(0, p.1 + p.2))
+      
+      mcmc.short.samples <- rstan::extract(stan.res)$theta
+      
+      index <- (nrow(mcmc.samples) - match.size*repetition + 1):(nrow(mcmc.samples) - match.size*(repetition - 1))
+      
+      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-short",
+                                               repetition = repetition,
+                                               match_pairs = nbp.match.pairs(unname(tail(mcmc.short.samples, match.size)),
+                                                                             unname(mcmc.samples[index, ])))
+    }
+    
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
                                              method = "mcmc-short",
@@ -333,6 +361,33 @@ for (type.iter in 1:num.each.type) {
                                                                                                               obs = mcmc.short.samples[, j])))/2,
                                                  diff_mu = (mcmc.short.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
                                                  diff_sigma = (sqrt(mcmc.short.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
+  }
+  
+  for (repetition in 1:match.reps) {
+    stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                     data = list(N = n,
+                                 p_1 = p.1,
+                                 p_2 = p.2,
+                                 X_1 = X.1,
+                                 X_2 = X.2,
+                                 y = y,
+                                 mu_theta = mu.theta,
+                                 Sigma_theta = Sigma.theta),
+                     chains = mcmc.chains,
+                     iter = mcmc.short.iter,
+                     warmup = mcmc.short.warmup,
+                     refresh = 0,
+                     init = rep(0, p.1 + p.2))
+    
+    mcmc.short.samples <- rstan::extract(stan.res)$theta
+    
+    index <- (nrow(mcmc.samples) - match.size*repetition + 1):(nrow(mcmc.samples) - match.size*(repetition - 1))
+    
+    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-short",
+                                                 repetition = repetition,
+                                                 match_pairs = nbp.match.pairs(unname(tail(mcmc.short.samples, match.size)),
+                                                                               unname(mcmc.samples[index, ])))
   }
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
