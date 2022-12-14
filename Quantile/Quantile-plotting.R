@@ -37,7 +37,9 @@ sim.plot.2 <- sim.res.df.2 %>%
   ggplot() +
   aes(x = method, y = mean_match_pairs) +
   geom_boxplot() +
-  scale_x_discrete(labels = c("ep" = "EP", "mfvb" = "MFVB")) +
+  scale_x_discrete(labels = c("mcmc-short" = "MCMC-S",
+                              "ep" = "EP",
+                              "mfvb" = "MFVB")) +
   facet_wrap(~sim, scales = "free_y",
              labeller = labeller(sim = as_labeller(c("1" = "Normal (n = 200, p = 40)",
                                                      "2" = "Poisson (n = 200, p = 40)",
