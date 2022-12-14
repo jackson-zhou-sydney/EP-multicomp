@@ -32,6 +32,7 @@ ggsave("Quantile/Quantile-plots/Quantile-sim-plot-1.png", sim.plot.1, width = 8,
 plot_crop("Quantile/Quantile-plots/Quantile-sim-plot-1.png")
 
 sim.plot.2 <- sim.res.df.2 %>% 
+  mutate(method = factor(method, levels = c("mcmc-short", "ep", "mfvb"))) %>% 
   group_by(sim, iteration, method) %>% 
   summarise(mean_match_pairs = mean(match_pairs)) %>% 
   ggplot() +
