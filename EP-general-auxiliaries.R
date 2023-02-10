@@ -32,11 +32,9 @@ err <- function(e) {
   return(NA)
 }
 
-sym <- function(m) {
+sym <- function(A) {
   # Force matrix to be symmetric
-  m.sym <- m
-  m.sym[lower.tri(m.sym)] <- t(m.sym)[lower.tri(m.sym)]
-  return(m.sym)
+  0.5*(A + t(A))
 }
 
 nbp.match.pairs <- function(X, Y) {
