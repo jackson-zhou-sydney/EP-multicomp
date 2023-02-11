@@ -11,16 +11,13 @@ set.seed(1)
 sim.res.df.1 <- data.frame(sim = integer(),
                            iteration = integer(),
                            method = character(),
-                           j = double(),
-                           l1 = double(),
-                           diff_mu = double(),
-                           diff_sigma = double())
+                           mmd = double())
 
 sim.res.df.2 <- data.frame(sim = integer(),
                            iteration = integer(),
                            method = character(),
-                           repetition = double(),
-                           match_pairs = double())
+                           fold = double(),
+                           lppd = double())
 
 sim.res.df.3 <- data.frame(sim = integer(),
                            iteration = integer(),
@@ -32,8 +29,6 @@ sim.res.df.4 <- data.frame(sim = integer(),
                            j = double(),
                            r_hat = double())
 
-sim.res.list <- list()
-
 for (type.iter in 1:num.each.type) {
   for (iteration in 1:num.sim) {
     print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim))
@@ -44,6 +39,7 @@ for (type.iter in 1:num.each.type) {
     p.2 <- ncol(X.2)
     mu.theta <- rep(0, p.1 + p.2)
     Sigma.theta <- sigma.2.theta*diag(p.1 + p.2)
+    ind <- sample(rep(1:n.folds, ceiling(n/n.folds))[1:n])
     
     ### MCMC
     
@@ -65,22 +61,11 @@ for (type.iter in 1:num.each.type) {
                      init = rep(0, p.1 + p.2))
     
     mcmc.samples <- rstan::extract(stan.res)$theta
-    mcmc.mu <- colMeans(mcmc.samples)
-    mcmc.Sigma <- var(mcmc.samples)
     mcmc.summary <- summary(stan.res)$summary
     
     total.time <- proc.time() - start.time
     
-    grid.points <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
-    mcmc.values <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
-    
     for (j in 1:(p.1 + p.2)) {
-      grid.points[j, ] <- seq(from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
-                              to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
-                              length = total.grid.points)
-      
-      mcmc.values[j, ] <- demp(grid.points[j, ], obs = mcmc.samples[, j])
-      
       sim.res.df.4 <- sim.res.df.4 %>% add_row(sim = type.iter,
                                                iteration = iteration,
                                                j = j,
@@ -112,49 +97,14 @@ for (type.iter in 1:num.each.type) {
                      init = rep(0, p.1 + p.2))
     
     mcmc.short.samples <- rstan::extract(stan.res)$theta
-    mcmc.short.mu <- colMeans(mcmc.short.samples)
-    mcmc.short.Sigma <- var(mcmc.short.samples)
     
     total.time <- proc.time() - start.time
     
-    for (j in 1:(p.1 + p.2)) {
-      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
-                                               iteration = iteration,
-                                               method = "mcmc-short",
-                                               j = j,
-                                               l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - demp(grid.points[j, ], 
-                                                                                                            obs = mcmc.short.samples[, j])))/2,
-                                               diff_mu = (mcmc.short.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
-                                               diff_sigma = (sqrt(mcmc.short.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
-    }
-    
-    for (repetition in 1:match.reps) {
-      stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
-                       data = list(N = n,
-                                   p_1 = p.1,
-                                   p_2 = p.2,
-                                   X_1 = X.1,
-                                   X_2 = X.2,
-                                   y = y,
-                                   mu_theta = mu.theta,
-                                   Sigma_theta = Sigma.theta),
-                       chains = mcmc.chains,
-                       iter = mcmc.short.iter,
-                       warmup = mcmc.short.warmup,
-                       refresh = 0,
-                       init = rep(0, p.1 + p.2))
-      
-      mcmc.short.samples <- rstan::extract(stan.res)$theta
-      
-      index <- (nrow(mcmc.samples) - match.size*repetition + 1):(nrow(mcmc.samples) - match.size*(repetition - 1))
-      
-      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
-                                               iteration = iteration,
-                                               method = "mcmc-short",
-                                               repetition = repetition,
-                                               match_pairs = nbp.match.pairs(unname(tail(mcmc.short.samples, match.size)),
-                                                                             unname(mcmc.samples[index, ])))
-    }
+    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                                                   iteration = iteration,
+                                                                   method = "mcmc-short",
+                                                                   mmd = kmmd(tail(mcmc.short.samples, 800), 
+                                                                              tail(mcmc.samples, 800))@mmdstats[2]))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
@@ -171,31 +121,15 @@ for (type.iter in 1:num.each.type) {
                         abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
+    ep.samples <- rmvnorm(800, ep.mu, ep.Sigma)
     
     total.time <- proc.time() - start.time
     
-    for (j in 1:(p.1 + p.2)) {
-      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
-                                               iteration = iteration,
-                                               method = "ep",
-                                               j = j,
-                                               l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - dnorm(grid.points[j, ], 
-                                                                                                             mean = ep.mu[j], 
-                                                                                                             sd = sqrt(ep.Sigma[j, j]))))/2,
-                                               diff_mu = (ep.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
-                                               diff_sigma = (sqrt(ep.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
-    }
-    
-    for (repetition in 1:match.reps) {
-      index <- (nrow(mcmc.samples) - match.size*repetition + 1):(nrow(mcmc.samples) - match.size*(repetition - 1))
-      
-      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
-                                               iteration = iteration,
-                                               method = "ep",
-                                               repetition = repetition,
-                                               match_pairs = nbp.match.pairs(rmvnorm(match.size, ep.mu, ep.Sigma),
-                                                                             unname(mcmc.samples[index, ])))
-    }
+    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                                                   iteration = iteration,
+                                                                   method = "ep",
+                                                                   mmd = kmmd(ep.samples, 
+                                                                              tail(mcmc.samples, 800))@mmdstats[2]))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
@@ -209,43 +143,88 @@ for (type.iter in 1:num.each.type) {
     laplace.res <- laplace.approx(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
     laplace.mu <- laplace.res$mu
     laplace.Sigma <- laplace.res$Sigma
+    laplace.samples <- rmvnorm(800, laplace.mu, laplace.Sigma)
     
     total.time <- proc.time() - start.time
     
-    for (j in 1:(p.1 + p.2)) {
-      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
-                                               iteration = iteration,
-                                               method = "laplace",
-                                               j = j,
-                                               l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - dnorm(grid.points[j, ], 
-                                                                                                             mean = laplace.mu[j], 
-                                                                                                             sd = sqrt(laplace.Sigma[j, j]))))/2,
-                                               diff_mu = (laplace.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
-                                               diff_sigma = (sqrt(laplace.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
-    }
-    
-    for (repetition in 1:match.reps) {
-      index <- (nrow(mcmc.samples) - match.size*repetition + 1):(nrow(mcmc.samples) - match.size*(repetition - 1))
-      
-      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
-                                               iteration = iteration,
-                                               method = "laplace",
-                                               repetition = repetition,
-                                               match_pairs = nbp.match.pairs(rmvnorm(match.size, laplace.mu, laplace.Sigma),
-                                                                             unname(mcmc.samples[index, ])))
-    }
+    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                                                   iteration = iteration,
+                                                                   method = "laplace",
+                                                                   mmd = kmmd(laplace.samples, 
+                                                                              tail(mcmc.samples, 800))@mmdstats[2]))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
                                              method = "laplace",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
-    ### Means and covariances
+    ### Evaluating predictive accuracy
     
-    sim.res.list[[paste0("s", type.iter)]][[paste0("i", iteration)]] <- list(mcmc.mu = as.vector(mcmc.mu), mcmc.Sigma = mcmc.Sigma,
-                                                                             mcmc.short.mu = as.vector(mcmc.short.mu), mcmc.short.Sigma = mcmc.short.Sigma,
-                                                                             ep.mu = as.vector(ep.mu), ep.Sigma = ep.Sigma,
-                                                                             laplace.mu = as.vector(laplace.mu), laplace.Sigma = laplace.Sigma)
+    for (fold in 1:n.folds) {
+      X.1.train <- X.1[ind != fold, ]
+      X.2.train <- X.2[ind != fold, ]
+      y.train <- y[ind != fold]
+      n.train <- nrow(X.1.train)
+      
+      X.1.test <- X.1[ind == fold, ]
+      X.2.test <- X.2[ind == fold, ]
+      y.test <- y[ind == fold]
+      n.test <- nrow(X.1.test)
+      
+      #### MCMC-short
+      
+      stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                       data = list(N = n.train,
+                                   p_1 = p.1,
+                                   p_2 = p.2,
+                                   X_1 = X.1.train,
+                                   X_2 = X.2.train,
+                                   y = y.train,
+                                   mu_theta = mu.theta,
+                                   Sigma_theta = Sigma.theta),
+                       chains = mcmc.chains,
+                       iter = mcmc.short.iter,
+                       warmup = mcmc.short.warmup,
+                       refresh = 0,
+                       init = rep(0, p.1 + p.2))
+      
+      mcmc.short.samples <- rstan::extract(stan.res)$theta
+      
+      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-short",
+                                               fold = fold,
+                                               lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.short.samples, 800)))
+      
+      #### EP
+      
+      ep.res <- ep.approx(X.1.train, X.2.train, y.train, mu.theta, Sigma.theta, 
+                          eta = 0.5, alpha = 1, Q.star.init = 0.01*diag(2), r.star.init = rep(0, 2), offset = 0,
+                          min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                          abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
+      ep.mu <- ep.res$mu
+      ep.Sigma <- ep.res$Sigma
+      ep.samples <- rmvnorm(800, ep.mu, ep.Sigma)
+      
+      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "ep",
+                                               fold = fold,
+                                               lppd = lppd(X.1.test, X.2.test, y.test, ep.samples))
+      
+      #### Laplace
+      
+      laplace.res <- laplace.approx(X.1.train, X.2.train, y.train, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
+      laplace.mu <- laplace.res$mu
+      laplace.Sigma <- laplace.res$Sigma
+      laplace.samples <- rmvnorm(800, laplace.mu, laplace.Sigma)
+      
+      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "laplace",
+                                               fold = fold,
+                                               lppd = lppd(X.1.test, X.2.test, y.test, laplace.samples))
+    }
   }
 }
 
@@ -253,15 +232,12 @@ for (type.iter in 1:num.each.type) {
 
 bench.res.df.1 <- data.frame(bench = integer(),
                              method = character(),
-                             j = double(),
-                             l1 = double(),
-                             diff_mu = double(),
-                             diff_sigma = double())
+                             mmd = double())
 
 bench.res.df.2 <- data.frame(bench = integer(),
                              method = character(),
-                             repetition = double(),
-                             match_pairs = double())
+                             fold = double(),
+                             lppd = double())
 
 bench.res.df.3 <- data.frame(bench = integer(),
                              method = character(),
@@ -270,8 +246,6 @@ bench.res.df.3 <- data.frame(bench = integer(),
 bench.res.df.4 <- data.frame(bench = integer(),
                              j = double(),
                              r_hat = double())
-
-bench.res.list <- list()
 
 for (type.iter in 1:num.each.type) {
   print(paste0("Current progress: Benchmark ", type.iter))
@@ -303,22 +277,11 @@ for (type.iter in 1:num.each.type) {
                    init = rep(0, p.1 + p.2))
   
   mcmc.samples <- rstan::extract(stan.res)$theta
-  mcmc.mu <- colMeans(mcmc.samples)
-  mcmc.Sigma <- var(mcmc.samples)
   mcmc.summary <- summary(stan.res)$summary
   
   total.time <- proc.time() - start.time
   
-  grid.points <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
-  mcmc.values <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
-  
   for (j in 1:(p.1 + p.2)) {
-    grid.points[j, ] <- seq(from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
-                            to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
-                            length = total.grid.points)
-    
-    mcmc.values[j, ] <- demp(grid.points[j, ], obs = mcmc.samples[, j])
-    
     bench.res.df.4 <- bench.res.df.4 %>% add_row(bench = type.iter,
                                                  j = j,
                                                  r_hat = mcmc.summary[paste0("theta[", j, "]"), "Rhat"])
@@ -348,47 +311,13 @@ for (type.iter in 1:num.each.type) {
                    init = rep(0, p.1 + p.2))
   
   mcmc.short.samples <- rstan::extract(stan.res)$theta
-  mcmc.short.mu <- colMeans(mcmc.short.samples)
-  mcmc.short.Sigma <- var(mcmc.short.samples)
   
   total.time <- proc.time() - start.time
   
-  for (j in 1:(p.1 + p.2)) {
-    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
-                                                 method = "mcmc-short",
-                                                 j = j,
-                                                 l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - demp(grid.points[j, ], 
-                                                                                                              obs = mcmc.short.samples[, j])))/2,
-                                                 diff_mu = (mcmc.short.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
-                                                 diff_sigma = (sqrt(mcmc.short.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
-  }
-  
-  for (repetition in 1:match.reps) {
-    stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
-                     data = list(N = n,
-                                 p_1 = p.1,
-                                 p_2 = p.2,
-                                 X_1 = X.1,
-                                 X_2 = X.2,
-                                 y = y,
-                                 mu_theta = mu.theta,
-                                 Sigma_theta = Sigma.theta),
-                     chains = mcmc.chains,
-                     iter = mcmc.short.iter,
-                     warmup = mcmc.short.warmup,
-                     refresh = 0,
-                     init = rep(0, p.1 + p.2))
-    
-    mcmc.short.samples <- rstan::extract(stan.res)$theta
-    
-    index <- (nrow(mcmc.samples) - match.size*repetition + 1):(nrow(mcmc.samples) - match.size*(repetition - 1))
-    
-    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
-                                                 method = "mcmc-short",
-                                                 repetition = repetition,
-                                                 match_pairs = nbp.match.pairs(unname(tail(mcmc.short.samples, match.size)),
-                                                                               unname(mcmc.samples[index, ])))
-  }
+  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                                     method = "mcmc-short",
+                                                                     mmd = kmmd(tail(mcmc.short.samples, 800), 
+                                                                                tail(mcmc.samples, 800))@mmdstats[2]))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "mcmc-short",
@@ -404,29 +333,14 @@ for (type.iter in 1:num.each.type) {
                       abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
   ep.mu <- ep.res$mu
   ep.Sigma <- ep.res$Sigma
+  ep.samples <- rmvnorm(800, ep.mu, ep.Sigma)
   
   total.time <- proc.time() - start.time
   
-  for (j in 1:(p.1 + p.2)) {
-    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
-                                                 method = "ep",
-                                                 j = j,
-                                                 l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - dnorm(grid.points[j, ], 
-                                                                                                               mean = ep.mu[j], 
-                                                                                                               sd = sqrt(ep.Sigma[j, j]))))/2,
-                                                 diff_mu = (ep.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
-                                                 diff_sigma = (sqrt(ep.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
-  }
-  
-  for (repetition in 1:match.reps) {
-    index <- (nrow(mcmc.samples) - match.size*repetition + 1):(nrow(mcmc.samples) - match.size*(repetition - 1))
-    
-    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
-                                                 method = "ep",
-                                                 repetition = repetition,
-                                                 match_pairs = nbp.match.pairs(rmvnorm(match.size, ep.mu, ep.Sigma),
-                                                                               unname(mcmc.samples[index, ])))
-  }
+  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                                     method = "ep",
+                                                                     mmd = kmmd(ep.samples, 
+                                                                                tail(mcmc.samples, 800))@mmdstats[2]))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "ep",
@@ -439,42 +353,85 @@ for (type.iter in 1:num.each.type) {
   laplace.res <- laplace.approx(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
   laplace.mu <- laplace.res$mu
   laplace.Sigma <- laplace.res$Sigma
+  laplace.samples <- rmvnorm(800, laplace.mu, laplace.Sigma)
   
   total.time <- proc.time() - start.time
   
-  for (j in 1:(p.1 + p.2)) {
-    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
-                                                 method = "laplace",
-                                                 j = j,
-                                                 l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - dnorm(grid.points[j, ], 
-                                                                                                               mean = laplace.mu[j], 
-                                                                                                               sd = sqrt(laplace.Sigma[j, j]))))/2,
-                                                 diff_mu = (laplace.mu[j] - mcmc.mu[j])/sqrt(mcmc.Sigma[j, j]),
-                                                 diff_sigma = (sqrt(laplace.Sigma[j, j]) - sqrt(mcmc.Sigma[j, j]))/sqrt(mcmc.Sigma[j, j]))
-  }
-  
-  for (repetition in 1:match.reps) {
-    index <- (nrow(mcmc.samples) - match.size*repetition + 1):(nrow(mcmc.samples) - match.size*(repetition - 1))
-    
-    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
-                                                 method = "laplace",
-                                                 repetition = repetition,
-                                                 match_pairs = nbp.match.pairs(rmvnorm(match.size, laplace.mu, laplace.Sigma),
-                                                                               unname(mcmc.samples[index, ])))
-  }
+  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                                     method = "laplace",
+                                                                     mmd = kmmd(laplace.samples, 
+                                                                                tail(mcmc.samples, 800))@mmdstats[2]))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "laplace",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
-  ### Means and covariances
+  ### Evaluating predictive accuracy
   
-  bench.res.list[[paste0("b", type.iter)]] <- list(mcmc.mu = as.vector(mcmc.mu), mcmc.Sigma = mcmc.Sigma,
-                                                   mcmc.short.mu = as.vector(mcmc.short.mu), mcmc.short.Sigma = mcmc.short.Sigma,
-                                                   ep.mu = as.vector(ep.mu), ep.Sigma = ep.Sigma,
-                                                   laplace.mu = as.vector(laplace.mu), laplace.Sigma = laplace.Sigma)
+  for (fold in 1:n.folds) {
+    X.1.train <- X.1[ind != fold, ]
+    X.2.train <- X.2[ind != fold, ]
+    y.train <- y[ind != fold]
+    n.train <- nrow(X.1.train)
+    
+    X.1.test <- X.1[ind == fold, ]
+    X.2.test <- X.2[ind == fold, ]
+    y.test <- y[ind == fold]
+    n.test <- nrow(X.1.test)
+    
+    #### MCMC-short
+    
+    stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                     data = list(N = n.train,
+                                 p_1 = p.1,
+                                 p_2 = p.2,
+                                 X_1 = X.1.train,
+                                 X_2 = X.2.train,
+                                 y = y.train,
+                                 mu_theta = mu.theta,
+                                 Sigma_theta = Sigma.theta),
+                     chains = mcmc.chains,
+                     iter = mcmc.short.iter,
+                     warmup = mcmc.short.warmup,
+                     refresh = 0,
+                     init = rep(0, p.1 + p.2))
+    
+    mcmc.short.samples <- rstan::extract(stan.res)$theta
+    
+    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-short",
+                                                 fold = fold,
+                                                 lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.short.samples, 800)))
+    
+    #### EP
+    
+    ep.res <- ep.approx(X.1.train, X.2.train, y.train, mu.theta, Sigma.theta, 
+                        eta = 0.5, alpha = 1, Q.star.init = 0.01*diag(2), r.star.init = rep(0, 2), offset = 0,
+                        min.passes = 6, max.passes = 200, tol.factor = Inf, stop.factor = Inf , 
+                        abs.thresh = 0.1, rel.thresh = 0.9, delta.limit = Inf, patience = 40, verbose = F)
+    ep.mu <- ep.res$mu
+    ep.Sigma <- ep.res$Sigma
+    ep.samples <- rmvnorm(800, ep.mu, ep.Sigma)
+    
+    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+                                                 method = "ep",
+                                                 fold = fold,
+                                                 lppd = lppd(X.1.test, X.2.test, y.test, ep.samples))
+    
+    #### Laplace
+    
+    laplace.res <- laplace.approx(X.1.train, X.2.train, y.train, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
+    laplace.mu <- laplace.res$mu
+    laplace.Sigma <- laplace.res$Sigma
+    laplace.samples <- rmvnorm(800, laplace.mu, laplace.Sigma)
+    
+    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+                                                 method = "laplace",
+                                                 fold = fold,
+                                                 lppd = lppd(X.1.test, X.2.test, y.test, laplace.samples))
+  }
 }
 
-save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4, sim.res.list,
-     bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4, bench.res.list,
+save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4,
+     bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4,
      file = "Heteroscedastic/Heteroscedastic-results.RData")

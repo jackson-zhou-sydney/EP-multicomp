@@ -136,7 +136,7 @@ ep.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta,
   Q.p <- sym(solve(Sigma.theta))
   r.p <- Q.p%*%mu.theta
   
-  Q.dot <- sym(offset) + Q.p
+  Q.dot <- if (is.matrix(offset)) sym(offset) + Q.p else offset + Q.p
   r.dot <- r.p
   
   for (i in 1:n) {
