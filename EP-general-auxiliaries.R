@@ -14,6 +14,7 @@ library(mlr)         # Generate dummy columns
 library(mvtnorm)     # Sample from multivariate Gaussians
 library(nbpMatching) # Non-bipartite matching
 library(pracma)      # Trapezoidal integration
+library(kernlab)     # Maximum mean discrepancy
 
 num.each.type <- 3
 num.sim <- 50

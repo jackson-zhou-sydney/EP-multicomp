@@ -23,6 +23,40 @@ log.joint.likelihood <- function(theta, X.1, X.2, y, mu.theta, Sigma.theta) {
   as.numeric(-0.5*(sum(2*X.2%*%beta.2) + t(y - X.1%*%beta.1)%*%((1/exp(2*X.2%*%beta.2))*(y - X.1%*%beta.1)) + t(theta - mu.theta)%*%solve(Sigma.theta)%*%(theta - mu.theta)))
 }
 
+point.likelihood <- function(theta, x.1, x.2, y) {
+  # Likelihood evaluated at point
+  p.1 <- length(x.1)
+  p.2 <- length(x.2)
+  
+  beta.1 <- theta[1:p.1]
+  beta.2 <- theta[(p.1 + 1):length(theta)]
+  
+  as.numeric(exp(-t(x.2)%*%beta.2 - (y - t(x.1)%*%beta.1)^2/as.numeric(2*exp(2*t(x.2)%*%beta.2)))/sqrt(2*pi))
+}
+
+lppd <- function(X.1, X.2, y, S) {
+  # Compute the log pointwise predictive density
+  # S is a matrix of posterior samples
+  total <- 0
+  n <- nrow(X.1)
+  n.s <- nrow(S)
+  
+  for (i in 1:n) {
+    subtotal <- 0
+    x.1 <- X.1[i, ]
+    x.2 <- X.2[i, ]
+    y.point <- y[i]
+    
+    for (s in 1:n.s) {
+      subtotal <- subtotal + point.likelihood(S[s, ], x.1, x.2, y.point)
+    }
+    
+    total <- total + log(subtotal/n.s)
+  }
+  
+  return(total)
+}
+
 laplace.approx <- function(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init, maxit) {
   # Laplace approximation
   p.1 <- ncol(X.1)
