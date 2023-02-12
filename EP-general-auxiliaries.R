@@ -1,28 +1,30 @@
 
 # General auxiliary functions and variables for expectation propagation
 
-library(tidyverse)   # Data manipulation and plotting
-library(rstan)       # Robust MCMC and diagnostics
-library(EnvStats)    # Compute empirical densities
-library(glmnet)      # Fast ridge regression estimates
-library(quantreg)    # Quantile regression estimates
-library(lme4)        # Fast linear mixed model estimates
-library(stringr)     # String manipulation
-library(knitr)       # Crop plots
-library(haven)       # Load in DTA files
-library(mlr)         # Generate dummy columns
-library(mvtnorm)     # Sample from multivariate Gaussians
-library(nbpMatching) # Non-bipartite matching
-library(pracma)      # Trapezoidal integration
-library(kernlab)     # Maximum mean discrepancy
+library(tidyverse)     # Data manipulation and plotting
+library(rstan)         # Robust MCMC and diagnostics
+library(EnvStats)      # Compute empirical densities
+library(glmnet)        # Fast ridge regression estimates
+library(quantreg)      # Quantile regression estimates
+library(lme4)          # Fast linear mixed model estimates
+library(stringr)       # String manipulation
+library(knitr)         # Crop plots
+library(haven)         # Load in DTA files
+library(mlr)           # Generate dummy columns
+library(mvtnorm)       # Sample from multivariate Gaussians
+library(nbpMatching)   # Non-bipartite matching
+library(pracma)        # Trapezoidal integration
+library(kernlab)       # Maximum mean discrepancy
+library(Rcpp)          # C++ in R
+library(RcppArmadillo) # Efficient linear algebra for Rcpp
 
 num.each.type <- 3
 num.sim <- 50
 mcmc.chains <- 1
 mcmc.iter <- 50000
 mcmc.warmup <- 5000
-mcmc.short.iter <- 1000
-mcmc.short.warmup <- 200
+mcmc.short.iter <- 100
+mcmc.short.warmup <- 20
 match.size <- 1000
 match.reps <- 10
 sd.multiple <- 5
