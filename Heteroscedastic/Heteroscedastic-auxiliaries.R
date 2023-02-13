@@ -1,6 +1,9 @@
 
 # Auxiliary functions and variables for heteroscedastic linear regression
 
+sourceCpp("Heteroscedastic/EP-approx.cpp")
+sourceCpp("Heteroscedastic/Laplace-approx.cpp")
+
 sigma.2.theta <- 10000
 
 sim.settings <- list(c(n = 200, p.1 = 40, p.2 = 10),

@@ -77,7 +77,7 @@ tuple <double, vec, mat> ihr(double y, vec mu, mat Sigma, double eta) {
 }
 
 // [[Rcpp::export]]
-List ep_c(mat X_1, mat X_2, vec y, vec mu_theta, mat Sigma_theta,
+List ep_c(mat X_1, mat X_2, vec y, mat Sigma_theta, vec mu_theta,
           double eta, double alpha, mat Q_star_init, vec r_star_init, mat offset,
           double min_passes, double max_passes, double tol, double stop,
           double abs_thresh, double rel_thresh, double delta_limit, double patience) {

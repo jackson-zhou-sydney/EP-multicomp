@@ -3,7 +3,6 @@
 
 source("EP-general-auxiliaries.R")
 source("Heteroscedastic/Heteroscedastic-auxiliaries.R")
-sourceCpp("Heteroscedastic/EP-approx.cpp")
 
 set.seed(1)
 
@@ -104,8 +103,8 @@ for (type.iter in 1:num.each.type) {
     out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
                                                                    method = "mcmc-short",
-                                                                   mmd = kmmd(tail(mcmc.short.samples, 80), 
-                                                                              tail(mcmc.samples, 80))@mmdstats[2]))
+                                                                   mmd = max(kmmd(tail(mcmc.short.samples, 80), 
+                                                                                  tail(mcmc.samples, 80))@mmdstats[2], 0)))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
@@ -116,7 +115,7 @@ for (type.iter in 1:num.each.type) {
     
     start.time <- proc.time()
     
-    ep.res <- ep_c(X.1, X.2, y, mu.theta, Sigma.theta, 
+    ep.res <- ep_c(X.1, X.2, y, Sigma.theta, mu.theta,
                    eta = 0.5, alpha = 0.75, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p.1 + p.2, p.1 + p.2),
                    min_passes = 6, max_passes = 200, tol = Inf, stop = Inf , 
                    abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
@@ -129,8 +128,8 @@ for (type.iter in 1:num.each.type) {
     out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
                                                                    method = "ep",
-                                                                   mmd = kmmd(ep.samples, 
-                                                                              tail(mcmc.samples, 80))@mmdstats[2]))
+                                                                   mmd = max(kmmd(ep.samples, 
+                                                                                  tail(mcmc.samples, 80))@mmdstats[2], 0)))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
@@ -141,7 +140,7 @@ for (type.iter in 1:num.each.type) {
     
     start.time <- proc.time()
     
-    laplace.res <- laplace.approx(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
+    laplace.res <- laplace_c(X.1, X.2, y, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
     laplace.mu <- laplace.res$mu
     laplace.Sigma <- laplace.res$Sigma
     laplace.samples <- rmvnorm(80, laplace.mu, laplace.Sigma)
@@ -151,8 +150,8 @@ for (type.iter in 1:num.each.type) {
     out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
                                                                    method = "laplace",
-                                                                   mmd = kmmd(laplace.samples, 
-                                                                              tail(mcmc.samples, 80))@mmdstats[2]))
+                                                                   mmd = max(kmmd(laplace.samples, 
+                                                                                  tail(mcmc.samples, 80))@mmdstats[2], 0)))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
@@ -199,7 +198,7 @@ for (type.iter in 1:num.each.type) {
       
       #### EP
       
-      ep.res <- ep_c(X.1.train, X.2.train, y.train, mu.theta, Sigma.theta, 
+      ep.res <- ep_c(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta,
                      eta = 0.5, alpha = 0.75, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p.1 + p.2, p.1 + p.2),
                      min_passes = 6, max_passes = 200, tol = Inf, stop = Inf , 
                      abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
@@ -215,7 +214,7 @@ for (type.iter in 1:num.each.type) {
       
       #### Laplace
       
-      laplace.res <- laplace.approx(X.1.train, X.2.train, y.train, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
+      laplace.res <- laplace_c(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
       laplace.mu <- laplace.res$mu
       laplace.Sigma <- laplace.res$Sigma
       laplace.samples <- rmvnorm(80, laplace.mu, laplace.Sigma)
@@ -318,8 +317,8 @@ for (type.iter in 1:num.each.type) {
   
   out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
                                                                      method = "mcmc-short",
-                                                                     mmd = kmmd(tail(mcmc.short.samples, 80), 
-                                                                                tail(mcmc.samples, 80))@mmdstats[2]))
+                                                                     mmd = max(kmmd(tail(mcmc.short.samples, 80), 
+                                                                                    tail(mcmc.samples, 80))@mmdstats[2], 0)))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "mcmc-short",
@@ -329,7 +328,7 @@ for (type.iter in 1:num.each.type) {
   
   start.time <- proc.time()
   
-  ep.res <- ep_c(X.1, X.2, y, mu.theta, Sigma.theta, 
+  ep.res <- ep_c(X.1, X.2, y, Sigma.theta, mu.theta,
                  eta = 0.5, alpha = 0.75, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p.1 + p.2, p.1 + p.2),
                  min_passes = 6, max_passes = 200, tol = Inf, stop = Inf , 
                  abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
@@ -341,8 +340,8 @@ for (type.iter in 1:num.each.type) {
   
   out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
                                                                      method = "ep",
-                                                                     mmd = kmmd(ep.samples, 
-                                                                                tail(mcmc.samples, 80))@mmdstats[2]))
+                                                                     mmd = max(kmmd(ep.samples, 
+                                                                                    tail(mcmc.samples, 80))@mmdstats[2], 0)))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "ep",
@@ -352,7 +351,7 @@ for (type.iter in 1:num.each.type) {
   
   start.time <- proc.time()
   
-  laplace.res <- laplace.approx(X.1, X.2, y, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
+  laplace.res <- laplace_c(X.1, X.2, y, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
   laplace.mu <- laplace.res$mu
   laplace.Sigma <- laplace.res$Sigma
   laplace.samples <- rmvnorm(80, laplace.mu, laplace.Sigma)
@@ -361,8 +360,8 @@ for (type.iter in 1:num.each.type) {
   
   out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
                                                                      method = "laplace",
-                                                                     mmd = kmmd(laplace.samples, 
-                                                                                tail(mcmc.samples, 80))@mmdstats[2]))
+                                                                     mmd = max(kmmd(laplace.samples, 
+                                                                                    tail(mcmc.samples, 80))@mmdstats[2], 0)))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "laplace",
@@ -407,7 +406,7 @@ for (type.iter in 1:num.each.type) {
     
     #### EP
     
-    ep.res <- ep_c(X.1.train, X.2.train, y.train, mu.theta, Sigma.theta, 
+    ep.res <- ep_c(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta,
                    eta = 0.5, alpha = 0.75, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p.1 + p.2, p.1 + p.2),
                    min_passes = 6, max_passes = 200, tol = Inf, stop = Inf , 
                    abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
@@ -422,7 +421,7 @@ for (type.iter in 1:num.each.type) {
     
     #### Laplace
     
-    laplace.res <- laplace.approx(X.1.train, X.2.train, y.train, mu.theta, Sigma.theta, lambda.init = 0.5, maxit = 50000)
+    laplace.res <- laplace_c(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
     laplace.mu <- laplace.res$mu
     laplace.Sigma <- laplace.res$Sigma
     laplace.samples <- rmvnorm(80, laplace.mu, laplace.Sigma)
