@@ -1,5 +1,4 @@
 #include <RcppNumerical.h>
-#include <tuple>
 
 // [[Rcpp::depends(RcppEigen)]]
 // [[Rcpp::depends(RcppNumerical)]]
@@ -9,8 +8,8 @@ using namespace Eigen;
 using namespace Numer;
 using namespace std;
 
-typedef Eigen::Map<Eigen::MatrixXd> MapMat;
-typedef Eigen::Map<Eigen::VectorXd> MapVec;
+typedef Map<MatrixXd> MapMat;
+typedef Map<VectorXd> MapVec;
 
 class HeteroReg: public MFuncGrad {
 private:

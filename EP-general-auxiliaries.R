@@ -17,14 +17,23 @@ library(pracma)        # Trapezoidal integration
 library(kernlab)       # Maximum mean discrepancy
 library(Rcpp)          # C++ in R
 library(RcppArmadillo) # Efficient linear algebra for Rcpp
+library(RcppEigen)     # Alternate linear algebra for Rcpp
+library(RcppNumerical) # Optimisation in Rcpp
 
 num.each.type <- 3
 num.sim <- 50
 mcmc.chains <- 1
 mcmc.iter <- 50000
 mcmc.warmup <- 5000
-mcmc.short.iter <- 100
-mcmc.short.warmup <- 20
+mcmc.short.iter <- 2000
+mcmc.short.warmup <- 200
+mcmc.a.iter <- 50
+mcmc.a.warmup <- 5
+mcmc.b.iter <- 200
+mcmc.b.warmup <- 20
+mcmc.c.iter <- 1000
+mcmc.c.warmup <- 100
+eval.size <- 400
 match.size <- 1000
 match.reps <- 10
 sd.multiple <- 5

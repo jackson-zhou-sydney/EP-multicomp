@@ -77,7 +77,7 @@ for (type.iter in 1:num.each.type) {
                                              method = "mcmc",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
-    ### MCMC-short
+    ### MCMC-A
     
     start.time <- proc.time()
     
@@ -91,24 +91,92 @@ for (type.iter in 1:num.each.type) {
                                  mu_theta = mu.theta,
                                  Sigma_theta = Sigma.theta),
                      chains = mcmc.chains,
-                     iter = mcmc.short.iter,
-                     warmup = mcmc.short.warmup,
+                     iter = mcmc.a.iter,
+                     warmup = mcmc.a.warmup,
                      refresh = 0,
                      init = rep(0, p.1 + p.2))
     
-    mcmc.short.samples <- rstan::extract(stan.res)$theta
+    mcmc.a.samples <- rstan::extract(stan.res)$theta
     
     total.time <- proc.time() - start.time
     
     out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
-                                                                   method = "mcmc-short",
-                                                                   mmd = max(kmmd(tail(mcmc.short.samples, 80), 
-                                                                                  tail(mcmc.samples, 80))@mmdstats[2], 0)))
+                                                                   method = "mcmc-a",
+                                                                   mmd = max(kmmd(tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size)), 
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
-                                             method = "mcmc-short",
+                                             method = "mcmc-a",
+                                             time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+    
+    ### MCMC-B
+    
+    start.time <- proc.time()
+    
+    stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                     data = list(N = n,
+                                 p_1 = p.1,
+                                 p_2 = p.2,
+                                 X_1 = X.1,
+                                 X_2 = X.2,
+                                 y = y,
+                                 mu_theta = mu.theta,
+                                 Sigma_theta = Sigma.theta),
+                     chains = mcmc.chains,
+                     iter = mcmc.b.iter,
+                     warmup = mcmc.b.warmup,
+                     refresh = 0,
+                     init = rep(0, p.1 + p.2))
+    
+    mcmc.b.samples <- rstan::extract(stan.res)$theta
+    
+    total.time <- proc.time() - start.time
+    
+    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                                                   iteration = iteration,
+                                                                   method = "mcmc-b",
+                                                                   mmd = max(kmmd(tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size)), 
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+    
+    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+                                             iteration = iteration,
+                                             method = "mcmc-b",
+                                             time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+    
+    ### MCMC-C
+    
+    start.time <- proc.time()
+    
+    stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                     data = list(N = n,
+                                 p_1 = p.1,
+                                 p_2 = p.2,
+                                 X_1 = X.1,
+                                 X_2 = X.2,
+                                 y = y,
+                                 mu_theta = mu.theta,
+                                 Sigma_theta = Sigma.theta),
+                     chains = mcmc.chains,
+                     iter = mcmc.c.iter,
+                     warmup = mcmc.c.warmup,
+                     refresh = 0,
+                     init = rep(0, p.1 + p.2))
+    
+    mcmc.c.samples <- rstan::extract(stan.res)$theta
+    
+    total.time <- proc.time() - start.time
+    
+    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                                                   iteration = iteration,
+                                                                   method = "mcmc-c",
+                                                                   mmd = max(kmmd(tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size)), 
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+    
+    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+                                             iteration = iteration,
+                                             method = "mcmc-c",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
     ### EP
@@ -121,7 +189,7 @@ for (type.iter in 1:num.each.type) {
                    abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
-    ep.samples <- rmvnorm(80, ep.mu, ep.Sigma)
+    ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
     
     total.time <- proc.time() - start.time
     
@@ -129,7 +197,7 @@ for (type.iter in 1:num.each.type) {
                                                                    iteration = iteration,
                                                                    method = "ep",
                                                                    mmd = max(kmmd(ep.samples, 
-                                                                                  tail(mcmc.samples, 80))@mmdstats[2], 0)))
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
@@ -143,7 +211,7 @@ for (type.iter in 1:num.each.type) {
     laplace.res <- laplace_c(X.1, X.2, y, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
     laplace.mu <- laplace.res$mu
     laplace.Sigma <- laplace.res$Sigma
-    laplace.samples <- rmvnorm(80, laplace.mu, laplace.Sigma)
+    laplace.samples <- rmvnorm(eval.size, laplace.mu, laplace.Sigma)
     
     total.time <- proc.time() - start.time
     
@@ -151,7 +219,7 @@ for (type.iter in 1:num.each.type) {
                                                                    iteration = iteration,
                                                                    method = "laplace",
                                                                    mmd = max(kmmd(laplace.samples, 
-                                                                                  tail(mcmc.samples, 80))@mmdstats[2], 0)))
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
     
     sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                              iteration = iteration,
@@ -171,7 +239,7 @@ for (type.iter in 1:num.each.type) {
       y.test <- y[ind == fold]
       n.test <- nrow(X.1.test)
       
-      #### MCMC-short
+      #### MCMC-A
       
       stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
                        data = list(N = n.train,
@@ -183,18 +251,68 @@ for (type.iter in 1:num.each.type) {
                                    mu_theta = mu.theta,
                                    Sigma_theta = Sigma.theta),
                        chains = mcmc.chains,
-                       iter = mcmc.short.iter,
-                       warmup = mcmc.short.warmup,
+                       iter = mcmc.a.iter,
+                       warmup = mcmc.a.warmup,
                        refresh = 0,
                        init = rep(0, p.1 + p.2))
       
-      mcmc.short.samples <- rstan::extract(stan.res)$theta
+      mcmc.a.samples <- rstan::extract(stan.res)$theta
       
       sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
                                                iteration = iteration,
-                                               method = "mcmc-short",
+                                               method = "mcmc-a",
                                                fold = fold,
-                                               lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.short.samples, 80)))
+                                               lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size))))
+      
+      #### MCMC-B
+      
+      stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                       data = list(N = n.train,
+                                   p_1 = p.1,
+                                   p_2 = p.2,
+                                   X_1 = X.1.train,
+                                   X_2 = X.2.train,
+                                   y = y.train,
+                                   mu_theta = mu.theta,
+                                   Sigma_theta = Sigma.theta),
+                       chains = mcmc.chains,
+                       iter = mcmc.b.iter,
+                       warmup = mcmc.b.warmup,
+                       refresh = 0,
+                       init = rep(0, p.1 + p.2))
+      
+      mcmc.b.samples <- rstan::extract(stan.res)$theta
+      
+      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-b",
+                                               fold = fold,
+                                               lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size))))
+      
+      #### MCMC-C
+      
+      stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                       data = list(N = n.train,
+                                   p_1 = p.1,
+                                   p_2 = p.2,
+                                   X_1 = X.1.train,
+                                   X_2 = X.2.train,
+                                   y = y.train,
+                                   mu_theta = mu.theta,
+                                   Sigma_theta = Sigma.theta),
+                       chains = mcmc.chains,
+                       iter = mcmc.c.iter,
+                       warmup = mcmc.c.warmup,
+                       refresh = 0,
+                       init = rep(0, p.1 + p.2))
+      
+      mcmc.c.samples <- rstan::extract(stan.res)$theta
+      
+      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-c",
+                                               fold = fold,
+                                               lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size))))
       
       #### EP
       
@@ -204,7 +322,7 @@ for (type.iter in 1:num.each.type) {
                      abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
       ep.mu <- ep.res$mu
       ep.Sigma <- ep.res$Sigma
-      ep.samples <- rmvnorm(80, ep.mu, ep.Sigma)
+      ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
       
       sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
                                                iteration = iteration,
@@ -217,7 +335,7 @@ for (type.iter in 1:num.each.type) {
       laplace.res <- laplace_c(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
       laplace.mu <- laplace.res$mu
       laplace.Sigma <- laplace.res$Sigma
-      laplace.samples <- rmvnorm(80, laplace.mu, laplace.Sigma)
+      laplace.samples <- rmvnorm(eval.size, laplace.mu, laplace.Sigma)
       
       sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
                                                iteration = iteration,
@@ -292,7 +410,7 @@ for (type.iter in 1:num.each.type) {
                                                method = "mcmc",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
-  ### MCMC-short
+  ### MCMC-A
   
   start.time <- proc.time()
   
@@ -306,22 +424,86 @@ for (type.iter in 1:num.each.type) {
                                mu_theta = mu.theta,
                                Sigma_theta = Sigma.theta),
                    chains = mcmc.chains,
-                   iter = mcmc.short.iter,
-                   warmup = mcmc.short.warmup,
+                   iter = mcmc.a.iter,
+                   warmup = mcmc.a.warmup,
                    refresh = 0,
                    init = rep(0, p.1 + p.2))
   
-  mcmc.short.samples <- rstan::extract(stan.res)$theta
+  mcmc.a.samples <- rstan::extract(stan.res)$theta
   
   total.time <- proc.time() - start.time
   
   out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
-                                                                     method = "mcmc-short",
-                                                                     mmd = max(kmmd(tail(mcmc.short.samples, 80), 
-                                                                                    tail(mcmc.samples, 80))@mmdstats[2], 0)))
+                                                                     method = "mcmc-a",
+                                                                     mmd = max(kmmd(tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size)), 
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
-                                               method = "mcmc-short",
+                                               method = "mcmc-a",
+                                               time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+  
+  ### MCMC-B
+  
+  start.time <- proc.time()
+  
+  stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                   data = list(N = n,
+                               p_1 = p.1,
+                               p_2 = p.2,
+                               X_1 = X.1,
+                               X_2 = X.2,
+                               y = y,
+                               mu_theta = mu.theta,
+                               Sigma_theta = Sigma.theta),
+                   chains = mcmc.chains,
+                   iter = mcmc.b.iter,
+                   warmup = mcmc.b.warmup,
+                   refresh = 0,
+                   init = rep(0, p.1 + p.2))
+  
+  mcmc.b.samples <- rstan::extract(stan.res)$theta
+  
+  total.time <- proc.time() - start.time
+  
+  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                                     method = "mcmc-b",
+                                                                     mmd = max(kmmd(tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size)), 
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+  
+  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+                                               method = "mcmc-b",
+                                               time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+  
+  ### MCMC-C
+  
+  start.time <- proc.time()
+  
+  stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                   data = list(N = n,
+                               p_1 = p.1,
+                               p_2 = p.2,
+                               X_1 = X.1,
+                               X_2 = X.2,
+                               y = y,
+                               mu_theta = mu.theta,
+                               Sigma_theta = Sigma.theta),
+                   chains = mcmc.chains,
+                   iter = mcmc.c.iter,
+                   warmup = mcmc.c.warmup,
+                   refresh = 0,
+                   init = rep(0, p.1 + p.2))
+  
+  mcmc.c.samples <- rstan::extract(stan.res)$theta
+  
+  total.time <- proc.time() - start.time
+  
+  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                                     method = "mcmc-c",
+                                                                     mmd = max(kmmd(tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size)), 
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+  
+  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+                                               method = "mcmc-c",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
   ### EP
@@ -334,14 +516,14 @@ for (type.iter in 1:num.each.type) {
                  abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
   ep.mu <- ep.res$mu
   ep.Sigma <- ep.res$Sigma
-  ep.samples <- rmvnorm(80, ep.mu, ep.Sigma)
+  ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
   
   total.time <- proc.time() - start.time
   
   out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
                                                                      method = "ep",
                                                                      mmd = max(kmmd(ep.samples, 
-                                                                                    tail(mcmc.samples, 80))@mmdstats[2], 0)))
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "ep",
@@ -354,14 +536,14 @@ for (type.iter in 1:num.each.type) {
   laplace.res <- laplace_c(X.1, X.2, y, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
   laplace.mu <- laplace.res$mu
   laplace.Sigma <- laplace.res$Sigma
-  laplace.samples <- rmvnorm(80, laplace.mu, laplace.Sigma)
+  laplace.samples <- rmvnorm(eval.size, laplace.mu, laplace.Sigma)
   
   total.time <- proc.time() - start.time
   
   out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
                                                                      method = "laplace",
                                                                      mmd = max(kmmd(laplace.samples, 
-                                                                                    tail(mcmc.samples, 80))@mmdstats[2], 0)))
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
   
   bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                method = "laplace",
@@ -380,7 +562,7 @@ for (type.iter in 1:num.each.type) {
     y.test <- y[ind == fold]
     n.test <- nrow(X.1.test)
     
-    #### MCMC-short
+    #### MCMC-A
     
     stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
                      data = list(N = n.train,
@@ -392,17 +574,65 @@ for (type.iter in 1:num.each.type) {
                                  mu_theta = mu.theta,
                                  Sigma_theta = Sigma.theta),
                      chains = mcmc.chains,
-                     iter = mcmc.short.iter,
-                     warmup = mcmc.short.warmup,
+                     iter = mcmc.a.iter,
+                     warmup = mcmc.a.warmup,
                      refresh = 0,
                      init = rep(0, p.1 + p.2))
     
-    mcmc.short.samples <- rstan::extract(stan.res)$theta
+    mcmc.a.samples <- rstan::extract(stan.res)$theta
     
     bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
-                                                 method = "mcmc-short",
+                                                 method = "mcmc-a",
                                                  fold = fold,
-                                                 lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.short.samples, 80)))
+                                                 lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size))))
+    
+    #### MCMC-B
+    
+    stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                     data = list(N = n.train,
+                                 p_1 = p.1,
+                                 p_2 = p.2,
+                                 X_1 = X.1.train,
+                                 X_2 = X.2.train,
+                                 y = y.train,
+                                 mu_theta = mu.theta,
+                                 Sigma_theta = Sigma.theta),
+                     chains = mcmc.chains,
+                     iter = mcmc.b.iter,
+                     warmup = mcmc.b.warmup,
+                     refresh = 0,
+                     init = rep(0, p.1 + p.2))
+    
+    mcmc.b.samples <- rstan::extract(stan.res)$theta
+    
+    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-b",
+                                                 fold = fold,
+                                                 lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size))))
+    
+    #### MCMC-C
+    
+    stan.res <- stan(file = "Heteroscedastic/Heteroscedastic-model.stan",
+                     data = list(N = n.train,
+                                 p_1 = p.1,
+                                 p_2 = p.2,
+                                 X_1 = X.1.train,
+                                 X_2 = X.2.train,
+                                 y = y.train,
+                                 mu_theta = mu.theta,
+                                 Sigma_theta = Sigma.theta),
+                     chains = mcmc.chains,
+                     iter = mcmc.c.iter,
+                     warmup = mcmc.c.warmup,
+                     refresh = 0,
+                     init = rep(0, p.1 + p.2))
+    
+    mcmc.c.samples <- rstan::extract(stan.res)$theta
+    
+    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-c",
+                                                 fold = fold,
+                                                 lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size))))
     
     #### EP
     
@@ -412,7 +642,7 @@ for (type.iter in 1:num.each.type) {
                    abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
-    ep.samples <- rmvnorm(80, ep.mu, ep.Sigma)
+    ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
     
     bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
                                                  method = "ep",
@@ -424,7 +654,7 @@ for (type.iter in 1:num.each.type) {
     laplace.res <- laplace_c(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
     laplace.mu <- laplace.res$mu
     laplace.Sigma <- laplace.res$Sigma
-    laplace.samples <- rmvnorm(80, laplace.mu, laplace.Sigma)
+    laplace.samples <- rmvnorm(eval.size, laplace.mu, laplace.Sigma)
     
     bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
                                                  method = "laplace",
