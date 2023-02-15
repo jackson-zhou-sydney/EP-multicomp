@@ -8,6 +8,7 @@ using namespace arma;
 using namespace std;
 
 double trap_unif(double delta_x, rowvec y) {
+  // Trapezoidal integration with uniform intervals
   y(0) = 0.5*y(0);
   y.back() = 0.5*y.back();
   return delta_x*sum(y);
