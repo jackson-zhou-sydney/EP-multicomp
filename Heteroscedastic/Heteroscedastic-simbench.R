@@ -185,7 +185,7 @@ for (type.iter in 1:num.each.type) {
     
     ep.res <- ep_c(X.1, X.2, y, Sigma.theta, mu.theta,
                    eta = 0.5, alpha = 0.75, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p.1 + p.2, p.1 + p.2),
-                   min_passes = 6, max_passes = 200, tol = Inf, stop = Inf , 
+                   min_passes = 6, max_passes = 200, tol = Inf, stop = Inf, 
                    abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
@@ -229,13 +229,13 @@ for (type.iter in 1:num.each.type) {
     ### Evaluating predictive accuracy
     
     for (fold in 1:n.folds) {
-      X.1.train <- X.1[ind != fold, ]
-      X.2.train <- X.2[ind != fold, ]
+      X.1.train <- X.1[ind != fold, , drop = F]
+      X.2.train <- X.2[ind != fold, , drop = F]
       y.train <- y[ind != fold]
       n.train <- nrow(X.1.train)
       
-      X.1.test <- X.1[ind == fold, ]
-      X.2.test <- X.2[ind == fold, ]
+      X.1.test <- X.1[ind == fold, , drop = F]
+      X.2.test <- X.2[ind == fold, , drop = F]
       y.test <- y[ind == fold]
       n.test <- nrow(X.1.test)
       
@@ -318,7 +318,7 @@ for (type.iter in 1:num.each.type) {
       
       ep.res <- ep_c(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta,
                      eta = 0.5, alpha = 0.75, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p.1 + p.2, p.1 + p.2),
-                     min_passes = 6, max_passes = 200, tol = Inf, stop = Inf , 
+                     min_passes = 6, max_passes = 200, tol = Inf, stop = Inf, 
                      abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
       ep.mu <- ep.res$mu
       ep.Sigma <- ep.res$Sigma
@@ -512,7 +512,7 @@ for (type.iter in 1:num.each.type) {
   
   ep.res <- ep_c(X.1, X.2, y, Sigma.theta, mu.theta,
                  eta = 0.5, alpha = 0.75, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p.1 + p.2, p.1 + p.2),
-                 min_passes = 6, max_passes = 200, tol = Inf, stop = Inf , 
+                 min_passes = 6, max_passes = 200, tol = Inf, stop = Inf, 
                  abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
   ep.mu <- ep.res$mu
   ep.Sigma <- ep.res$Sigma
@@ -552,13 +552,13 @@ for (type.iter in 1:num.each.type) {
   ### Evaluating predictive accuracy
   
   for (fold in 1:n.folds) {
-    X.1.train <- X.1[ind != fold, ]
-    X.2.train <- X.2[ind != fold, ]
+    X.1.train <- X.1[ind != fold, , drop = F]
+    X.2.train <- X.2[ind != fold, , drop = F]
     y.train <- y[ind != fold]
     n.train <- nrow(X.1.train)
     
-    X.1.test <- X.1[ind == fold, ]
-    X.2.test <- X.2[ind == fold, ]
+    X.1.test <- X.1[ind == fold, , drop = F]
+    X.2.test <- X.2[ind == fold, , drop = F]
     y.test <- y[ind == fold]
     n.test <- nrow(X.1.test)
     
@@ -638,7 +638,7 @@ for (type.iter in 1:num.each.type) {
     
     ep.res <- ep_c(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta,
                    eta = 0.5, alpha = 0.75, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p.1 + p.2, p.1 + p.2),
-                   min_passes = 6, max_passes = 200, tol = Inf, stop = Inf , 
+                   min_passes = 6, max_passes = 200, tol = Inf, stop = Inf, 
                    abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma

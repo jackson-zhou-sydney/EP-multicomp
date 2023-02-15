@@ -17,7 +17,7 @@ sim.plot.1 <- sim.res.df.1 %>%
                               "mcmc-c" = "MCMC-C",
                               "ep" = "EP", 
                               "laplace" = "Laplace")) +
-  facet_wrap(~sim,
+  facet_wrap(~sim, scales = "free_y",
              labeller = labeller(sim = as_labeller(c("1" = "n = 200, p.1 = 40, p.2 = 10",
                                                      "2" = "n = 200, p.1 = 20, p.2 = 20",
                                                      "3" = "n = 200, p.1 = 10, p.2 = 40")))) +
@@ -30,6 +30,7 @@ plot_crop("Heteroscedastic/Heteroscedastic-plots/Heteroscedastic-sim-plot-1.png"
 
 sim.plot.2 <- sim.res.df.2 %>% 
   mutate(method = factor(method, levels = c("mcmc-a", "mcmc-b", "mcmc-c", "ep", "laplace"))) %>% 
+  filter(lppd != -Inf) %>% 
   group_by(sim, iteration, method) %>% 
   summarise(mean_lppd = mean(lppd)) %>% 
   ggplot() +
@@ -40,7 +41,7 @@ sim.plot.2 <- sim.res.df.2 %>%
                               "mcmc-c" = "MCMC-C",
                               "ep" = "EP", 
                               "laplace" = "Laplace")) +
-  facet_wrap(~sim,
+  facet_wrap(~sim, scales = "free_y",
              labeller = labeller(sim = as_labeller(c("1" = "n = 200, p.1 = 40, p.2 = 10",
                                                      "2" = "n = 200, p.1 = 20, p.2 = 20",
                                                      "3" = "n = 200, p.1 = 10, p.2 = 40")))) +
@@ -67,6 +68,7 @@ bench.table.1 <- bench.res.df.1 %>%
 
 bench.table.2 <- bench.res.df.2 %>% 
   mutate(method = factor(method, levels = c("mcmc-a", "mcmc-b", "mcmc-c", "ep", "laplace"))) %>% 
+  filter(lppd != -Inf) %>% 
   group_by(bench, method) %>% 
   summarise(mean_lppd = round(mean(lppd), 2)) %>% 
   pivot_wider(names_from = "bench", values_from = "mean_lppd")

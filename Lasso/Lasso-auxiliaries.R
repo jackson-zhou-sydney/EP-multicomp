@@ -1,6 +1,9 @@
 
 # Auxiliary functions and variables for lasso linear regression
 
+sourceCpp("Lasso/EP-approx.cpp")
+sourceCpp("Lasso/MFVB-approx.cpp")
+
 mu.kappa <- 0
 sigma.2.kappa <- 10000
 lambda <- 0.5
@@ -13,6 +16,38 @@ sim.settings <- list(c(n = 200, p = 40),
 bench.settings <- list(c(n = 442, p = 11),
                        c(n = 97, p = 9),
                        c(n = 120, p = 201))
+
+point.likelihood <- function(theta, x, y) {
+  # Likelihood evaluated at a point
+  p <- length(x)
+  
+  beta <- theta[1:p]
+  kappa <- theta[p + 1]
+  
+  as.numeric(exp(-kappa - (y - t(x)%*%beta)^2/(2*exp(2*kappa)))/sqrt(2*pi))
+}
+
+lppd <- function(X, y, S) {
+  # Compute the log pointwise predictive density
+  # S is a matrix of posterior samples
+  total <- 0
+  n <- nrow(X)
+  n.s <- nrow(S)
+  
+  for (i in 1:n) {
+    subtotal <- 0
+    x <- X[i, ]
+    y.point <- y[i]
+    
+    for (s in 1:n.s) {
+      subtotal <- subtotal + point.likelihood(S[s, ], x, y.point)
+    }
+    
+    total <- total + log(subtotal/n.s)
+  }
+  
+  return(total)
+}
 
 expec.lnig <- function(A, B, C, D, fun, radius = 100) {
   # Expectation of product of reparameterised log-normal and inverse gamma densities
@@ -104,7 +139,7 @@ I.h.r.1 <- function(y, mu, Sigma, eta, mult, lb.min, ub.max, length) {
   mu.1 <- mu[1]
   mu.2 <- mu[2]
   
-  Q <- solve(Sigma)
+  Q <- sym(solve(Sigma))
   Q.11 <- Q[1, 1]
   Q.12 <- Q[1, 2]
   Q.22 <- Q[2, 2]
@@ -149,7 +184,7 @@ I.h.r.2 <- function(lambda, mu, Sigma, eta, mult, lb.min, ub.max, length) {
   mu.1 <- mu[1]
   mu.2 <- mu[2]
   
-  Q <- solve(Sigma)
+  Q <- sym(solve(Sigma))
   Q.11 <- Q[1, 1]
   Q.12 <- Q[1, 2]
   Q.22 <- Q[2, 2]

@@ -27,7 +27,7 @@ log.joint.likelihood <- function(theta, X.1, X.2, y, mu.theta, Sigma.theta) {
 }
 
 point.likelihood <- function(theta, x.1, x.2, y) {
-  # Likelihood evaluated at point
+  # Likelihood evaluated at a point
   p.1 <- length(x.1)
   p.2 <- length(x.2)
   
