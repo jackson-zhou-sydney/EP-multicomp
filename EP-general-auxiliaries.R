@@ -20,25 +20,38 @@ library(RcppArmadillo) # Efficient linear algebra for Rcpp
 library(RcppEigen)     # Alternate linear algebra for Rcpp
 library(RcppNumerical) # Optimisation in Rcpp
 
+# General settings
 num.each.type <- 3
 num.sim <- 50
+
+# MCMC settings
 mcmc.chains <- 1
-mcmc.iter <- 50000
-mcmc.warmup <- 5000
-mcmc.short.iter <- 2000
-mcmc.short.warmup <- 200
+mcmc.iter <- 100000
+mcmc.warmup <- 10000
+
+# Short MCMC settings
 mcmc.a.iter <- 50
 mcmc.a.warmup <- 5
 mcmc.b.iter <- 200
 mcmc.b.warmup <- 20
 mcmc.c.iter <- 1000
 mcmc.c.warmup <- 100
-eval.size <- 400
-match.size <- 1000
-match.reps <- 10
+
+# Marginal L1 evaluation
 sd.multiple <- 5
 total.grid.points <- 1000
+
+# MMD evaluation
+mmd.size <- 400
+
+# LPPD evaluation
+lppd.size <- 400
 n.folds <- 10
+
+# R hat evaluation
+mcmc.check.iter <- c(50, 100, 200, 500, 1000, 2000)
+mcmc.check.warmup <- c(5, 10, 20, 50, 100, 200)
+r.hat.reps <- 10
 
 err <- function(e) {
   # Return NA on error
@@ -48,28 +61,6 @@ err <- function(e) {
 sym <- function(A) {
   # Force matrix to be symmetric
   0.5*(A + t(A))
-}
-
-nbp.match.pairs <- function(X, Y) {
-  # Non-bipartite match pairs
-  X.size <- nrow(X)
-  Y.size <- nrow(Y)
-  df <- data.frame(rbind(X, Y))
-  df.rank <- apply(df, 2, function(s) rank(s, ties.method = "first"))
-  df.rank <- data.frame(cbind(1:nrow(df.rank), df.rank))
-  nbp.res <- nonbimatch(distancematrix(gendistance(df.rank, 1)))
-  return(sum((c(rep(1, X.size), rep(0, Y.size))[nbp.res$matches[1:X.size, 4]]) != 1))
-}
-
-block.mean <- function(m, l, na.rm) {
-  # Block-wise mean of matrix
-  ret.mat <- matrix(nrow = length(l), ncol = length(l))
-  for (i in 1:length(l)) {
-    for (j in 1:length(l)) {
-      ret.mat[i, j] <- mean(m[l[[i]], l[[j]]], na.rm = na.rm)
-    }
-  }
-  return(ret.mat)
 }
 
 GI.0 <- function(x) {
