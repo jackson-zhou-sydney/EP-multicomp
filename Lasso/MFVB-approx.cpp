@@ -91,7 +91,7 @@ public:
   }
 };
 
-double E_lnig_x(double A, double B, double C, double D, String fun) {
+double E_lnig(double A, double B, double C, double D, String fun) {
   // Expectation of log-normal and inverse gamma product
   Neg_Expnt neg_expnt(A, B, C, D);
   
@@ -155,9 +155,9 @@ List mfvb_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
     Sigma_beta = Q/E_ie_2_kappa;
     
     // Update q(kappa)
-    E_ie_2_kappa = E_lnig_x(n + p, mu_kappa, sigma_2_kappa,
-                            sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
-                            "1/exp(2*x)");
+    E_ie_2_kappa = E_lnig(n + p, mu_kappa, sigma_2_kappa,
+                          sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
+                          "1/exp(2*x)");
     
     // Update q(a)
     E_a = sqrt(1/(E_ie_2_kappa*(pow(mu_beta, 2.0) + diagvec(Sigma_beta))))/lambda;
@@ -170,12 +170,12 @@ List mfvb_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   }
   
   // Return parameters
-  double mu_kappa_q = E_lnig_x(n + p, mu_kappa, sigma_2_kappa,
-                               sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
-                               "x");
-  double sigma_2_kappa_q = E_lnig_x(n + p, mu_kappa, sigma_2_kappa,
-                                    sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
-                                    "x^2") - pow(mu_kappa_q, 2.0);
+  double mu_kappa_q = E_lnig(n + p, mu_kappa, sigma_2_kappa,
+                             sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
+                             "x");
+  double sigma_2_kappa_q = E_lnig(n + p, mu_kappa, sigma_2_kappa,
+                                  sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
+                                  "x^2") - pow(mu_kappa_q, 2.0);
   
   vec mu_theta = zeros(p + 1);
   mu_theta.subvec(0, p - 1) = mu_beta;
