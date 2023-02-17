@@ -26,7 +26,7 @@ public:
   double f_grad(Constvec& x, Refvec grad) {
     double x_dbl = x(0);
     double f = A*x_dbl + pow(x_dbl - B, 2.0)/(2.0*C) + D/(2.0*exp(2.0*x_dbl));
-    grad(0) = A + (x_dbl - B)/C - D*exp(-2.0*x_dbl);
+    grad(0) = A + (x_dbl - B)/C - D/exp(2.0*x_dbl);
     return f;
   }
 };
