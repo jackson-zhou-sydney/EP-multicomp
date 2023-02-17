@@ -17,6 +17,43 @@ bench.settings <- list(c(n = 298, p = 2),
                        c(n = 235, p = 2),
                        c(n = 21, p = 4))
 
+rho <- function(x, tau) {
+  # Quantile loss function
+  0.5*(abs(x) + (2*tau - 1)*x)
+}
+
+point.likelihood <- function(theta, x, y, tau) {
+  # Likelihood evaluated at a point
+  p <- length(x)
+  
+  beta <- theta[1:p]
+  kappa <- theta[p + 1]
+  
+  as.numeric(tau*(1 - tau)*exp(-kappa - rho(y - t(x)%*%beta, tau)/exp(kappa)))
+}
+
+lppd <- function(X, y, tau, S) {
+  # Compute the log pointwise predictive density
+  # S is a matrix of posterior samples
+  total <- 0
+  n <- nrow(X)
+  n.s <- nrow(S)
+  
+  for (i in 1:n) {
+    subtotal <- 0
+    x <- X[i, ]
+    y.point <- y[i]
+    
+    for (s in 1:n.s) {
+      subtotal <- subtotal + point.likelihood(S[s, ], x, y.point, tau)
+    }
+    
+    total <- total + log(subtotal/n.s)
+  }
+  
+  return(total)
+}
+
 expec.lnig <- function(A, B, C, D, E, fun, radius = 100, lb) {
   # Expectation of product of reparameterised log-normal and inverse gamma densities
   p <- function(x) -A/exp(2*x) + B/exp(x) - C*x - (x - D)^2/(2*E)
