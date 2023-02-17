@@ -138,8 +138,8 @@ List mfvb_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   // Initialisations
   vec mu_beta = zeros(p);
   mat Sigma_beta = eye(p, p);
-  double expec_ie_2_kappa = 1;
-  vec expec_a = ones(p);
+  double E_ie_2_kappa = 1;
+  vec E_a = ones(p);
   mat Q;
   mat Q_inv;
   
@@ -149,18 +149,18 @@ List mfvb_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
     vec mu_beta_old = mu_beta;
     
     // Update q(beta)
-    Q_inv = XTX + pow(lambda, 2.0)*diagmat(expec_a);
+    Q_inv = XTX + pow(lambda, 2.0)*diagmat(E_a);
     Q = inv(Q_inv);
     mu_beta = Q*XTy;
-    Sigma_beta = Q/expec_ie_2_kappa;
+    Sigma_beta = Q/E_ie_2_kappa;
     
     // Update q(kappa)
-    expec_ie_2_kappa = E_lnig_x(n + p, mu_kappa, sigma_2_kappa,
-                                sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(expec_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
-                                "1/exp(2*x)");
+    E_ie_2_kappa = E_lnig_x(n + p, mu_kappa, sigma_2_kappa,
+                            sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
+                            "1/exp(2*x)");
     
     // Update q(a)
-    expec_a = sqrt(1/(expec_ie_2_kappa*(pow(mu_beta, 2.0) + diagvec(Sigma_beta))))/lambda;
+    E_a = sqrt(1/(E_ie_2_kappa*(pow(mu_beta, 2.0) + diagvec(Sigma_beta))))/lambda;
     
     // Check for convergence
     double delta = norm(mu_beta - mu_beta_old);
@@ -171,10 +171,10 @@ List mfvb_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   
   // Return parameters
   double mu_kappa_q = E_lnig_x(n + p, mu_kappa, sigma_2_kappa,
-                               sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(expec_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
+                               sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
                                "x");
   double sigma_2_kappa_q = E_lnig_x(n + p, mu_kappa, sigma_2_kappa,
-                                    sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(expec_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
+                                    sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
                                     "x^2") - pow(mu_kappa_q, 2.0);
   
   vec mu_theta = zeros(p + 1);
