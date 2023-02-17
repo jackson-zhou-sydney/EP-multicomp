@@ -1,6 +1,9 @@
 
 # EP code for Bayesian quantile regression
 
+sourceCpp("Quantile/EP-approx.cpp")
+sourceCpp("Quantile/MFVB-approx.cpp")
+
 sigma.2.theta <- 10000
 tau <- 0.75
 sigma <- 0.2
