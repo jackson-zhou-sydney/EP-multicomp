@@ -131,20 +131,20 @@ double E_lnig(double A, double B, double C, double D, double E, String fun) {
   
   if (fun == "x") {
     MFVB_r_x r(A, B, C, D, E, -fopt);
-    return integrate(r, -5.0, INFINITY, err_est_r, err_code_r)/
-           integrate(q, -5.0, INFINITY, err_est_q, err_code_q);
+    return integrate(r, -5.0, INFINITY, err_est_r, err_code_r, 100, 1e-8, 1e-6, Integrator<double>::GaussKronrod81)/
+           integrate(q, -5.0, INFINITY, err_est_q, err_code_q, 100, 1e-8, 1e-6, Integrator<double>::GaussKronrod81);
   } else if (fun == "x^2") {
     MFVB_r_x2 r(A, B, C, D, E, -fopt);
-    return integrate(r, -5.0, INFINITY, err_est_r, err_code_r)/
-           integrate(q, -5.0, INFINITY, err_est_q, err_code_q);
+    return integrate(r, -5.0, INFINITY, err_est_r, err_code_r, 100, 1e-8, 1e-6, Integrator<double>::GaussKronrod81)/
+           integrate(q, -5.0, INFINITY, err_est_q, err_code_q, 100, 1e-8, 1e-6, Integrator<double>::GaussKronrod81);
   } else if (fun == "1/exp(x)") {
     MFVB_r_exp_x r(A, B, C, D, E, -fopt);
-    return integrate(r, -5.0, INFINITY, err_est_r, err_code_r)/
-           integrate(q, -5.0, INFINITY, err_est_q, err_code_q);
+    return integrate(r, -5.0, INFINITY, err_est_r, err_code_r, 100, 1e-8, 1e-6, Integrator<double>::GaussKronrod81)/
+           integrate(q, -5.0, INFINITY, err_est_q, err_code_q, 100, 1e-8, 1e-6, Integrator<double>::GaussKronrod81);
   } else if (fun == "1/exp(2*x)") {
     MFVB_r_exp_2x r(A, B, C, D, E, -fopt);
-    return integrate(r, -5.0, INFINITY, err_est_r, err_code_r)/
-           integrate(q, -5.0, INFINITY, err_est_q, err_code_q);
+    return integrate(r, -5.0, INFINITY, err_est_r, err_code_r, 100, 1e-8, 1e-6, Integrator<double>::GaussKronrod81)/
+           integrate(q, -5.0, INFINITY, err_est_q, err_code_q, 100, 1e-8, 1e-6, Integrator<double>::GaussKronrod81);
   } else {
     stop("fun must be one of: x, x^2, 1/exp(x), or 1/exp(2*x)");
   }
