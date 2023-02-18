@@ -11,22 +11,30 @@ set.seed(1)
 sim.res.df.1 <- data.frame(sim = integer(),
                            iteration = integer(),
                            method = character(),
-                           mmd = double())
+                           j = integer(),
+                           l1 = double())
 
 sim.res.df.2 <- data.frame(sim = integer(),
                            iteration = integer(),
                            method = character(),
-                           fold = double(),
-                           lppd = double())
+                           mmd = double(),
+                           cov_norm = double())
 
 sim.res.df.3 <- data.frame(sim = integer(),
                            iteration = integer(),
                            method = character(),
-                           time = double())
+                           fold = integer(),
+                           lppd = double())
 
 sim.res.df.4 <- data.frame(sim = integer(),
                            iteration = integer(),
-                           j = double(),
+                           method = character(),
+                           time = double())
+
+sim.res.df.5 <- data.frame(sim = integer(),
+                           iteration = integer(),
+                           method = character(),
+                           j = integer(),
                            r_hat = double())
 
 for (type.iter in 1:num.each.type) {
@@ -61,18 +69,32 @@ for (type.iter in 1:num.each.type) {
                      init = rep(0, p.1 + p.2))
     
     mcmc.samples <- rstan::extract(stan.res)$theta
+    mcmc.mu <- colMeans(mcmc.samples)
+    mcmc.Sigma <- var(mcmc.samples)
     mcmc.summary <- summary(stan.res)$summary
     
     total.time <- proc.time() - start.time
     
+    grid.points <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
+    mcmc.values <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
+    
     for (j in 1:(p.1 + p.2)) {
-      sim.res.df.4 <- sim.res.df.4 %>% add_row(sim = type.iter,
+      density.res <- density(mcmc.samples[, j], bw = "SJ-ste",
+                             from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                             to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                             n = total.grid.points)
+      
+      grid.points[j, ] <- density.res$x
+      mcmc.values[j, ] <- density.res$y
+      
+      sim.res.df.5 <- sim.res.df.5 %>% add_row(sim = type.iter,
                                                iteration = iteration,
+                                               method = "mcmc",
                                                j = j,
                                                r_hat = mcmc.summary[paste0("theta[", j, "]"), "Rhat"])
     }
     
-    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+    sim.res.df.4 <- sim.res.df.4 %>% add_row(sim = type.iter,
                                              iteration = iteration,
                                              method = "mcmc",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
@@ -97,16 +119,39 @@ for (type.iter in 1:num.each.type) {
                      init = rep(0, p.1 + p.2))
     
     mcmc.a.samples <- rstan::extract(stan.res)$theta
+    mcmc.a.mu <- colMeans(mcmc.a.samples)
+    mcmc.a.Sigma <- var(mcmc.a.samples)
+    mcmc.a.summary <- summary(stan.res)$summary
     
     total.time <- proc.time() - start.time
     
-    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+    for (j in 1:(p.1 + p.2)) {
+      density.res <- density(mcmc.a.samples[, j], bw = "SJ-ste",
+                             from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                             to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                             n = total.grid.points)
+      
+      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-a",
+                                               j = j,
+                                               l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - density.res$y))/2)
+      
+      sim.res.df.5 <- sim.res.df.5 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-a",
+                                               j = j,
+                                               r_hat = mcmc.a.summary[paste0("theta[", j, "]"), "Rhat"])
+    }
+    
+    out <- capture.output(sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
                                                                    method = "mcmc-a",
                                                                    mmd = max(kmmd(tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size)), 
-                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                   cov_norm = norm(mcmc.Sigma - mcmc.a.Sigma, "F")))
     
-    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+    sim.res.df.4 <- sim.res.df.4 %>% add_row(sim = type.iter,
                                              iteration = iteration,
                                              method = "mcmc-a",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
@@ -131,16 +176,39 @@ for (type.iter in 1:num.each.type) {
                      init = rep(0, p.1 + p.2))
     
     mcmc.b.samples <- rstan::extract(stan.res)$theta
+    mcmc.b.mu <- colMeans(mcmc.b.samples)
+    mcmc.b.Sigma <- var(mcmc.b.samples)
+    mcmc.b.summary <- summary(stan.res)$summary
     
     total.time <- proc.time() - start.time
     
-    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+    for (j in 1:(p.1 + p.2)) {
+      density.res <- density(mcmc.b.samples[, j], bw = "SJ-ste",
+                             from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                             to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                             n = total.grid.points)
+      
+      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-b",
+                                               j = j,
+                                               l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - density.res$y))/2)
+      
+      sim.res.df.5 <- sim.res.df.5 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-b",
+                                               j = j,
+                                               r_hat = mcmc.b.summary[paste0("theta[", j, "]"), "Rhat"])
+    }
+    
+    out <- capture.output(sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
                                                                    method = "mcmc-b",
                                                                    mmd = max(kmmd(tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size)), 
-                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                   cov_norm = norm(mcmc.Sigma - mcmc.b.Sigma, "F")))
     
-    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+    sim.res.df.4 <- sim.res.df.4 %>% add_row(sim = type.iter,
                                              iteration = iteration,
                                              method = "mcmc-b",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
@@ -165,16 +233,39 @@ for (type.iter in 1:num.each.type) {
                      init = rep(0, p.1 + p.2))
     
     mcmc.c.samples <- rstan::extract(stan.res)$theta
+    mcmc.c.mu <- colMeans(mcmc.c.samples)
+    mcmc.c.Sigma <- var(mcmc.c.samples)
+    mcmc.c.summary <- summary(stan.res)$summary
     
     total.time <- proc.time() - start.time
     
-    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+    for (j in 1:(p.1 + p.2)) {
+      density.res <- density(mcmc.c.samples[, j], bw = "SJ-ste",
+                             from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                             to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                             n = total.grid.points)
+      
+      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-c",
+                                               j = j,
+                                               l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - density.res$y))/2)
+      
+      sim.res.df.5 <- sim.res.df.5 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "mcmc-c",
+                                               j = j,
+                                               r_hat = mcmc.c.summary[paste0("theta[", j, "]"), "Rhat"])
+    }
+    
+    out <- capture.output(sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
                                                                    method = "mcmc-c",
                                                                    mmd = max(kmmd(tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size)), 
-                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                   cov_norm = norm(mcmc.Sigma - mcmc.c.Sigma, "F")))
     
-    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+    sim.res.df.4 <- sim.res.df.4 %>% add_row(sim = type.iter,
                                              iteration = iteration,
                                              method = "mcmc-c",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
@@ -193,13 +284,23 @@ for (type.iter in 1:num.each.type) {
     
     total.time <- proc.time() - start.time
     
-    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+    for (j in 1:(p.1 + p.2)) {
+      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "ep",
+                                               j = j,
+                                               l1 = 1 - trapz(grid.points[j, ], 
+                                                              abs(mcmc.values[j, ] - dnorm(grid.points[j, ], ep.mu[j], sqrt(ep.Sigma[j, j]))))/2)
+    }
+    
+    out <- capture.output(sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
                                                                    method = "ep",
                                                                    mmd = max(kmmd(ep.samples, 
-                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                   cov_norm = norm(mcmc.Sigma - ep.Sigma, "F")))
     
-    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+    sim.res.df.4 <- sim.res.df.4 %>% add_row(sim = type.iter,
                                              iteration = iteration,
                                              method = "ep",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
@@ -215,13 +316,23 @@ for (type.iter in 1:num.each.type) {
     
     total.time <- proc.time() - start.time
     
-    out <- capture.output(sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+    for (j in 1:(p.1 + p.2)) {
+      sim.res.df.1 <- sim.res.df.1 %>% add_row(sim = type.iter,
+                                               iteration = iteration,
+                                               method = "laplace",
+                                               j = j,
+                                               l1 = 1 - trapz(grid.points[j, ], 
+                                                              abs(mcmc.values[j, ] - dnorm(grid.points[j, ], laplace.mu[j], sqrt(laplace.Sigma[j, j]))))/2)
+    }
+    
+    out <- capture.output(sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
                                                                    iteration = iteration,
                                                                    method = "laplace",
                                                                    mmd = max(kmmd(laplace.samples, 
-                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                  tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                   cov_norm = norm(mcmc.Sigma - laplace.Sigma, "F")))
     
-    sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
+    sim.res.df.4 <- sim.res.df.4 %>% add_row(sim = type.iter,
                                              iteration = iteration,
                                              method = "laplace",
                                              time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
@@ -258,7 +369,7 @@ for (type.iter in 1:num.each.type) {
       
       mcmc.a.samples <- rstan::extract(stan.res)$theta
       
-      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+      sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                                iteration = iteration,
                                                method = "mcmc-a",
                                                fold = fold,
@@ -283,7 +394,7 @@ for (type.iter in 1:num.each.type) {
       
       mcmc.b.samples <- rstan::extract(stan.res)$theta
       
-      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+      sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                                iteration = iteration,
                                                method = "mcmc-b",
                                                fold = fold,
@@ -308,7 +419,7 @@ for (type.iter in 1:num.each.type) {
       
       mcmc.c.samples <- rstan::extract(stan.res)$theta
       
-      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+      sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                                iteration = iteration,
                                                method = "mcmc-c",
                                                fold = fold,
@@ -324,7 +435,7 @@ for (type.iter in 1:num.each.type) {
       ep.Sigma <- ep.res$Sigma
       ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
       
-      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+      sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                                iteration = iteration,
                                                method = "ep",
                                                fold = fold,
@@ -337,7 +448,7 @@ for (type.iter in 1:num.each.type) {
       laplace.Sigma <- laplace.res$Sigma
       laplace.samples <- rmvnorm(eval.size, laplace.mu, laplace.Sigma)
       
-      sim.res.df.2 <- sim.res.df.2 %>% add_row(sim = type.iter,
+      sim.res.df.3 <- sim.res.df.3 %>% add_row(sim = type.iter,
                                                iteration = iteration,
                                                method = "laplace",
                                                fold = fold,
@@ -350,19 +461,26 @@ for (type.iter in 1:num.each.type) {
 
 bench.res.df.1 <- data.frame(bench = integer(),
                              method = character(),
-                             mmd = double())
+                             j = integer(),
+                             l1 = double())
 
 bench.res.df.2 <- data.frame(bench = integer(),
                              method = character(),
-                             fold = double(),
-                             lppd = double())
+                             mmd = double(),
+                             cov_norm = double())
 
 bench.res.df.3 <- data.frame(bench = integer(),
                              method = character(),
-                             time = double())
+                             fold = integer(),
+                             lppd = double())
 
 bench.res.df.4 <- data.frame(bench = integer(),
-                             j = double(),
+                             method = character(),
+                             time = double())
+
+bench.res.df.5 <- data.frame(bench = integer(),
+                             method = character(),
+                             j = integer(),
                              r_hat = double())
 
 for (type.iter in 1:num.each.type) {
@@ -396,17 +514,31 @@ for (type.iter in 1:num.each.type) {
                    init = rep(0, p.1 + p.2))
   
   mcmc.samples <- rstan::extract(stan.res)$theta
+  mcmc.mu <- colMeans(mcmc.samples)
+  mcmc.Sigma <- var(mcmc.samples)
   mcmc.summary <- summary(stan.res)$summary
   
   total.time <- proc.time() - start.time
   
+  grid.points <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
+  mcmc.values <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
+  
   for (j in 1:(p.1 + p.2)) {
-    bench.res.df.4 <- bench.res.df.4 %>% add_row(bench = type.iter,
+    density.res <- density(mcmc.samples[, j], bw = "SJ-ste",
+                           from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                           to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                           n = total.grid.points)
+    
+    grid.points[j, ] <- density.res$x
+    mcmc.values[j, ] <- density.res$y
+    
+    bench.res.df.5 <- bench.res.df.5 %>% add_row(bench = type.iter,
+                                                 method = "mcmc",
                                                  j = j,
                                                  r_hat = mcmc.summary[paste0("theta[", j, "]"), "Rhat"])
   }
   
-  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+  bench.res.df.4 <- bench.res.df.4 %>% add_row(bench = type.iter,
                                                method = "mcmc",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
@@ -430,15 +562,36 @@ for (type.iter in 1:num.each.type) {
                    init = rep(0, p.1 + p.2))
   
   mcmc.a.samples <- rstan::extract(stan.res)$theta
+  mcmc.a.mu <- colMeans(mcmc.a.samples)
+  mcmc.a.Sigma <- var(mcmc.a.samples)
+  mcmc.a.summary <- summary(stan.res)$summary
   
   total.time <- proc.time() - start.time
   
-  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+  for (j in 1:(p.1 + p.2)) {
+    density.res <- density(mcmc.a.samples[, j], bw = "SJ-ste",
+                           from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                           to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                           n = total.grid.points)
+    
+    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-a",
+                                                 j = j,
+                                                 l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - density.res$y))/2)
+    
+    bench.res.df.5 <- bench.res.df.5 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-a",
+                                                 j = j,
+                                                 r_hat = mcmc.a.summary[paste0("theta[", j, "]"), "Rhat"])
+  }
+  
+  out <- capture.output(bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
                                                                      method = "mcmc-a",
                                                                      mmd = max(kmmd(tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size)), 
-                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                     cov_norm = norm(mcmc.Sigma - mcmc.a.Sigma, "F")))
   
-  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+  bench.res.df.4 <- bench.res.df.4 %>% add_row(bench = type.iter,
                                                method = "mcmc-a",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
@@ -462,15 +615,36 @@ for (type.iter in 1:num.each.type) {
                    init = rep(0, p.1 + p.2))
   
   mcmc.b.samples <- rstan::extract(stan.res)$theta
+  mcmc.b.mu <- colMeans(mcmc.b.samples)
+  mcmc.b.Sigma <- var(mcmc.b.samples)
+  mcmc.b.summary <- summary(stan.res)$summary
   
   total.time <- proc.time() - start.time
   
-  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+  for (j in 1:(p.1 + p.2)) {
+    density.res <- density(mcmc.b.samples[, j], bw = "SJ-ste",
+                           from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                           to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                           n = total.grid.points)
+    
+    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-b",
+                                                 j = j,
+                                                 l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - density.res$y))/2)
+    
+    bench.res.df.5 <- bench.res.df.5 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-b",
+                                                 j = j,
+                                                 r_hat = mcmc.b.summary[paste0("theta[", j, "]"), "Rhat"])
+  }
+  
+  out <- capture.output(bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
                                                                      method = "mcmc-b",
                                                                      mmd = max(kmmd(tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size)), 
-                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                     cov_norm = norm(mcmc.Sigma - mcmc.b.Sigma, "F")))
   
-  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+  bench.res.df.4 <- bench.res.df.4 %>% add_row(bench = type.iter,
                                                method = "mcmc-b",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
@@ -494,15 +668,36 @@ for (type.iter in 1:num.each.type) {
                    init = rep(0, p.1 + p.2))
   
   mcmc.c.samples <- rstan::extract(stan.res)$theta
+  mcmc.c.mu <- colMeans(mcmc.c.samples)
+  mcmc.c.Sigma <- var(mcmc.c.samples)
+  mcmc.c.summary <- summary(stan.res)$summary
   
   total.time <- proc.time() - start.time
   
-  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+  for (j in 1:(p.1 + p.2)) {
+    density.res <- density(mcmc.c.samples[, j], bw = "SJ-ste",
+                           from = mcmc.mu[j] - sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                           to = mcmc.mu[j] + sd.multiple*sqrt(mcmc.Sigma[j, j]),
+                           n = total.grid.points)
+    
+    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-c",
+                                                 j = j,
+                                                 l1 = 1 - trapz(grid.points[j, ], abs(mcmc.values[j, ] - density.res$y))/2)
+    
+    bench.res.df.5 <- bench.res.df.5 %>% add_row(bench = type.iter,
+                                                 method = "mcmc-c",
+                                                 j = j,
+                                                 r_hat = mcmc.c.summary[paste0("theta[", j, "]"), "Rhat"])
+  }
+  
+  out <- capture.output(bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
                                                                      method = "mcmc-c",
                                                                      mmd = max(kmmd(tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size)), 
-                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                     cov_norm = norm(mcmc.Sigma - mcmc.c.Sigma, "F")))
   
-  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+  bench.res.df.4 <- bench.res.df.4 %>% add_row(bench = type.iter,
                                                method = "mcmc-c",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
@@ -520,12 +715,21 @@ for (type.iter in 1:num.each.type) {
   
   total.time <- proc.time() - start.time
   
-  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+  for (j in 1:(p.1 + p.2)) {
+    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                 method = "ep",
+                                                 j = j,
+                                                 l1 = 1 - trapz(grid.points[j, ], 
+                                                                abs(mcmc.values[j, ] - dnorm(grid.points[j, ], ep.mu[j], sqrt(ep.Sigma[j, j]))))/2)
+  }
+  
+  out <- capture.output(bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
                                                                      method = "ep",
                                                                      mmd = max(kmmd(ep.samples, 
-                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                     cov_norm = norm(mcmc.Sigma - ep.Sigma, "F")))
   
-  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+  bench.res.df.4 <- bench.res.df.4 %>% add_row(bench = type.iter,
                                                method = "ep",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
@@ -540,12 +744,21 @@ for (type.iter in 1:num.each.type) {
   
   total.time <- proc.time() - start.time
   
-  out <- capture.output(bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+  for (j in 1:(p.1 + p.2)) {
+    bench.res.df.1 <- bench.res.df.1 %>% add_row(bench = type.iter,
+                                                 method = "laplace",
+                                                 j = j,
+                                                 l1 = 1 - trapz(grid.points[j, ], 
+                                                                abs(mcmc.values[j, ] - dnorm(grid.points[j, ], laplace.mu[j], sqrt(laplace.Sigma[j, j]))))/2)
+  }
+  
+  out <- capture.output(bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
                                                                      method = "laplace",
                                                                      mmd = max(kmmd(laplace.samples, 
-                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0)))
+                                                                                    tail(mcmc.samples, eval.size))@mmdstats[2], 0),
+                                                                     cov_norm = norm(mcmc.Sigma - laplace.Sigma, "F")))
   
-  bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
+  bench.res.df.4 <- bench.res.df.4 %>% add_row(bench = type.iter,
                                                method = "laplace",
                                                time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
   
@@ -581,7 +794,7 @@ for (type.iter in 1:num.each.type) {
     
     mcmc.a.samples <- rstan::extract(stan.res)$theta
     
-    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+    bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                  method = "mcmc-a",
                                                  fold = fold,
                                                  lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size))))
@@ -605,7 +818,7 @@ for (type.iter in 1:num.each.type) {
     
     mcmc.b.samples <- rstan::extract(stan.res)$theta
     
-    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+    bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                  method = "mcmc-b",
                                                  fold = fold,
                                                  lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size))))
@@ -629,7 +842,7 @@ for (type.iter in 1:num.each.type) {
     
     mcmc.c.samples <- rstan::extract(stan.res)$theta
     
-    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+    bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                  method = "mcmc-c",
                                                  fold = fold,
                                                  lppd = lppd(X.1.test, X.2.test, y.test, tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size))))
@@ -644,7 +857,7 @@ for (type.iter in 1:num.each.type) {
     ep.Sigma <- ep.res$Sigma
     ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
     
-    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+    bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                  method = "ep",
                                                  fold = fold,
                                                  lppd = lppd(X.1.test, X.2.test, y.test, ep.samples))
@@ -656,13 +869,13 @@ for (type.iter in 1:num.each.type) {
     laplace.Sigma <- laplace.res$Sigma
     laplace.samples <- rmvnorm(eval.size, laplace.mu, laplace.Sigma)
     
-    bench.res.df.2 <- bench.res.df.2 %>% add_row(bench = type.iter,
+    bench.res.df.3 <- bench.res.df.3 %>% add_row(bench = type.iter,
                                                  method = "laplace",
                                                  fold = fold,
                                                  lppd = lppd(X.1.test, X.2.test, y.test, laplace.samples))
   }
 }
 
-save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4,
-     bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4,
+save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4, sim.res.df.5,
+     bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4, bench.res.df.5,
      file = "Heteroscedastic/Heteroscedastic-results.RData")

@@ -30,22 +30,19 @@ mcmc.iter <- 100000
 mcmc.warmup <- 10000
 
 # Short MCMC settings
-mcmc.a.iter <- 50
-mcmc.a.warmup <- 5
-mcmc.b.iter <- 200
-mcmc.b.warmup <- 20
-mcmc.c.iter <- 1000
-mcmc.c.warmup <- 100
+mcmc.a.iter <- 200
+mcmc.a.warmup <- 20
+mcmc.b.iter <- 1000
+mcmc.b.warmup <- 100
+mcmc.c.iter <- 2000
+mcmc.c.warmup <- 200
 
 # Marginal L1 evaluation
 sd.multiple <- 5
-total.grid.points <- 1000
+total.grid.points <- 1024
 
-# MMD evaluation
-mmd.size <- 400
-
-# LPPD evaluation
-lppd.size <- 400
+# MMD and LPPD evaluation
+eval.size <- 500
 n.folds <- 10
 
 # R hat evaluation
