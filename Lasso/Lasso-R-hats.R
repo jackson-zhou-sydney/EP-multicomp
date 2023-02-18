@@ -54,7 +54,7 @@ sim.r.hat.table <- sim.r.hat.df %>%
   group_by(sim, mcmc_iter, repetition) %>% 
   summarise(max_r_hat = max(r_hat)) %>% 
   group_by(sim, mcmc_iter) %>% 
-  summarise(mean_max_r_hat = mean(max_r_hat))
+  summarise(mean_max_r_hat = round(mean(max_r_hat), 2))
 
 ## Benchmarks
 
@@ -104,7 +104,7 @@ bench.r.hat.table <- bench.r.hat.df %>%
   group_by(bench, mcmc_iter, repetition) %>% 
   summarise(max_r_hat = max(r_hat)) %>% 
   group_by(bench, mcmc_iter) %>% 
-  summarise(mean_max_r_hat = mean(max_r_hat))
+  summarise(mean_max_r_hat = round(mean(max_r_hat), 2))
 
 save(sim.r.hat.df, bench.r.hat.df,
      file = "Lasso/Lasso-R-hats-results.RData")
