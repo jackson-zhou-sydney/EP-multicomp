@@ -2,7 +2,7 @@
 # EP with multiple components
 ### Jackson Zhou, John Ormerod and Clara Grazian
 
-This repository contains expectation propagation code (in R) for Bayesian models with two hybrid components.
+This repository contains expectation propagation code (in R and C++) for Bayesian models with two hybrid components.
 These include:
 
 - Heteroscedastic linear regression
