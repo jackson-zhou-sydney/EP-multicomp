@@ -90,7 +90,7 @@ sim.table.1 <- sim.res.df.2 %>%
 sim.table.2 <- sim.res.df.4 %>% 
   mutate(method = factor(method, levels = c("mcmc", "mcmc-a", "mcmc-b", "mcmc-c", "ep", "laplace"))) %>% 
   group_by(sim, method) %>% 
-  summarise(mean_time = mean(time)) %>% 
+  summarise(mean_time = round(mean(time), 2)) %>% 
   pivot_wider(names_from = "sim", values_from = "mean_time")
 
 sim.table.3 <- sim.res.df.5 %>% 
