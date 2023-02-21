@@ -48,7 +48,7 @@ sim.plot.2 <- sim.res.df.2 %>%
              labeller = labeller(sim = as_labeller(c("1" = "n = 200, p = 40",
                                                      "2" = "n = 40, p = 40",
                                                      "3" = "n = 10, p = 40")))) +
-  labs(x = "Method", y = "-log(MMD + 1e-05)") +
+  labs(x = "Method", y = "M*") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
@@ -72,7 +72,7 @@ sim.plot.3 <- sim.res.df.3 %>%
              labeller = labeller(sim = as_labeller(c("1" = "n = 200, p = 40",
                                                      "2" = "n = 40, p = 40",
                                                      "3" = "n = 10, p = 40")))) +
-  labs(x = "Method", y = "Mean LPPD") +
+  labs(x = "Method", y = "Mean lppd") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
