@@ -852,6 +852,6 @@ for (type.iter in 1:num.each.type) {
   }
 }
 
-save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4,
-     bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4,
+save(sim.res.df.1, sim.res.df.2, sim.res.df.3, sim.res.df.4, sim.res.df.5,
+     bench.res.df.1, bench.res.df.2, bench.res.df.3, bench.res.df.4, bench.res.df.5,
      file = "Lasso/Lasso-results.RData")
