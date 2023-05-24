@@ -15,16 +15,8 @@ parameters {
   vector[p + 1] theta;
 }
 
-transformed parameters {
-  vector[p] beta;
-  real kappa;
-  
-  beta = theta[1:p];
-  kappa = theta[p + 1];
-}
-
 model {
-  y ~ normal(X*beta, rep_vector(exp(kappa), N));
-  beta ~ double_exponential(rep_vector(0, p), rep_vector(exp(kappa)/lambda, p));
-  kappa ~ normal(mu_kappa, sqrt(sigma_2_kappa));
+  y ~ normal_id_glm(X, 0, theta[1:p], exp(theta[p + 1]));
+  theta[1:p] ~ double_exponential(0, exp(theta[p + 1])/lambda);
+  theta[p + 1] ~ normal(mu_kappa, sqrt(sigma_2_kappa));
 }
