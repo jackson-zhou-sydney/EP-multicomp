@@ -49,3 +49,20 @@ load("Benchmark-data/stackloss.RData")
 X <- cbind(1, scale(stackloss[, 1:3]))
 y <- as.vector(scale(stackloss[, 4]))
 save(X, y, file = "Quantile/Quantile-data/Bench-3.RData")
+
+## Benchmark 4
+
+energy <- read.csv("Benchmark-data/energydata_complete.csv")
+energy_cleaned <- as.data.frame(scale(energy[, -c(1, 3, 28, 29)]))
+
+energy_squared <- energy_cleaned %>% 
+  mutate_all(function(x) x^2) %>% 
+  select(-Appliances)
+colnames(energy_squared) <- paste0(colnames(energy_squared), "_sqr")
+
+energy_all <- cbind(energy_cleaned, energy_squared)
+
+X <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
+attr(X, "assign") <- NULL
+y <- energy_all$Appliances
+save(X, y, file = "Quantile/Quantile-data/Bench-4.RData")
