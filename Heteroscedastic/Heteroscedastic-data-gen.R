@@ -46,3 +46,22 @@ X.1 <- cbind(1, scale(unname(sniffer[, -5])))
 X.2 <- cbind(1, scale(unname(sniffer[, -5])))
 y <- as.vector(scale(sniffer[, 5]))
 save(X.1, X.2, y, file = "Heteroscedastic/Heteroscedastic-data/Bench-3.RData")
+
+## Benchmark 4
+
+energy <- read.csv("Benchmark-data/energydata_complete.csv")
+energy_cleaned <- as.data.frame(scale(energy[, -c(1, 3, 28, 29)]))
+
+energy_squared <- energy_cleaned %>% 
+  mutate_all(function(x) x^2) %>% 
+  select(-Appliances)
+colnames(energy_squared) <- paste0(colnames(energy_squared), "_sqr")
+
+energy_all <- cbind(energy_cleaned, energy_squared)
+
+X.1 <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
+attr(X.1, "assign") <- NULL
+X.1[, 2:1177] <- scale(X.1[, 2:1177])
+X.2 <- cbind(1, scale(unname(energy_cleaned[, -1])))
+y <- as.vector(scale(energy_all[, 1]))
+save(X.1, X.2, y, file = "Heteroscedastic/Heteroscedastic-data/Bench-4.RData")
