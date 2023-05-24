@@ -2,6 +2,7 @@
 #include <tuple>
 
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(openmp)]]
 
 using namespace Rcpp;
 using namespace arma;
@@ -59,8 +60,8 @@ double tgi_p_2(double a, double b, double c, double L) {
   return sqrt(M_2PI/a)*((pow(b, 2.0)/(4.0*a) + 1)*exp(-0.5*(c - pow(b, 2.0)/(4.0*a)) + R::pnorm(-b/(2.0*sqrt(a)) - sqrt(a)*L, 0.0, 1.0, 1, 1)) - (b/(2.0*sqrt(a)) - sqrt(a)*L)*exp(-0.5*(c - pow(b, 2.0)/(4.0*a)) + R::dnorm(b/(2.0*sqrt(a)) + sqrt(a)*L, 0.0, 1.0, 1)))/a;
 }
 
-tuple <double, vec, mat> ihr_1(double y, vec mu, mat Sigma, double eta) {
-  // Hybrid integrals for likelihood sites
+tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta) {
+  // Hybrid moments for likelihood sites
   double mu_1 = mu(0);
   double mu_2 = mu(1);
   
@@ -72,15 +73,15 @@ tuple <double, vec, mat> ihr_1(double y, vec mu, mat Sigma, double eta) {
   double lb = max(mu_2 - 5.0*sqrt(Sigma(1, 1)), -5.0);
   double ub = mu_2 + 5.0*sqrt(Sigma(1, 1));
   
-  vec x_values = linspace(lb, ub, 50);
+  vec x_values = linspace(lb, ub, 24);
   double delta_x = x_values(1) - x_values(0);
-  mat y_matrix = zeros(6, 50);
+  mat y_matrix = zeros(6, 24);
   
-  for (int i = 0; i < 50; ++i) {
+  for (int i = 0; i < 24; ++i) {
     double x = x_values(i);
     double a = Q_11 + eta/exp(2.0*x);
     double b = 2.0*(Q_12*(x - mu_2) - Q_11*mu_1) - eta*2.0*y/exp(2.0*x);
-    double c = Q_11*pow(mu_1, 2.0) + 2.0*Q_12*mu_1*(mu_2 - x) + Q_22*pow(x - mu_2, 2.0) + eta*(2.0*x + pow(y, 2.0)/exp(2.0*x));
+    double c = Q_11*pow(mu_1, 2.0) + 2.0*Q_12*mu_1*(mu_2 - x) + Q_22*pow(x - mu_2, 2.0) + eta*(2.0*x + pow(y, 2.0)/exp(2.0*x) - 2.0*mu_2 - pow(y - mu_1, 2)/exp(2.0*mu_2));
     
     y_matrix(0, i) = gi_0(a, b, c);
     y_matrix(1, i) = gi_1(a, b, c);
@@ -100,15 +101,16 @@ tuple <double, vec, mat> ihr_1(double y, vec mu, mat Sigma, double eta) {
   vec ih1 = { int_11, int_12 };
   
   mat ih2 = { {int_211, int_212}, 
-              {int_212, int_222} };
+  {int_212, int_222} };
   
-  double C = sqrt(det(M_2PI*Sigma));
+  vec mu_h = ih1/int_0;
+  mat Sigma_h = ih2/int_0 - mu_h*mu_h.t();
   
-  return make_tuple(int_0/C, ih1/C, ih2/C);
+  return make_tuple(mu_h, Sigma_h);
 }
 
-tuple <double, vec, mat> ihr_2(double lambda, vec mu, mat Sigma, double eta) {
-  // Hybrid integrals for Laplace-based prior sites
+tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta) {
+  // Hybrid moments for Laplace-based prior sites
   double mu_1 = mu(0);
   double mu_2 = mu(1);
   
@@ -120,11 +122,11 @@ tuple <double, vec, mat> ihr_2(double lambda, vec mu, mat Sigma, double eta) {
   double lb = max(mu_2 - 5.0*sqrt(Sigma(1, 1)), -10.0);
   double ub = mu_2 + 5.0*sqrt(Sigma(1, 1));
   
-  vec x_values = linspace(lb, ub, 50);
+  vec x_values = linspace(lb, ub, 24);
   double delta_x = x_values(1) - x_values(0);
-  mat y_matrix = zeros(6, 50);
+  mat y_matrix = zeros(6, 24);
   
-  for (int i = 0; i < 50; ++i) {
+  for (int i = 0; i < 24; ++i) {
     double x = x_values(i);
     double a = Q_11;
     double b_l = 2.0*(Q_12*(x - mu_2) - Q_11*mu_1) - eta*2.0*lambda/exp(x);
@@ -149,22 +151,24 @@ tuple <double, vec, mat> ihr_2(double lambda, vec mu, mat Sigma, double eta) {
   vec ih1 = { int_11, int_12 };
   
   mat ih2 = { {int_211, int_212}, 
-              {int_212, int_222} };
+  {int_212, int_222} };
   
-  double C = sqrt(det(M_2PI*Sigma));
+  vec mu_h = ih1/int_0;
+  mat Sigma_h = ih2/int_0 - mu_h*mu_h.t();
   
-  return make_tuple(int_0/C, ih1/C, ih2/C);
+  return make_tuple(mu_h, Sigma_h);
 }
 
 // [[Rcpp::export]]
 List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
-          double lambda, double eta, double alpha, mat Q_star_init, vec r_star_init, mat offset,
-          double min_passes, double max_passes, double tol, double stop,
-          double abs_thresh, double rel_thresh, double delta_limit, double patience) {
+          double lambda, double eta, double alpha, mat Q_star_init, vec r_star_init,
+          double min_passes, double max_passes, double thresh, bool verbose) {
   // Dampened power EP for Bayesian lasso linear regression
   int n = X.n_rows;
   int p = X.n_cols;
-  int pat_count = 0;
+  
+  double bmd_Q;
+  double bmd_r;
   
   // Parameter initialisation
   cube Q_star_values = zeros(2, 2, n + p);
@@ -175,7 +179,7 @@ List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   vec r_p = zeros(p + 1);
   r_p(p) = mu_kappa/sigma_2_kappa;
   
-  mat Q_dot = symmatu(offset) + Q_p;
+  mat Q_dot = Q_p;
   vec r_dot = r_p;
   
   mat sym_Q_star_init = symmatu(Q_star_init);
@@ -200,17 +204,18 @@ List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   mat Sigma_dot = symmatu(inv_sympd(Q_dot));
   vec mu_dot = Sigma_dot*r_dot;
   
-  // Delta initialisation
-  mat deltas = zeros(max_passes*(n + p), 3);
-  double prev_max_delta = INFINITY;
-  double prev_med_delta = INFINITY;
-  int ind = 0;
-  
   // Main EP loop
   for (int pass = 0; pass < max_passes; ++pass) {
-    int pass_start_ind = ind;
+    // Delta initialisation
+    vec deltas_Q = zeros(n + p);
+    vec deltas_r = zeros(n + p);
     
-    for (int k : randperm(n + p)) {
+    if (verbose) {
+      Rcout << "---- Current pass: " << pass << " ----\n";
+    }
+    
+    #pragma omp parallel for
+    for (int k = 0; k < n + p; ++k) {
       mat A = zeros(p + 1, 2);
       if (k < n) {
         A.submat(0, 0, p - 1, 0) = X.row(k).t();
@@ -232,19 +237,15 @@ List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
       mat Sigma_m_star = symmatu(inv_sympd(Q_m_star));
       vec mu_m_star = Sigma_m_star*r_m_star;
       
-      tuple <double, vec, mat> ihr_res;
+      tuple <vec, mat> h_mom_res;
       if (k < n) {
-        ihr_res = ihr_1(y(k), mu_m_star, Sigma_m_star, eta);
+        h_mom_res = h_mom_1(y(k), mu_m_star, Sigma_m_star, eta);
       } else {
-        ihr_res = ihr_2(lambda, mu_m_star, Sigma_m_star, eta);
+        h_mom_res = h_mom_2(lambda, mu_m_star, Sigma_m_star, eta);
       }
       
-      double ih0 = get<0>(ihr_res);
-      vec ih1 = get<1>(ihr_res);
-      mat ih2 = get<2>(ihr_res);
-      
-      mat Sigma_h_star = symmatu(ih2/ih0 - ih1*ih1.t()/pow(ih0, 2.0));
-      vec mu_h_star = ih1/ih0;
+      mat Sigma_h_star = get<1>(h_mom_res);
+      vec mu_h_star = get<0>(h_mom_res);
       
       mat Q_h_star = symmatu(inv_sympd(Sigma_h_star));
       vec r_h_star = Q_h_star*mu_h_star;
@@ -255,50 +256,60 @@ List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
       mat Q_star_tilde_d = Q_star_tilde - Q_star_values.slice(k);
       vec r_star_tilde_d = r_star_tilde - r_star_values.col(k);
       
-      double delta = max(norm(Q_star_tilde_d, "fro"), norm(r_star_tilde_d, 2));
-      
-      if (delta > tol*prev_med_delta || delta > delta_limit) {
-        continue;
-      } else {
-        deltas.row(ind) = { (double)pass, (double)k, delta };
-        ind += 1;
-      }
+      deltas_Q(k) = norm(Q_star_tilde_d, "fro");
+      deltas_r(k) = norm(r_star_tilde_d, 2);
       
       Q_star_values.slice(k) = Q_star_tilde;
       r_star_values.col(k) = r_star_tilde;
+    }
+    
+    Q_dot = Q_p;
+    r_dot = r_p;
+    
+    for (int k = 0; k < n + p; ++k) {
+      mat A = zeros(p + 1, 2);
+      if (k < n) {
+        A.submat(0, 0, p - 1, 0) = X.row(k).t();
+        A(p, 1) = 1.0;
+      } else {
+        A(k - n, 0) = 1.0;
+        A(p, 1) = 1.0;
+      }
       
-      Q_dot += symmatu(A*Q_star_tilde_d*A.t());
-      r_dot += A*r_star_tilde_d;
+      Q_dot += symmatu(A*Q_star_values.slice(k)*A.t());
+      r_dot += A*r_star_values.col(k);
+    }
+    
+    Sigma_dot = symmatu(inv_sympd(Q_dot));
+    mu_dot = Sigma_dot*r_dot;
+    
+    if (pass == 0) {
+      // Base maximum deltas
+      bmd_Q = max(deltas_Q);
+      bmd_r = max(deltas_r);
       
-      mat Sigma_dot_A = Sigma_dot*A;
-      Sigma_dot -= symmatu(Sigma_dot_A*inv(inv(Q_star_tilde_d) + Sigma_dot_star)*Sigma_dot_A.t());
-      mu_dot = Sigma_dot*r_dot;
+      if (verbose) {
+        Rcout << "Maximum delta for Q: " << bmd_Q << '\n';
+        Rcout << "Maximum delta for r: " << bmd_r << '\n';
+      }
+      
+      continue;
     }
     
-    vec pass_deltas = deltas.submat(pass_start_ind, 2, ind - 1, 2);
-    double max_delta = max(pass_deltas);
-    double med_delta = median(pass_deltas);
+    double md_Q = max(deltas_Q);
+    double md_r = max(deltas_r);
     
-    if (max_delta < abs_thresh && pass > min_passes) {
-      break;
-    } else if (max_delta > stop*prev_max_delta) {
-      Rcout << "Unstable deltas; stopping EP";
-      break;
+    if (verbose) {
+      Rcout << "Maximum delta for Q: " << md_Q << '\n';
+      Rcout << "Maximum delta for r: " << md_r << '\n';
     }
     
-    if (max_delta > rel_thresh*prev_max_delta) {
-      pat_count += 1;
-    } else {
-      pat_count = 0;
-    }
-    
-    if (pat_count == patience) {
-      Rcout << "Out of patience; stopping EP";
+    if (md_Q < thresh*bmd_Q && md_r < thresh*bmd_r && pass > min_passes) {
+      if (verbose) {
+        Rcout << "EP has converged; stopping EP\n";
+      }
       break;
     }
-    
-    prev_max_delta = max_delta;
-    prev_med_delta = med_delta;
   }
   
   // Returning in moment parameterisation
