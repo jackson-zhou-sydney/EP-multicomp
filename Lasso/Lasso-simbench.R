@@ -268,9 +268,8 @@ for (type.iter in 1:num.each.type) {
     start.time <- proc.time()
     
     ep.res <- ep_c(X, y, sigma.2.kappa, mu.kappa,
-                   lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p + 1, p + 1),
-                   min_passes = 6, max_passes = 200, tol = Inf, stop = Inf,
-                   abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
+                   lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
+                   min_passes = 6, max_passes = 200, thresh = 0.05, verbose = F)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
     ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
@@ -416,9 +415,8 @@ for (type.iter in 1:num.each.type) {
       #### EP
       
       ep.res <- ep_c(X.train, y.train, sigma.2.kappa, mu.kappa,
-                     lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p + 1, p + 1),
-                     min_passes = 6, max_passes = 200, tol = Inf, stop = Inf,
-                     abs_thresh = 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
+                     lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
+                     min_passes = 6, max_passes = 200, thresh = 0.05, verbose = F)
       ep.mu <- ep.res$mu
       ep.Sigma <- ep.res$Sigma
       ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
@@ -687,9 +685,8 @@ for (type.iter in 1:num.each.type) {
   start.time <- proc.time()
   
   ep.res <- ep_c(X, y, sigma.2.kappa, mu.kappa,
-                 lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p + 1, p + 1),
-                 min_passes = 6, max_passes = 200, tol = Inf, stop = Inf,
-                 abs_thresh = if (type.iter == 3) 10 else 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
+                 lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
+                 min_passes = 6, max_passes = 200, thresh = 0.05, verbose = F)
   ep.mu <- ep.res$mu
   ep.Sigma <- ep.res$Sigma
   ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
@@ -826,9 +823,8 @@ for (type.iter in 1:num.each.type) {
     #### EP
     
     ep.res <- ep_c(X.train, y.train, sigma.2.kappa, mu.kappa,
-                   lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2), offset = matrix(0, p + 1, p + 1),
-                   min_passes = 6, max_passes = 200, tol = Inf, stop = Inf,
-                   abs_thresh = if (type.iter == 3) 10 else 0.1, rel_thresh = 0.9, delta_limit = Inf, patience = 40)
+                   lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
+                   min_passes = 6, max_passes = 200, thresh = 0.05, verbose = F)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
     ep.samples <- rmvnorm(eval.size, ep.mu, ep.Sigma)
