@@ -134,8 +134,8 @@ mfvb.approx <- function(X, y, mu.kappa, sigma.2.kappa,
   return(list(mu = mu.theta, Sigma = Sigma.theta))
 }
 
-I.h.r.1 <- function(y, mu, Sigma, eta, mult, lb.min, ub.max, length) {
-  # Hybrid integrals for likelihood sites
+h.mom.1 <- function(y, mu, Sigma, eta, mult, lb.min, ub.max, length) {
+  # Hybrid moments for likelihood sites
   mu.1 <- mu[1]
   mu.2 <- mu[2]
   
@@ -147,7 +147,7 @@ I.h.r.1 <- function(y, mu, Sigma, eta, mult, lb.min, ub.max, length) {
   abc <- function(x) {
     c(Q.11 + eta/exp(2*x),
       2*(Q.12*(x - mu.2) - Q.11*mu.1) - eta*2*y/exp(2*x),
-      Q.11*mu.1^2 + 2*Q.12*mu.1*(mu.2 - x) + Q.22*(x - mu.2)^2 + eta*(2*x + y^2/exp(2*x)))
+      Q.11*mu.1^2 + 2*Q.12*mu.1*(mu.2 - x) + Q.22*(x - mu.2)^2 + eta*(2*x + y^2/exp(2*x) - 2*mu.2 - (y - mu.1)^2/exp(2*mu.2)))
   }
   
   lb <- max(mu.2 - mult*sqrt(Sigma[2, 2]), lb.min)
@@ -174,12 +174,12 @@ I.h.r.1 <- function(y, mu, Sigma, eta, mult, lb.min, ub.max, length) {
   ret.212 <- trapz(x.values, y.matrix[5, ])
   ret.222 <- trapz(x.values, y.matrix[6, ])
   
-  list(I.h.0 = ret.0/sqrt(det(2*pi*Sigma)), 
-       I.h.1 = c(ret.11, ret.12)/sqrt(det(2*pi*Sigma)), 
-       I.h.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*Sigma)), nrow = 2))
+  mu.h <- c(ret.11, ret.12)/ret.0
+  Sigma.h <- sym(matrix(c(ret.211, ret.212, ret.212, ret.222)/ret.0, nrow = 2) - mu.h%*%t(mu.h))
+  return(list(mu.h = mu.h, Sigma.h = Sigma.h))
 }
 
-I.h.r.2 <- function(lambda, mu, Sigma, eta, mult, lb.min, ub.max, length) {
+h.mom.2 <- function(lambda, mu, Sigma, eta, mult, lb.min, ub.max, length) {
   # Hybrid integrals for Laplace-based prior sites
   mu.1 <- mu[1]
   mu.2 <- mu[2]
@@ -220,20 +220,16 @@ I.h.r.2 <- function(lambda, mu, Sigma, eta, mult, lb.min, ub.max, length) {
   ret.212 <- trapz(x.values, y.matrix[5, ])
   ret.222 <- trapz(x.values, y.matrix[6, ])
   
-  list(I.h.0 = ret.0/sqrt(det(2*pi*Sigma)), 
-       I.h.1 = c(ret.11, ret.12)/sqrt(det(2*pi*Sigma)), 
-       I.h.2 = matrix(c(ret.211, ret.212, ret.212, ret.222)/sqrt(det(2*pi*Sigma)), nrow = 2))
+  mu.h <- c(ret.11, ret.12)/ret.0
+  Sigma.h <- sym(matrix(c(ret.211, ret.212, ret.212, ret.222)/ret.0, nrow = 2) - mu.h%*%t(mu.h))
+  return(list(mu.h = mu.h, Sigma.h = Sigma.h))
 }
 
-ep.approx <- function(X, y, mu.kappa, sigma.2.kappa, 
-                      lambda, eta, alpha, Q.star.init, r.star.init, offset,
-                      min.passes, max.passes, tol.factor, stop.factor,
-                      abs.thresh, rel.thresh, delta.limit, patience, verbose) {
+ep.approx <- function(X, y, sigma.2.kappa, mu.kappa, lambda, eta, alpha, Q.star.init, r.star.init,
+                      min.passes, max.passes, thresh, verbose) {
   # Dampened power EP for Bayesian lasso linear regression
   n <- nrow(X)
   p <- ncol(X)
-  stop.ep <- F
-  pcount <- 0
   
   # Parameter initialisation
   Q.star.values <- array(dim = c(2, 2, n + p))
@@ -244,109 +240,101 @@ ep.approx <- function(X, y, mu.kappa, sigma.2.kappa,
   r.p <- numeric(p + 1)
   r.p[p + 1] <- mu.kappa/sigma.2.kappa
   
-  Q.dot <- sym(offset) + Q.p
+  Q.dot <- Q.p
   r.dot <- r.p
   
-  for (i in 1:(n + p)) {
+  for (k in 1:(n + p)) {
     A <- matrix(0, nrow = p + 1, ncol = 2)
-    if (i <= n) {
-      A[1:p, 1] <- X[i, ]
+    if (k <= n) {
+      A[1:p, 1] <- X[k, ]
       A[p + 1, 2] <- 1
     } else {
-      A[i - n, 1] <- 1
+      A[k - n, 1] <- 1
       A[p + 1, 2] <- 1
     }
-    Q.star.values[, , i] <- sym(Q.star.init)
-    r.star.values[i, ] <- r.star.init
-    Q.dot <- Q.dot + sym(A%*%Q.star.values[, , i]%*%t(A))
-    r.dot <- r.dot + A%*%r.star.values[i, ]
+    Q.star.values[, , k] <- sym(Q.star.init)
+    r.star.values[k, ] <- r.star.init
+    Q.dot <- Q.dot + sym(A%*%Q.star.values[, , k]%*%t(A))
+    r.dot <- r.dot + A%*%r.star.values[k, ]
   }
   
   Sigma.dot <- sym(solve(Q.dot))
   mu.dot <- Sigma.dot%*%r.dot
   
-  # Delta initialisation
-  deltas <- matrix(-1, nrow = max.passes*(n + p), ncol = 5)
-  colnames(deltas) <- c("index", "iteration", "i", "delta", "skip")
-  prev.max.delta <- Inf
-  prev.med.delta <- Inf
-  index <- 1
-  
   # Main EP loop
-  for (iteration in 1:max.passes) {
+  for (pass in 1:max.passes) {
     
-    if (verbose) print(paste0("---- Current iteration: ", iteration, " ----"))
+    # Delta initialisation
+    deltas.Q <- rep(NA, n + p)
+    deltas.r <- rep(NA, n + p)
     
-    for (i in sample(1:(n + p))) {
+    if (verbose) print(paste0("---- Current pass: ", pass, " ----"))
+    
+    for (k in sample(1:(n + p))) {
       
       A <- matrix(0, nrow = p + 1, ncol = 2)
-      if (i <= n) {
-        A[1:p, 1] <- X[i, ]
+      if (k <= n) {
+        A[1:p, 1] <- X[k, ]
         A[p + 1, 2] <- 1
       } else {
-        A[i - n, 1] <- 1
+        A[k - n, 1] <- 1
         A[p + 1, 2] <- 1
       }
       Sigma.dot.star <- sym(t(A)%*%Sigma.dot%*%A); mu.dot.star <- t(A)%*%mu.dot
       Q.dot.star <- sym(solve(Sigma.dot.star)); r.dot.star <- Q.dot.star%*%mu.dot.star
-      Q.m.star <- Q.dot.star - eta*Q.star.values[, , i]; r.m.star <- r.dot.star - eta*r.star.values[i, ]
+      Q.m.star <- Q.dot.star - eta*Q.star.values[, , k]; r.m.star <- r.dot.star - eta*r.star.values[k, ]
       Sigma.m.star <- sym(solve(Q.m.star)); mu.m.star <- Sigma.m.star%*%r.m.star
       
-      if (i <= n) {
-        I.h.r.res <- tryCatch(I.h.r.1(y[i], mu.m.star, Sigma.m.star, eta, mult = 5, lb.min = -5, ub.max = Inf, length = 50), error = err)
+      if (k <= n) {
+        h.mom.res <- tryCatch(h.mom.1(y[k], mu.m.star, Sigma.m.star, eta, mult = 5, lb.min = -5, ub.max = Inf, length = 50), error = err)
       } else {
-        I.h.r.res <- tryCatch(I.h.r.2(lambda, mu.m.star, Sigma.m.star, eta, mult = 5, lb.min = -10, ub.max = Inf, length = 50), error = err)
+        h.mom.res <- tryCatch(h.mom.2(lambda, mu.m.star, Sigma.m.star, eta, mult = 5, lb.min = -10, ub.max = Inf, length = 50), error = err)
       }
-      if (!is.list(I.h.r.res)) {
-        print(paste0("Warning: error in hybrid integral at i = ", i))
-        deltas[index, ] <- c(index, iteration, i, NA, 1)
-        index <- index + 1
+      if (!is.list(h.mom.res)) {
+        print(paste0("Warning: error in hybrid integral at k = ", k))
         next
       }
-      I.h.0 <- I.h.r.res$I.h.0; I.h.1 <- I.h.r.res$I.h.1; I.h.2 <- I.h.r.res$I.h.2
-      
-      Sigma.h.star <- sym(I.h.2/I.h.0 - I.h.1%*%t(I.h.1)/I.h.0^2); mu.h.star <- I.h.1/I.h.0
+      Sigma.h.star <- h.mom.res$Sigma.h; mu.h.star <- h.mom.res$mu.h
       Q.h.star <- sym(solve(Sigma.h.star)); r.h.star <- Q.h.star%*%mu.h.star
-      Q.star.tilde <- (1 - alpha)*Q.star.values[, , i] + (alpha/eta)*(Q.h.star - Q.m.star)
-      r.star.tilde <- (1 - alpha)*r.star.values[i, ] + (alpha/eta)*(r.h.star - r.m.star)
-      Q.star.tilde.d <- Q.star.tilde - Q.star.values[, , i]; r.star.tilde.d <- r.star.tilde - r.star.values[i, ]
+      Q.star.tilde <- (1 - alpha)*Q.star.values[, , k] + (alpha/eta)*(Q.h.star - Q.m.star)
+      r.star.tilde <- (1 - alpha)*r.star.values[k, ] + (alpha/eta)*(r.h.star - r.m.star)
+      Q.star.tilde.d <- Q.star.tilde - Q.star.values[, , k]; r.star.tilde.d <- r.star.tilde - r.star.values[k, ]
       
-      delta <- max(norm(Q.star.tilde.d, "F"), norm(r.star.tilde.d, "2"))
-      
-      if (is.na(delta) || delta > tol.factor*prev.med.delta || delta > delta.limit) {
-        deltas[index, ] <- c(index, iteration, i, delta, 1)
-        index <- index + 1
-        next
-      } else {
-        deltas[index, ] <- c(index, iteration, i, delta, 0)
-        index <- index + 1
-      }
+      deltas.Q[k] <- norm(Q.star.tilde.d, "F")
+      deltas.r[k] <- norm(r.star.tilde.d, "2")
       
       Q.dot <- Q.dot + sym(A%*%Q.star.tilde.d%*%t(A)); r.dot <- r.dot + A%*%(r.star.tilde.d)
       Sigma.dot <- Sigma.dot - sym((Sigma.dot%*%A)%*%solve(solve(Q.star.tilde.d) + Sigma.dot.star)%*%t(Sigma.dot%*%A)); mu.dot <- Sigma.dot%*%r.dot
-      Q.star.values[, , i] <- Q.star.tilde; r.star.values[i, ] <- r.star.tilde
+      Q.star.values[, , k] <- Q.star.tilde; r.star.values[k, ] <- r.star.tilde
       
     }
     
-    iteration.deltas <- deltas[deltas[, "iteration"] == iteration & deltas[, "skip"] == 0, ][, "delta"]
-    max.delta <- max(iteration.deltas)
-    med.delta <- median(iteration.deltas)
-    if (verbose) {
-      print(paste0("Maximum delta: ", round(max.delta, 2)))
-      print(paste0("Median delta: ", round(med.delta, 2)))
+    if (pass == 1) {
+      # Base maximum deltas
+      bmd.Q <- max(deltas.Q, na.rm = T)
+      bmd.r <- max(deltas.r, na.rm = T)
+      
+      if (verbose) {
+        print(paste0("Maximum delta for Q: ", round(bmd.Q, 2)))
+        print(paste0("Maximum delta for r: ", round(bmd.r, 2)))
+      }
+    } else {
+      md.Q <- max(deltas.Q, na.rm = T)
+      md.r <- max(deltas.r, na.rm = T)
+      
+      if (verbose) {
+        print(paste0("Maximum delta for Q: ", round(md.Q, 2)))
+        print(paste0("Maximum delta for r: ", round(md.r, 2)))
+      }
+      
+      if (md.Q <= thresh*bmd.Q && md.r <= thresh*bmd.r && pass > min.passes) {
+        if (verbose) print("EP has converged; stopping EP")
+        break
+      }
     }
-    
-    if (stop.ep) {print("Too many numerical errors; stopping EP"); break}
-    if (max.delta < abs.thresh && iteration > min.passes) {if (verbose) print("EP has converged; stopping EP"); break}
-    if (max.delta > stop.factor*prev.max.delta) {print("Unstable deltas; stopping EP"); break}
-    if (max.delta > rel.thresh*prev.max.delta) pcount <- pcount + 1 else pcount <- 0
-    if (pcount == patience) {print("Out of patience; stopping EP"); break}
-    
-    prev.max.delta <- max.delta
-    prev.med.delta <- med.delta
     
   }
   
   # Returning in original parameterisation
-  return(list(mu = mu.dot, Sigma = Sigma.dot, deltas = deltas[deltas[, "index"] != -1, ]))
+  return(list(mu = mu.dot, Sigma = Sigma.dot))
 }
