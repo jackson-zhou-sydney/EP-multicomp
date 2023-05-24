@@ -65,7 +65,7 @@ tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta) {
   double mu_1 = mu(0);
   double mu_2 = mu(1);
   
-  mat Q = symmatu(inv_sympd(Sigma));
+  mat Q = inv_sympd(Sigma);
   double Q_11 = Q(0, 0);
   double Q_12 = Q(0, 1);
   double Q_22 = Q(1, 1);
@@ -114,7 +114,7 @@ tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta) {
   double mu_1 = mu(0);
   double mu_2 = mu(1);
   
-  mat Q = symmatu(inv_sympd(Sigma));
+  mat Q = inv_sympd(Sigma);
   double Q_11 = Q(0, 0);
   double Q_12 = Q(0, 1);
   double Q_22 = Q(1, 1);
@@ -197,7 +197,7 @@ List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
       A(p, 1) = 1.0;
     }
     
-    Q_dot += symmatu(A*Q_star_values.slice(k)*A.t());
+    Q_dot += A*Q_star_values.slice(k)*A.t();
     r_dot += A*r_star_values.col(k);
   }
   
@@ -214,73 +214,74 @@ List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
       Rcout << "---- Current pass: " << pass << " ----\n";
     }
     
-    #pragma omp parallel for
-    for (int k = 0; k < n + p; ++k) {
-      mat A = zeros(p + 1, 2);
-      if (k < n) {
-        A.submat(0, 0, p - 1, 0) = X.row(k).t();
-        A(p, 1) = 1.0;
-      } else {
-        A(k - n, 0) = 1.0;
-        A(p, 1) = 1.0;
-      }
-      
-      mat Sigma_dot_star = symmatu(A.t()*Sigma_dot*A);
-      vec mu_dot_star = A.t()*mu_dot;
-      
-      mat Q_dot_star = symmatu(inv_sympd(Sigma_dot_star));
-      vec r_dot_star = Q_dot_star*mu_dot_star;
-      
-      mat Q_m_star = Q_dot_star - eta*Q_star_values.slice(k);
-      vec r_m_star = r_dot_star - eta*r_star_values.col(k);
-      
-      mat Sigma_m_star = symmatu(inv_sympd(Q_m_star));
-      vec mu_m_star = Sigma_m_star*r_m_star;
-      
-      tuple <vec, mat> h_mom_res;
-      if (k < n) {
-        h_mom_res = h_mom_1(y(k), mu_m_star, Sigma_m_star, eta);
-      } else {
-        h_mom_res = h_mom_2(lambda, mu_m_star, Sigma_m_star, eta);
-      }
-      
-      mat Sigma_h_star = get<1>(h_mom_res);
-      vec mu_h_star = get<0>(h_mom_res);
-      
-      mat Q_h_star = symmatu(inv_sympd(Sigma_h_star));
-      vec r_h_star = Q_h_star*mu_h_star;
-      
-      mat Q_star_tilde = (1.0 - alpha)*Q_star_values.slice(k) + (alpha/eta)*(Q_h_star - Q_m_star);
-      vec r_star_tilde = (1.0 - alpha)*r_star_values.col(k) + (alpha/eta)*(r_h_star - r_m_star);
-      
-      mat Q_star_tilde_d = Q_star_tilde - Q_star_values.slice(k);
-      vec r_star_tilde_d = r_star_tilde - r_star_values.col(k);
-      
-      deltas_Q(k) = norm(Q_star_tilde_d, "fro");
-      deltas_r(k) = norm(r_star_tilde_d, 2);
-      
-      Q_star_values.slice(k) = Q_star_tilde;
-      r_star_values.col(k) = r_star_tilde;
-    }
-    
     Q_dot = Q_p;
     r_dot = r_p;
     
-    for (int k = 0; k < n + p; ++k) {
-      mat A = zeros(p + 1, 2);
-      if (k < n) {
-        A.submat(0, 0, p - 1, 0) = X.row(k).t();
-        A(p, 1) = 1.0;
-      } else {
-        A(k - n, 0) = 1.0;
-        A(p, 1) = 1.0;
+    #pragma omp parallel
+    {
+      mat Q_dot_local = zeros(p + 1, p + 1);
+      vec r_dot_local = zeros(p + 1);
+      
+      #pragma omp for nowait 
+      for (int k = 0; k < n + p; ++k) {
+        mat A = zeros(p + 1, 2);
+        if (k < n) {
+          A.submat(0, 0, p - 1, 0) = X.row(k).t();
+          A(p, 1) = 1.0;
+        } else {
+          A(k - n, 0) = 1.0;
+          A(p, 1) = 1.0;
+        }
+        
+        mat Sigma_dot_star = A.t()*Sigma_dot*A;
+        vec mu_dot_star = A.t()*mu_dot;
+        
+        mat Q_dot_star = symmatu(inv_sympd(Sigma_dot_star));
+        vec r_dot_star = Q_dot_star*mu_dot_star;
+        
+        mat Q_m_star = Q_dot_star - eta*Q_star_values.slice(k);
+        vec r_m_star = r_dot_star - eta*r_star_values.col(k);
+        
+        mat Sigma_m_star = symmatu(inv_sympd(Q_m_star));
+        vec mu_m_star = Sigma_m_star*r_m_star;
+        
+        tuple <vec, mat> h_mom_res;
+        if (k < n) {
+          h_mom_res = h_mom_1(y(k), mu_m_star, Sigma_m_star, eta);
+        } else {
+          h_mom_res = h_mom_2(lambda, mu_m_star, Sigma_m_star, eta);
+        }
+        
+        mat Sigma_h_star = get<1>(h_mom_res);
+        vec mu_h_star = get<0>(h_mom_res);
+        
+        mat Q_h_star = symmatu(inv_sympd(Sigma_h_star));
+        vec r_h_star = Q_h_star*mu_h_star;
+        
+        mat Q_star_tilde = (1.0 - alpha)*Q_star_values.slice(k) + (alpha/eta)*(Q_h_star - Q_m_star);
+        vec r_star_tilde = (1.0 - alpha)*r_star_values.col(k) + (alpha/eta)*(r_h_star - r_m_star);
+        
+        mat Q_star_tilde_d = Q_star_tilde - Q_star_values.slice(k);
+        vec r_star_tilde_d = r_star_tilde - r_star_values.col(k);
+        
+        deltas_Q(k) = norm(Q_star_tilde_d, "fro");
+        deltas_r(k) = norm(r_star_tilde_d, 2);
+        
+        Q_star_values.slice(k) = Q_star_tilde;
+        r_star_values.col(k) = r_star_tilde;
+        
+        Q_dot_local += A*Q_star_values.slice(k)*A.t();
+        r_dot_local += A*r_star_values.col(k);
       }
       
-      Q_dot += symmatu(A*Q_star_values.slice(k)*A.t());
-      r_dot += A*r_star_values.col(k);
+      #pragma omp critical
+      {
+        Q_dot += Q_dot_local;
+        r_dot += r_dot_local;
+      }
     }
     
-    Sigma_dot = symmatu(inv_sympd(Q_dot));
+    Sigma_dot = symmatu(inv_sympd(symmatu(Q_dot)));
     mu_dot = Sigma_dot*r_dot;
     
     if (pass == 0) {
