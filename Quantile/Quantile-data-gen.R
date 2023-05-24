@@ -64,5 +64,6 @@ energy_all <- cbind(energy_cleaned, energy_squared)
 
 X <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
 attr(X, "assign") <- NULL
-y <- energy_all$Appliances
+X[, 2:1177] <- scale(X[, 2:1177])
+y <- as.vector(scale(energy_all[, 1]))
 save(X, y, file = "Quantile/Quantile-data/Bench-4.RData")
