@@ -60,7 +60,7 @@ double tgi_p_2(double a, double b, double c, double L) {
   return sqrt(M_2PI/a)*((pow(b, 2.0)/(4.0*a) + 1)*exp(-0.5*(c - pow(b, 2.0)/(4.0*a)) + R::pnorm(-b/(2.0*sqrt(a)) - sqrt(a)*L, 0.0, 1.0, 1, 1)) - (b/(2.0*sqrt(a)) - sqrt(a)*L)*exp(-0.5*(c - pow(b, 2.0)/(4.0*a)) + R::dnorm(b/(2.0*sqrt(a)) + sqrt(a)*L, 0.0, 1.0, 1)))/a;
 }
 
-tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta) {
+tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta, int n_grid) {
   // Hybrid moments for likelihood sites
   double mu_1 = mu(0);
   double mu_2 = mu(1);
@@ -73,11 +73,11 @@ tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta) {
   double lb = max(mu_2 - 5.0*sqrt(Sigma(1, 1)), -5.0);
   double ub = mu_2 + 5.0*sqrt(Sigma(1, 1));
   
-  vec x_values = linspace(lb, ub, 24);
+  vec x_values = linspace(lb, ub, n_grid);
   double delta_x = x_values(1) - x_values(0);
-  mat y_matrix = zeros(6, 24);
+  mat y_matrix = zeros(6, n_grid);
   
-  for (int i = 0; i < 24; ++i) {
+  for (int i = 0; i < n_grid; ++i) {
     double x = x_values(i);
     double a = Q_11 + eta/exp(2.0*x);
     double b = 2.0*(Q_12*(x - mu_2) - Q_11*mu_1) - eta*2.0*y/exp(2.0*x);
@@ -101,7 +101,7 @@ tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta) {
   vec ih1 = { int_11, int_12 };
   
   mat ih2 = { {int_211, int_212}, 
-  {int_212, int_222} };
+              {int_212, int_222} };
   
   vec mu_h = ih1/int_0;
   mat Sigma_h = ih2/int_0 - mu_h*mu_h.t();
@@ -109,7 +109,7 @@ tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta) {
   return make_tuple(mu_h, Sigma_h);
 }
 
-tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta) {
+tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta, int n_grid) {
   // Hybrid moments for Laplace-based prior sites
   double mu_1 = mu(0);
   double mu_2 = mu(1);
@@ -122,11 +122,11 @@ tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta) {
   double lb = max(mu_2 - 5.0*sqrt(Sigma(1, 1)), -10.0);
   double ub = mu_2 + 5.0*sqrt(Sigma(1, 1));
   
-  vec x_values = linspace(lb, ub, 24);
+  vec x_values = linspace(lb, ub, n_grid);
   double delta_x = x_values(1) - x_values(0);
-  mat y_matrix = zeros(6, 24);
+  mat y_matrix = zeros(6, n_grid);
   
-  for (int i = 0; i < 24; ++i) {
+  for (int i = 0; i < n_grid; ++i) {
     double x = x_values(i);
     double a = Q_11;
     double b_l = 2.0*(Q_12*(x - mu_2) - Q_11*mu_1) - eta*2.0*lambda/exp(x);
@@ -151,7 +151,7 @@ tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta) {
   vec ih1 = { int_11, int_12 };
   
   mat ih2 = { {int_211, int_212}, 
-  {int_212, int_222} };
+              {int_212, int_222} };
   
   vec mu_h = ih1/int_0;
   mat Sigma_h = ih2/int_0 - mu_h*mu_h.t();
@@ -160,9 +160,9 @@ tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta) {
 }
 
 // [[Rcpp::export]]
-List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
-          double lambda, double eta, double alpha, mat Q_star_init, vec r_star_init,
-          double min_passes, double max_passes, double thresh, bool verbose) {
+List ep(mat X, vec y, double sigma_2_kappa, double mu_kappa,
+        double lambda, double eta, double alpha, mat Q_star_init, vec r_star_init,
+        double min_passes, double max_passes, double thresh, int n_grid, bool verbose) {
   // Dampened power EP for Bayesian lasso linear regression
   int n = X.n_rows;
   int p = X.n_cols;
@@ -247,9 +247,9 @@ List ep_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
         
         tuple <vec, mat> h_mom_res;
         if (k < n) {
-          h_mom_res = h_mom_1(y(k), mu_m_star, Sigma_m_star, eta);
+          h_mom_res = h_mom_1(y(k), mu_m_star, Sigma_m_star, eta, n_grid);
         } else {
-          h_mom_res = h_mom_2(lambda, mu_m_star, Sigma_m_star, eta);
+          h_mom_res = h_mom_2(lambda, mu_m_star, Sigma_m_star, eta, n_grid);
         }
         
         mat Sigma_h_star = get<1>(h_mom_res);
