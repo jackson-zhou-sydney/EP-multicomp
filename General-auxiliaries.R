@@ -21,8 +21,9 @@ library(RcppEigen)     # Alternate linear algebra for Rcpp
 library(RcppNumerical) # Optimisation in Rcpp
 
 # General settings
-num.each.type <- 3
-num.sim <- 50
+num.sim.iter <- 50
+num.sim <- 3
+num.bench <- 4
 
 # MCMC settings
 mcmc.chains <- 1

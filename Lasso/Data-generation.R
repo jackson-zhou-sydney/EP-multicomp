@@ -8,13 +8,13 @@ set.seed(1)
 
 ## Simulations
 
-for (type.iter in 1:num.each.type) {
+for (type.iter in 1:num.sim) {
   n <- sim.settings[[type.iter]][["n"]]
   p <- sim.settings[[type.iter]][["p"]]
   beta <- rep(c(2, -2)/p, p/2)
   beta[1:p/2] <- 0
   
-  for (iteration in 1:num.sim) {
+  for (iteration in 1:num.sim.iter) {
     X <- cbind(1, scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
     y <- rnorm(n, X%*%beta, exp(kappa))
     save(X, y, file = paste0("Lasso/Data/Simulations/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
