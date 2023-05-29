@@ -23,7 +23,7 @@ library(RcppNumerical) # Optimisation in Rcpp
 
 # General settings
 num.cores <- 6
-num.sim.iter <- 50
+num.sim.iter <- 5
 num.sim <- 3
 num.bench <- 4
 
