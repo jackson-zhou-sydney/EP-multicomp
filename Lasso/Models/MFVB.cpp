@@ -126,8 +126,8 @@ double E_lnig(double A, double B, double C, double D, String fun) {
 }
 
 // [[Rcpp::export]]
-List mfvb_c(mat X, vec y, double sigma_2_kappa, double mu_kappa,
-            double lambda, int maxit, double tol) {
+List mfvb(mat X, vec y, double sigma_2_kappa, double mu_kappa,
+          double lambda, int maxit, double tol) {
   // MFVB for Bayesian lasso linear regression
   int n = X.n_rows;
   int p = X.n_cols;

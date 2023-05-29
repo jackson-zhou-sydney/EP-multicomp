@@ -2,6 +2,7 @@
 # Auxiliary functions and variables for lasso linear regression
 
 sourceCpp("Lasso/EP-approx.cpp")
+sourceCpp("Lasso/EP-2D-approx.cpp")
 sourceCpp("Lasso/MFVB-approx.cpp")
 
 mu.kappa <- 0
