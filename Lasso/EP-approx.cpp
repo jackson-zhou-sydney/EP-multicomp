@@ -72,6 +72,7 @@ tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta, int n_grid) {
   
   double lb = max(mu_2 - 5.0*sqrt(Sigma(1, 1)), -5.0);
   double ub = mu_2 + 5.0*sqrt(Sigma(1, 1));
+  double adjust = -eta*(2.0*mu_2 + pow(y - mu_1, 2)/exp(2.0*mu_2));
   
   vec x_values = linspace(lb, ub, n_grid);
   double delta_x = x_values(1) - x_values(0);
@@ -81,7 +82,7 @@ tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta, int n_grid) {
     double x = x_values(i);
     double a = Q_11 + eta/exp(2.0*x);
     double b = 2.0*(Q_12*(x - mu_2) - Q_11*mu_1) - eta*2.0*y/exp(2.0*x);
-    double c = Q_11*pow(mu_1, 2.0) + 2.0*Q_12*mu_1*(mu_2 - x) + Q_22*pow(x - mu_2, 2.0) + eta*(2.0*x + pow(y, 2.0)/exp(2.0*x) - 2.0*mu_2 - pow(y - mu_1, 2)/exp(2.0*mu_2));
+    double c = Q_11*pow(mu_1, 2.0) + 2.0*Q_12*mu_1*(mu_2 - x) + Q_22*pow(x - mu_2, 2.0) + eta*(2.0*x + pow(y, 2.0)/exp(2.0*x)) + adjust;
     
     y_matrix(0, i) = gi_0(a, b, c);
     y_matrix(1, i) = gi_1(a, b, c);
@@ -121,6 +122,7 @@ tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta, int n_gri
   
   double lb = max(mu_2 - 5.0*sqrt(Sigma(1, 1)), -10.0);
   double ub = mu_2 + 5.0*sqrt(Sigma(1, 1));
+  double adjust = -eta*2.0*mu_2;
   
   vec x_values = linspace(lb, ub, n_grid);
   double delta_x = x_values(1) - x_values(0);
@@ -131,7 +133,7 @@ tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta, int n_gri
     double a = Q_11;
     double b_l = 2.0*(Q_12*(x - mu_2) - Q_11*mu_1) - eta*2.0*lambda/exp(x);
     double b_u = 2.0*(Q_12*(x - mu_2) - Q_11*mu_1) + eta*2.0*lambda/exp(x);
-    double c = Q_11*pow(mu_1, 2.0) + 2.0*Q_12*mu_1*(mu_2 - x) + Q_22*pow(x - mu_2, 2.0) + eta*2.0*x;
+    double c = Q_11*pow(mu_1, 2.0) + 2.0*Q_12*mu_1*(mu_2 - x) + Q_22*pow(x - mu_2, 2.0) + eta*2.0*x + adjust;
     
     y_matrix(0, i) = tgi_m_0(a, b_l, c, 0.0) + tgi_p_0(a, b_u, c, 0.0);
     y_matrix(1, i) = tgi_m_1(a, b_l, c, 0.0) + tgi_p_1(a, b_u, c, 0.0);

@@ -28,6 +28,7 @@ tuple <vec, mat> h_mom_1_2d(double y, vec mu, mat Sigma, double eta, int n_grid)
   vec lb = mu - 5.0*sqrt_dg_Sigma;
   vec ub = mu + 5.0*sqrt_dg_Sigma;
   lb(1) = max(lb(1), -5.0);
+  double adjust = 0.5*dot(mu, Q*mu) - dot(mu, r) + eta*(mu(1) + pow(y_data - mu(0), 2.0)/(2.0*exp(2.0*mu(1))));
   
   vec x_values = linspace(lb(0), ub(0), n_grid);
   double delta_x = x_values(1) - x_values(0);
@@ -41,7 +42,7 @@ tuple <vec, mat> h_mom_1_2d(double y, vec mu, mat Sigma, double eta, int n_grid)
       double y = y_values(j);
       vec xy = { x, y };
       
-      Z_cube(0, i, j) = exp(-0.5*dot(xy, Q*xy) + dot(xy, r) - eta*(y + pow(y_data - x, 2.0)/(2.0*exp(2.0*y)) - mu(1) - pow(y_data - mu(0), 2.0)/(2.0*exp(2.0*mu(1)))));
+      Z_cube(0, i, j) = exp(-0.5*dot(xy, Q*xy) + dot(xy, r) - eta*(y + pow(y_data - x, 2.0)/(2.0*exp(2.0*y))) + adjust);
       Z_cube(1, i, j) = x*Z_cube(0, i, j);
       Z_cube(2, i, j) = y*Z_cube(0, i, j);
       Z_cube(3, i, j) = pow(x, 2.0)*Z_cube(0, i, j);
@@ -77,6 +78,7 @@ tuple <vec, mat> h_mom_2_2d(double lambda, vec mu, mat Sigma, double eta, int n_
   vec lb = mu - 5.0*sqrt_dg_Sigma;
   vec ub = mu + 5.0*sqrt_dg_Sigma;
   lb(1) = max(lb(1), -10.0);
+  double adjust = 0.5*dot(mu, Q*mu) - dot(mu, r) + eta*(mu(1) + lambda*abs(mu(0))/exp(mu(1)));
   
   vec x_values = linspace(lb(0), ub(0), n_grid);
   double delta_x = x_values(1) - x_values(0);
@@ -90,7 +92,7 @@ tuple <vec, mat> h_mom_2_2d(double lambda, vec mu, mat Sigma, double eta, int n_
       double y = y_values(j);
       vec xy = { x, y };
       
-      Z_cube(0, i, j) = exp(-0.5*dot(xy, Q*xy) + dot(xy, r) - eta*(y + lambda*abs(x)/exp(y)));
+      Z_cube(0, i, j) = exp(-0.5*dot(xy, Q*xy) + dot(xy, r) - eta*(y + lambda*abs(x)/exp(y)) + adjust);
       Z_cube(1, i, j) = x*Z_cube(0, i, j);
       Z_cube(2, i, j) = y*Z_cube(0, i, j);
       Z_cube(3, i, j) = pow(x, 2.0)*Z_cube(0, i, j);
