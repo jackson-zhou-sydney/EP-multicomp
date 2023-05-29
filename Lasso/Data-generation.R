@@ -1,8 +1,8 @@
 
 # Data generation for lasso linear regression
 
-source("EP-general-auxiliaries.R")
-source("Lasso/Lasso-auxiliaries.R")
+source("General-auxiliaries.R")
+source("Lasso/Auxiliaries.R")
 
 set.seed(1)
 
@@ -17,7 +17,7 @@ for (type.iter in 1:num.each.type) {
   for (iteration in 1:num.sim) {
     X <- cbind(1, scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
     y <- rnorm(n, X%*%beta, exp(kappa))
-    save(X, y, file = paste0("Lasso/Lasso-data/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
+    save(X, y, file = paste0("Lasso/Data/Simulations/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
   }
 }
 
@@ -26,21 +26,21 @@ for (type.iter in 1:num.each.type) {
 load("Benchmark-data/efron2004.Rdata")
 X <- cbind(1, scale(efron2004$x))
 y <- as.vector(efron2004$y)
-save(X, y, file = "Lasso/Lasso-data/Bench-1.RData")
+save(X, y, file = "Lasso/Data/Benchmarks/Bench-1.RData")
 
 ## Benchmark 2
 
 load("Benchmark-data/Prostate.RData")
 X <- cbind(1, scale(Prostate[, -9]))
 y <- Prostate[, 9]
-save(X, y, file = "Lasso/Lasso-data/Bench-2.RData")
+save(X, y, file = "Lasso/Data/Benchmarks/Bench-2.RData")
 
 ## Benchmark 3
 
 load("Benchmark-data/eyedata.RData")
 X <- cbind(1, scale(unname(x)))
 y <- y
-save(X, y, file = "Lasso/Lasso-data/Bench-3.RData")
+save(X, y, file = "Lasso/Data/Benchmarks/Bench-3.RData")
 
 ## Benchmark 4
 
@@ -57,5 +57,5 @@ energy_all <- cbind(energy_cleaned, energy_squared)
 X <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
 attr(X, "assign") <- NULL
 X[, 2:1177] <- scale(X[, 2:1177])
-y <- as.vector(scale(energy_all[, 1]))
-save(X, y, file = "Lasso/Lasso-data/Bench-4.RData")
+y <- energy_all[, 1]
+save(X, y, file = "Lasso/Data/Benchmarks/Bench-4.RData")
