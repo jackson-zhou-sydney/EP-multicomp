@@ -47,8 +47,10 @@ sim.r.hat.df <- data.frame(seed = integer(),
                            r_hat = double())
 
 for (type.iter in 1:num.sim) {
+  print(paste0("Current simulation: ", type.iter))
+  
   for (iteration in 1:num.sim.iter) {
-    print(paste0("Current progress: Simulation ", type.iter, ", iteration ", iteration, " of ", num.sim.iter))
+    print(paste0("Current iteration: ", iteration))
     
     load(paste0("Lasso/Data/Simulations/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
     n <- nrow(X)

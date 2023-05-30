@@ -13,14 +13,16 @@ sim.r.hat.df <- data.frame(sim = integer(),
                            r_hat = double())
 
 for (type.iter in 1:num.sim) {
-  print(paste0("Current progress: Simulation ", type.iter))
+  print(paste0("Current simulation: ", type.iter))
   
   load(paste0("Lasso/Data/Simulations/Sim-", type.iter, "-iter-01.RData"))
   n <- nrow(X)
   p <- ncol(X)
   
   for (k in 1:length(mcmc.check.iter)) {
+    print(paste0("Current check.iter: ", mcmc.check.iter[k]))
     for (repetition in 1:r.hat.reps) {
+      print(paste0("Current repetition: ", repetition))
       stan.res <- stan(file = "Lasso/Models/MCMC.stan",
                        data = list(N = n,
                                    p = p,

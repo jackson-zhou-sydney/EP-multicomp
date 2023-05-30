@@ -21,6 +21,9 @@ library(RcppArmadillo) # Efficient linear algebra for Rcpp
 library(RcppEigen)     # Alternate linear algebra for Rcpp
 library(RcppNumerical) # Optimisation in Rcpp
 
+# Options
+options(rcpp.cache.dir = "Rcpp-cache/")
+
 # General settings
 num.cores <- 6
 num.sim.iter <- 5

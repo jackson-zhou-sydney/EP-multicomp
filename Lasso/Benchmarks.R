@@ -41,7 +41,7 @@ bench.r.hat.df <- data.frame(seed = integer(),
                              r_hat = double())
 
 for (type.iter in 1:num.bench) {
-  print(paste0("Current progress: Benchmark ", type.iter))
+  print(paste0("Current benchmark: ", type.iter))
   
   load(paste0("Lasso/Data/Benchmarks/Bench-", type.iter, ".RData"))
   n <- nrow(X)
