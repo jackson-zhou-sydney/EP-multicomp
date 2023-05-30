@@ -574,4 +574,4 @@ for (type.iter in 1:num.bench) {
 }
 
 save(bench.l1.df, bench.mmd.df, bench.lppd.df, bench.cov.norm.df, bench.time.df, bench.r.hat.df,
-     file = paste0("Lasso/Results/Benchmarks-results", str_pad(seed, 2, pad = "0"), ".RData"))
+     file = paste0("Lasso/Results/Benchmarks-results-", str_pad(seed, 2, pad = "0"), ".RData"))

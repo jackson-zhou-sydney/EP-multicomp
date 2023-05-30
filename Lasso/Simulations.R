@@ -623,4 +623,4 @@ for (type.iter in 1:num.sim) {
 }
 
 save(sim.l1.df, sim.mmd.df, sim.lppd.df, sim.cov.norm.df, sim.time.df, sim.r.hat.df,
-     file = paste0("Lasso/Results/Simulations-results", str_pad(seed, 2, pad = "0"), ".RData"))
+     file = paste0("Lasso/Results/Simulations-results-", str_pad(seed, 2, pad = "0"), ".RData"))
