@@ -3,7 +3,7 @@
 
 library(methods)       # Standard methods in R
 library(tidyverse)     # Data manipulation and plotting
-library(rstan)         # Robust MCMC and diagnostics
+library(cmdstanr)      # Robust MCMC and diagnostics
 library(EnvStats)      # Compute empirical densities
 library(glmnet)        # Fast ridge regression estimates
 library(quantreg)      # Quantile regression estimates
