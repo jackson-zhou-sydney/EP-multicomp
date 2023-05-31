@@ -4,6 +4,7 @@
 sourceCpp("Lasso/Models/EP.cpp")
 sourceCpp("Lasso/Models/EP-2D.cpp")
 sourceCpp("Lasso/Models/MFVB.cpp")
+library(cmdstanr) # Robust MCMC and diagnostics
 
 mu.kappa <- 0
 sigma.2.kappa <- 10000
