@@ -90,25 +90,24 @@ for (type.iter in 1:num.sim) {
     
     ### MCMC-G
     
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n,
-                                 p = p,
-                                 X = X,
-                                 y = y,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.iter,
-                     warmup = mcmc.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
+    stan.res <- mcmc$sample(data = list(N = n,
+                                        p = p,
+                                        X = X,
+                                        y = y,
+                                        mu_kappa = mu.kappa,
+                                        sigma_2_kappa = sigma.2.kappa,
+                                        lambda = lambda), 
+                            seed = seed, 
+                            chains = num.cores, 
+                            parallel_chains = num.cores,
+                            iter_sampling = mcmc.iter,
+                            iter_warmup = mcmc.warmup,
+                            refresh = 1)
     
-    mcmc.g.samples <- rstan::extract(stan.res)$theta
+    mcmc.g.samples <- stan.res$draws(format = "matrix")[, -1]
     mcmc.g.mu <- colMeans(mcmc.g.samples)
     mcmc.g.Sigma <- var(mcmc.g.samples)
-    mcmc.g.summary <- summary(stan.res)$summary
+    mcmc.g.summary <- stan.res$summary()
     
     grid.points <- matrix(nrow = p + 1, ncol = total.grid.points)
     mcmc.g.values <- matrix(nrow = p + 1, ncol = total.grid.points)
@@ -127,25 +126,24 @@ for (type.iter in 1:num.sim) {
     
     start.time <- proc.time()
     
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n,
-                                 p = p,
-                                 X = X,
-                                 y = y,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.iter,
-                     warmup = mcmc.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
+    stan.res <- mcmc$sample(data = list(N = n,
+                                        p = p,
+                                        X = X,
+                                        y = y,
+                                        mu_kappa = mu.kappa,
+                                        sigma_2_kappa = sigma.2.kappa,
+                                        lambda = lambda), 
+                            seed = seed, 
+                            chains = num.cores, 
+                            parallel_chains = num.cores,
+                            iter_sampling = mcmc.iter,
+                            iter_warmup = mcmc.warmup,
+                            refresh = 1)
     
-    mcmc.samples <- rstan::extract(stan.res)$theta
+    mcmc.samples <- stan.res$draws(format = "matrix")[, -1]
     mcmc.mu <- colMeans(mcmc.samples)
     mcmc.Sigma <- var(mcmc.samples)
-    mcmc.summary <- summary(stan.res)$summary
+    mcmc.summary <- stan.res$summary()
     
     total.time <- proc.time() - start.time
     
@@ -189,22 +187,21 @@ for (type.iter in 1:num.sim) {
                                            method = "mcmc",
                                            time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n.train,
-                                 p = p,
-                                 X = X.train,
-                                 y = y.train,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.iter,
-                     warmup = mcmc.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
+    stan.res <- mcmc$sample(data = list(N = n.train,
+                                        p = p,
+                                        X = X.train,
+                                        y = y.train,
+                                        mu_kappa = mu.kappa,
+                                        sigma_2_kappa = sigma.2.kappa,
+                                        lambda = lambda), 
+                            seed = seed, 
+                            chains = num.cores, 
+                            parallel_chains = num.cores,
+                            iter_sampling = mcmc.iter,
+                            iter_warmup = mcmc.warmup,
+                            refresh = 1)
     
-    mcmc.samples <- rstan::extract(stan.res)$theta
+    mcmc.samples <- stan.res$draws(format = "matrix")[, -1]
     
     sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
                                                sim = type.iter,
@@ -216,25 +213,24 @@ for (type.iter in 1:num.sim) {
     
     start.time <- proc.time()
     
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n,
-                                 p = p,
-                                 X = X,
-                                 y = y,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.s.iter,
-                     warmup = mcmc.s.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
+    stan.res <- mcmc$sample(data = list(N = n,
+                                        p = p,
+                                        X = X,
+                                        y = y,
+                                        mu_kappa = mu.kappa,
+                                        sigma_2_kappa = sigma.2.kappa,
+                                        lambda = lambda), 
+                            seed = seed, 
+                            chains = num.cores, 
+                            parallel_chains = num.cores,
+                            iter_sampling = mcmc.s.iter,
+                            iter_warmup = mcmc.s.warmup,
+                            refresh = 1)
     
-    mcmc.s.samples <- rstan::extract(stan.res)$theta
+    mcmc.s.samples <- stan.res$draws(format = "matrix")[, -1]
     mcmc.s.mu <- colMeans(mcmc.s.samples)
     mcmc.s.Sigma <- var(mcmc.s.samples)
-    mcmc.s.summary <- summary(stan.res)$summary
+    mcmc.s.summary <- stan.res$summary()
     
     total.time <- proc.time() - start.time
     
@@ -278,22 +274,21 @@ for (type.iter in 1:num.sim) {
                                            method = "mcmc-s",
                                            time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n.train,
-                                 p = p,
-                                 X = X.train,
-                                 y = y.train,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.s.iter,
-                     warmup = mcmc.s.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
+    stan.res <- mcmc$sample(data = list(N = n.train,
+                                        p = p,
+                                        X = X.train,
+                                        y = y.train,
+                                        mu_kappa = mu.kappa,
+                                        sigma_2_kappa = sigma.2.kappa,
+                                        lambda = lambda), 
+                            seed = seed, 
+                            chains = num.cores, 
+                            parallel_chains = num.cores,
+                            iter_sampling = mcmc.s.iter,
+                            iter_warmup = mcmc.s.warmup,
+                            refresh = 1)
     
-    mcmc.s.samples <- rstan::extract(stan.res)$theta
+    mcmc.s.samples <- stan.res$draws(format = "matrix")[, -1]
     
     sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
                                                sim = type.iter,
