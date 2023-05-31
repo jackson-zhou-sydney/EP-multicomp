@@ -165,7 +165,7 @@ for (type.iter in 1:num.sim) {
                                                iteration = iteration,
                                                method = "mcmc",
                                                j = j,
-                                               r_hat = mcmc.summary[paste0("theta[", j, "]"), "Rhat"])
+                                               r_hat = mcmc.summary[paste0("theta[", j, "]"), "rhat"])
     }
     
     out <- capture.output(sim.mmd.df <- sim.mmd.df %>% add_row(seed = seed,
@@ -252,7 +252,7 @@ for (type.iter in 1:num.sim) {
                                                iteration = iteration,
                                                method = "mcmc-s",
                                                j = j,
-                                               r_hat = mcmc.s.summary[paste0("theta[", j, "]"), "Rhat"])
+                                               r_hat = mcmc.s.summary[paste0("theta[", j, "]"), "rhat"])
     }
     
     out <- capture.output(sim.mmd.df <- sim.mmd.df %>% add_row(seed = seed,
