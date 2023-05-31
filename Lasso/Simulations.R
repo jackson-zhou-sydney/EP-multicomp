@@ -104,7 +104,7 @@ for (type.iter in 1:num.sim) {
                             iter_warmup = mcmc.warmup,
                             refresh = 1)
     
-    mcmc.g.samples <- stan.res$draws(format = "matrix")[, -1]
+    mcmc.g.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
     mcmc.g.mu <- colMeans(mcmc.g.samples)
     mcmc.g.Sigma <- var(mcmc.g.samples)
     mcmc.g.summary <- stan.res$summary()
@@ -140,7 +140,7 @@ for (type.iter in 1:num.sim) {
                             iter_warmup = mcmc.warmup,
                             refresh = 1)
     
-    mcmc.samples <- stan.res$draws(format = "matrix")[, -1]
+    mcmc.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
     mcmc.mu <- colMeans(mcmc.samples)
     mcmc.Sigma <- var(mcmc.samples)
     mcmc.summary <- stan.res$summary()
@@ -165,7 +165,7 @@ for (type.iter in 1:num.sim) {
                                                iteration = iteration,
                                                method = "mcmc",
                                                j = j,
-                                               r_hat = mcmc.summary[paste0("theta[", j, "]"), "rhat"])
+                                               r_hat = mcmc.summary %>% filter(variable == paste0("theta[", j, "]")) %>% pull(rhat))
     }
     
     out <- capture.output(sim.mmd.df <- sim.mmd.df %>% add_row(seed = seed,
@@ -201,7 +201,7 @@ for (type.iter in 1:num.sim) {
                             iter_warmup = mcmc.warmup,
                             refresh = 1)
     
-    mcmc.samples <- stan.res$draws(format = "matrix")[, -1]
+    mcmc.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
     
     sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
                                                sim = type.iter,
@@ -227,7 +227,7 @@ for (type.iter in 1:num.sim) {
                             iter_warmup = mcmc.s.warmup,
                             refresh = 1)
     
-    mcmc.s.samples <- stan.res$draws(format = "matrix")[, -1]
+    mcmc.s.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
     mcmc.s.mu <- colMeans(mcmc.s.samples)
     mcmc.s.Sigma <- var(mcmc.s.samples)
     mcmc.s.summary <- stan.res$summary()
@@ -252,7 +252,7 @@ for (type.iter in 1:num.sim) {
                                                iteration = iteration,
                                                method = "mcmc-s",
                                                j = j,
-                                               r_hat = mcmc.s.summary[paste0("theta[", j, "]"), "rhat"])
+                                               r_hat = mcmc.s.summary %>% filter(variable == paste0("theta[", j, "]")) %>% pull(rhat))
     }
     
     out <- capture.output(sim.mmd.df <- sim.mmd.df %>% add_row(seed = seed,
@@ -288,7 +288,7 @@ for (type.iter in 1:num.sim) {
                             iter_warmup = mcmc.s.warmup,
                             refresh = 1)
     
-    mcmc.s.samples <- stan.res$draws(format = "matrix")[, -1]
+    mcmc.s.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
     
     sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
                                                sim = type.iter,
