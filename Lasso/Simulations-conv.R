@@ -8,6 +8,7 @@ args <- commandArgs(trailingOnly = T)
 seed <- as.numeric(args[1])
 set.seed(seed)
 
+library(cmdstanr)
 mcmc <- cmdstan_model("Lasso/Models/MCMC.stan")
 
 sim.r.hat.df <- data.frame(seed = integer(),
