@@ -3,10 +3,28 @@
 
 source("General-auxiliaries.R")
 source("Lasso/Auxiliaries.R")
+res.files <- list.files("Lasso/Results/")
 
 args <- commandArgs(trailingOnly = T)
 seed <- as.numeric(args[1])
 set.seed(seed)
+
+library(cmdstanr)
+mcmc <- cmdstan_model("Lasso/Models/MCMC.stan")
+
+sim.conv.files <- res.files[grep("Simulations-conv-results", res.files)]
+sim.r.hat.cdf <- data.frame()
+
+for (file in sim.conv.files) {
+  load(paste0("Lasso/Results/", file))
+  sim.r.hat.cdf <- rbind(sim.r.hat.cdf, sim.r.hat.df)
+}
+
+sim.r.hat.table <- sim.r.hat.cdf %>% 
+  group_by(sim, mcmc_iter, seed) %>% 
+  summarise(max_r_hat = max(r_hat)) %>% 
+  group_by(sim, mcmc_iter) %>% 
+  summarise(mean_max_r_hat = mean(max_r_hat))
 
 sim.l1.df <- data.frame(seed = integer(),
                         sim = integer(),
@@ -48,6 +66,11 @@ sim.r.hat.df <- data.frame(seed = integer(),
 
 for (type.iter in 1:num.sim) {
   print(paste0("Current simulation: ", type.iter))
+  
+  mcmc.s.iter <- sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat < r.hat.tol) %>% pull(mcmc_iter) %>% min()
+  mcmc.s.warmup <- warmup.mult*mcmc.s.iter
+  mcmc.iter <- long.mult*mcmc.s.iter
+  mcmc.warmup <- warmup.mult*mcmc.iter
   
   for (iteration in 1:num.sim.iter) {
     print(paste0("Current iteration: ", iteration))
@@ -151,7 +174,7 @@ for (type.iter in 1:num.sim) {
                                                                sim = type.iter,
                                                                iteration = iteration,
                                                                method = "mcmc",
-                                                               mmd = max(kmmd(tail(mcmc.samples, min(mcmc.iter - mcmc.warmup, eval.size)), 
+                                                               mmd = max(kmmd(tail(mcmc.samples, eval.size), 
                                                                               tail(mcmc.g.samples, eval.size))@mmdstats[2], 0)))
     
     sim.cov.norm.df <- sim.cov.norm.df %>% add_row(seed = seed,
@@ -187,98 +210,9 @@ for (type.iter in 1:num.sim) {
                                                sim = type.iter,
                                                iteration = iteration,
                                                method = "mcmc",
-                                               lppd = lppd(X.test, y.test, tail(mcmc.samples, min(mcmc.iter - mcmc.warmup, eval.size))))
+                                               lppd = lppd(X.test, y.test, tail(mcmc.samples, eval.size)))
     
-    ### MCMC-A
-    
-    start.time <- proc.time()
-    
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n,
-                                 p = p,
-                                 X = X,
-                                 y = y,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.a.iter,
-                     warmup = mcmc.a.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
-    
-    mcmc.a.samples <- rstan::extract(stan.res)$theta
-    mcmc.a.mu <- colMeans(mcmc.a.samples)
-    mcmc.a.Sigma <- var(mcmc.a.samples)
-    mcmc.a.summary <- summary(stan.res)$summary
-    
-    total.time <- proc.time() - start.time
-    
-    for (j in 1:(p + 1)) {
-      density.res <- density(mcmc.a.samples[, j], bw = "SJ-ste",
-                             from = mcmc.g.mu[j] - sd.multiple*sqrt(mcmc.g.Sigma[j, j]),
-                             to = mcmc.g.mu[j] + sd.multiple*sqrt(mcmc.g.Sigma[j, j]),
-                             n = total.grid.points)
-      
-      sim.l1.df <- sim.l1.df %>% add_row(seed = seed,
-                                         sim = type.iter,
-                                         iteration = iteration,
-                                         method = "mcmc-a",
-                                         j = j,
-                                         l1 = 1 - trapz(grid.points[j, ], abs(mcmc.g.values[j, ] - density.res$y))/2)
-      
-      sim.r.hat.df <- sim.r.hat.df %>% add_row(seed = seed,
-                                               sim = type.iter,
-                                               iteration = iteration,
-                                               method = "mcmc-a",
-                                               j = j,
-                                               r_hat = mcmc.a.summary[paste0("theta[", j, "]"), "Rhat"])
-    }
-    
-    out <- capture.output(sim.mmd.df <- sim.mmd.df %>% add_row(seed = seed,
-                                                               sim = type.iter,
-                                                               iteration = iteration,
-                                                               method = "mcmc-a",
-                                                               mmd = max(kmmd(tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size)), 
-                                                                              tail(mcmc.g.samples, eval.size))@mmdstats[2], 0)))
-    
-    sim.cov.norm.df <- sim.cov.norm.df %>% add_row(seed = seed,
-                                                   sim = type.iter,
-                                                   iteration = iteration,
-                                                   method = "mcmc-a",
-                                                   cov_norm = norm(mcmc.g.Sigma - mcmc.a.Sigma, "F"))
-    
-    sim.time.df <- sim.time.df %>% add_row(seed = seed,
-                                           sim = type.iter,
-                                           iteration = iteration,
-                                           method = "mcmc-a",
-                                           time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
-    
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n.train,
-                                 p = p,
-                                 X = X.train,
-                                 y = y.train,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.a.iter,
-                     warmup = mcmc.a.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
-    
-    mcmc.a.samples <- rstan::extract(stan.res)$theta
-    
-    sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
-                                               sim = type.iter,
-                                               iteration = iteration,
-                                               method = "mcmc-a",
-                                               lppd = lppd(X.test, y.test, tail(mcmc.a.samples, min(mcmc.a.iter - mcmc.a.warmup, eval.size))))
-    
-    ### MCMC-B
+    ### MCMC-S
     
     start.time <- proc.time()
     
@@ -292,20 +226,20 @@ for (type.iter in 1:num.sim) {
                                  lambda = lambda),
                      chains = num.cores,
                      cores = num.cores,
-                     iter = mcmc.b.iter,
-                     warmup = mcmc.b.warmup,
+                     iter = mcmc.s.iter,
+                     warmup = mcmc.s.warmup,
                      refresh = 0,
                      init = rep(0, p + 1))
     
-    mcmc.b.samples <- rstan::extract(stan.res)$theta
-    mcmc.b.mu <- colMeans(mcmc.b.samples)
-    mcmc.b.Sigma <- var(mcmc.b.samples)
-    mcmc.b.summary <- summary(stan.res)$summary
+    mcmc.s.samples <- rstan::extract(stan.res)$theta
+    mcmc.s.mu <- colMeans(mcmc.s.samples)
+    mcmc.s.Sigma <- var(mcmc.s.samples)
+    mcmc.s.summary <- summary(stan.res)$summary
     
     total.time <- proc.time() - start.time
     
     for (j in 1:(p + 1)) {
-      density.res <- density(mcmc.b.samples[, j], bw = "SJ-ste",
+      density.res <- density(mcmc.s.samples[, j], bw = "SJ-ste",
                              from = mcmc.g.mu[j] - sd.multiple*sqrt(mcmc.g.Sigma[j, j]),
                              to = mcmc.g.mu[j] + sd.multiple*sqrt(mcmc.g.Sigma[j, j]),
                              n = total.grid.points)
@@ -313,35 +247,35 @@ for (type.iter in 1:num.sim) {
       sim.l1.df <- sim.l1.df %>% add_row(seed = seed,
                                          sim = type.iter,
                                          iteration = iteration,
-                                         method = "mcmc-b",
+                                         method = "mcmc-s",
                                          j = j,
                                          l1 = 1 - trapz(grid.points[j, ], abs(mcmc.g.values[j, ] - density.res$y))/2)
       
       sim.r.hat.df <- sim.r.hat.df %>% add_row(seed = seed,
                                                sim = type.iter,
                                                iteration = iteration,
-                                               method = "mcmc-b",
+                                               method = "mcmc-s",
                                                j = j,
-                                               r_hat = mcmc.b.summary[paste0("theta[", j, "]"), "Rhat"])
+                                               r_hat = mcmc.s.summary[paste0("theta[", j, "]"), "Rhat"])
     }
     
     out <- capture.output(sim.mmd.df <- sim.mmd.df %>% add_row(seed = seed,
                                                                sim = type.iter,
                                                                iteration = iteration,
-                                                               method = "mcmc-b",
-                                                               mmd = max(kmmd(tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size)), 
+                                                               method = "mcmc-s",
+                                                               mmd = max(kmmd(tail(mcmc.s.samples, eval.size), 
                                                                               tail(mcmc.g.samples, eval.size))@mmdstats[2], 0)))
     
     sim.cov.norm.df <- sim.cov.norm.df %>% add_row(seed = seed,
                                                    sim = type.iter,
                                                    iteration = iteration,
-                                                   method = "mcmc-b",
-                                                   cov_norm = norm(mcmc.g.Sigma - mcmc.b.Sigma, "F"))
+                                                   method = "mcmc-s",
+                                                   cov_norm = norm(mcmc.g.Sigma - mcmc.s.Sigma, "F"))
     
     sim.time.df <- sim.time.df %>% add_row(seed = seed,
                                            sim = type.iter,
                                            iteration = iteration,
-                                           method = "mcmc-b",
+                                           method = "mcmc-s",
                                            time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
     stan.res <- stan(file = "Lasso/Models/MCMC.stan",
@@ -354,107 +288,18 @@ for (type.iter in 1:num.sim) {
                                  lambda = lambda),
                      chains = num.cores,
                      cores = num.cores,
-                     iter = mcmc.b.iter,
-                     warmup = mcmc.b.warmup,
+                     iter = mcmc.s.iter,
+                     warmup = mcmc.s.warmup,
                      refresh = 0,
                      init = rep(0, p + 1))
     
-    mcmc.b.samples <- rstan::extract(stan.res)$theta
+    mcmc.s.samples <- rstan::extract(stan.res)$theta
     
     sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
                                                sim = type.iter,
                                                iteration = iteration,
-                                               method = "mcmc-b",
-                                               lppd = lppd(X.test, y.test, tail(mcmc.b.samples, min(mcmc.b.iter - mcmc.b.warmup, eval.size))))
-    
-    ### MCMC-C
-    
-    start.time <- proc.time()
-    
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n,
-                                 p = p,
-                                 X = X,
-                                 y = y,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.c.iter,
-                     warmup = mcmc.c.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
-    
-    mcmc.c.samples <- rstan::extract(stan.res)$theta
-    mcmc.c.mu <- colMeans(mcmc.c.samples)
-    mcmc.c.Sigma <- var(mcmc.c.samples)
-    mcmc.c.summary <- summary(stan.res)$summary
-    
-    total.time <- proc.time() - start.time
-    
-    for (j in 1:(p + 1)) {
-      density.res <- density(mcmc.c.samples[, j], bw = "SJ-ste",
-                             from = mcmc.g.mu[j] - sd.multiple*sqrt(mcmc.g.Sigma[j, j]),
-                             to = mcmc.g.mu[j] + sd.multiple*sqrt(mcmc.g.Sigma[j, j]),
-                             n = total.grid.points)
-      
-      sim.l1.df <- sim.l1.df %>% add_row(seed = seed,
-                                         sim = type.iter,
-                                         iteration = iteration,
-                                         method = "mcmc-c",
-                                         j = j,
-                                         l1 = 1 - trapz(grid.points[j, ], abs(mcmc.g.values[j, ] - density.res$y))/2)
-      
-      sim.r.hat.df <- sim.r.hat.df %>% add_row(seed = seed,
-                                               sim = type.iter,
-                                               iteration = iteration,
-                                               method = "mcmc-c",
-                                               j = j,
-                                               r_hat = mcmc.c.summary[paste0("theta[", j, "]"), "Rhat"])
-    }
-    
-    out <- capture.output(sim.mmd.df <- sim.mmd.df %>% add_row(seed = seed,
-                                                               sim = type.iter,
-                                                               iteration = iteration,
-                                                               method = "mcmc-c",
-                                                               mmd = max(kmmd(tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size)), 
-                                                                              tail(mcmc.g.samples, eval.size))@mmdstats[2], 0)))
-    
-    sim.cov.norm.df <- sim.cov.norm.df %>% add_row(seed = seed,
-                                                   sim = type.iter,
-                                                   iteration = iteration,
-                                                   method = "mcmc-c",
-                                                   cov_norm = norm(mcmc.g.Sigma - mcmc.c.Sigma, "F"))
-    
-    sim.time.df <- sim.time.df %>% add_row(seed = seed,
-                                           sim = type.iter,
-                                           iteration = iteration,
-                                           method = "mcmc-c",
-                                           time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
-    
-    stan.res <- stan(file = "Lasso/Models/MCMC.stan",
-                     data = list(N = n.train,
-                                 p = p,
-                                 X = X.train,
-                                 y = y.train,
-                                 mu_kappa = mu.kappa,
-                                 sigma_2_kappa = sigma.2.kappa,
-                                 lambda = lambda),
-                     chains = num.cores,
-                     cores = num.cores,
-                     iter = mcmc.c.iter,
-                     warmup = mcmc.c.warmup,
-                     refresh = 0,
-                     init = rep(0, p + 1))
-    
-    mcmc.c.samples <- rstan::extract(stan.res)$theta
-    
-    sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
-                                               sim = type.iter,
-                                               iteration = iteration,
-                                               method = "mcmc-c",
-                                               lppd = lppd(X.test, y.test, tail(mcmc.c.samples, min(mcmc.c.iter - mcmc.c.warmup, eval.size))))
+                                               method = "mcmc-s",
+                                               lppd = lppd(X.test, y.test, tail(mcmc.s.samples, eval.size)))
     
     ### EP
     

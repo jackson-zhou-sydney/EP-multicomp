@@ -20,35 +20,26 @@ library(RcppArmadillo) # Efficient linear algebra for Rcpp
 library(RcppEigen)     # Alternate linear algebra for Rcpp
 library(RcppNumerical) # Optimisation in Rcpp
 
-# Options
+## Options
 options(rcpp.cache.dir = "Rcpp-cache/")
 
-# General settings
+## General settings
 num.cores <- 6
 num.sim.iter <- 5
 num.sim <- 3
 num.bench <- 4
 
-# MCMC settings
-mcmc.iter <- 5000
-mcmc.warmup <- 500
-
-# Short MCMC settings
-mcmc.a.iter <- 200
-mcmc.a.warmup <- 20
-mcmc.b.iter <- 1000
-mcmc.b.warmup <- 100
-mcmc.c.iter <- 2000
-mcmc.c.warmup <- 200
-
-# Marginal L1 evaluation
+## Marginal L1 evaluation
 sd.multiple <- 5
 total.grid.points <- 1024
 
-# MMD and LPPD evaluation
+## MMD and LPPD evaluation
 eval.size <- 500
 train.size <- 0.9
 
-# R hat evaluation
+## R hat evaluation
+r.hat.tol <- 1.05
+warmup.mult <- 0.1
+long.mult <- 4
 mcmc.check.iter <- c(50, 100, 200, 500, 1000, 2000)
-mcmc.check.warmup <- c(5, 10, 20, 50, 100, 200)
+mcmc.check.warmup <- warmup.mult*mcmc.check.iter

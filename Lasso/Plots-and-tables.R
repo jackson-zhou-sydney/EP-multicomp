@@ -3,7 +3,6 @@
 
 source("General-auxiliaries.R")
 source("Lasso/Auxiliaries.R")
-
 res.files <- list.files("Lasso/Results/")
 
 ## MCMC convergence for simulations
@@ -16,10 +15,10 @@ for (file in sim.conv.files) {
   sim.r.hat.cdf <- rbind(sim.r.hat.cdf, sim.r.hat.df)
 }
 
-sim.r.hat.cdf %>% 
+sim.r.hat.table <- sim.r.hat.cdf %>% 
   group_by(sim, mcmc_iter, seed) %>% 
   summarise(max_r_hat = max(r_hat)) %>% 
   group_by(sim, mcmc_iter) %>% 
-  summarise(median_max_r_hat = median(max_r_hat))
+  summarise(mean_max_r_hat = mean(max_r_hat))
 
 ## MCMC convergence for benchmarks
