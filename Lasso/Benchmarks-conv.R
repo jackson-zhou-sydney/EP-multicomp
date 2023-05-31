@@ -39,7 +39,7 @@ for (type.iter in 1:num.bench) {
                             parallel_chains = num.cores,
                             iter_sampling = mcmc.check.iter[k],
                             iter_warmup = mcmc.check.warmup[k],
-                            refresh = 100)
+                            refresh = 1)
     
     mcmc.summary <- stan.res$summary()
     

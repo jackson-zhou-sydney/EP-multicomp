@@ -20,6 +20,6 @@ sim.r.hat.cdf %>%
   group_by(sim, mcmc_iter, seed) %>% 
   summarise(max_r_hat = max(r_hat)) %>% 
   group_by(sim, mcmc_iter) %>% 
-  summarise(mean_max_r_hat = round(mean(max_r_hat), 2))
+  summarise(median_max_r_hat = median(max_r_hat))
 
 ## MCMC convergence for benchmarks

@@ -30,8 +30,8 @@ num.sim <- 3
 num.bench <- 4
 
 # MCMC settings
-mcmc.iter <- 10000
-mcmc.warmup <- 1000
+mcmc.iter <- 5000
+mcmc.warmup <- 500
 
 # Short MCMC settings
 mcmc.a.iter <- 200
