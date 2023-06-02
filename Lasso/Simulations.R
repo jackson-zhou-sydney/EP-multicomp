@@ -299,7 +299,7 @@ for (type.iter in 1:num.sim) {
     start.time <- proc.time()
     
     ep.res <- ep(X, y, sigma.2.kappa, mu.kappa,
-                 lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
+                 lambda, eta = 0.5, alpha = 0.5, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
                  min_passes = 6, max_passes = 200, thresh = 0.05, n_grid = 400, verbose = F)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
@@ -337,7 +337,7 @@ for (type.iter in 1:num.sim) {
                                            time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
     ep.res <- ep(X.train, y.train, sigma.2.kappa, mu.kappa,
-                 lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
+                 lambda, eta = 0.5, alpha = 0.5, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
                  min_passes = 6, max_passes = 200, thresh = 0.05, n_grid = 400, verbose = F)
     ep.mu <- ep.res$mu
     ep.Sigma <- ep.res$Sigma
@@ -355,7 +355,7 @@ for (type.iter in 1:num.sim) {
     start.time <- proc.time()
     
     ep.2d.res <- ep_2d(X, y, sigma.2.kappa, mu.kappa,
-                       lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
+                       lambda, eta = 0.5, alpha = 0.5, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
                        min_passes = 6, max_passes = 200, thresh = 0.05, n_grid = 400, verbose = F)
     ep.2d.mu <- ep.2d.res$mu
     ep.2d.Sigma <- ep.2d.res$Sigma
@@ -393,7 +393,7 @@ for (type.iter in 1:num.sim) {
                                            time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
     
     ep.2d.res <- ep_2d(X.train, y.train, sigma.2.kappa, mu.kappa,
-                       lambda, eta = 0.5, alpha = 0.8, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
+                       lambda, eta = 0.5, alpha = 0.5, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
                        min_passes = 6, max_passes = 200, thresh = 0.05, n_grid = 400, verbose = F)
     ep.2d.mu <- ep.2d.res$mu
     ep.2d.Sigma <- ep.2d.res$Sigma

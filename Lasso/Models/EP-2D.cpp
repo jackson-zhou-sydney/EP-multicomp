@@ -27,7 +27,6 @@ tuple <vec, mat> h_mom_1_2d(double y, vec mu, mat Sigma, double eta, int n_grid)
   
   vec lb = mu - 5.0*sqrt_dg_Sigma;
   vec ub = mu + 5.0*sqrt_dg_Sigma;
-  lb(1) = max(lb(1), -5.0);
   double adjust = 0.5*dot(mu, Q*mu) - dot(mu, r) + eta*(mu(1) + pow(y_data - mu(0), 2.0)/(2.0*exp(2.0*mu(1))));
   
   vec x_values = linspace(lb(0), ub(0), n_grid);
@@ -77,7 +76,6 @@ tuple <vec, mat> h_mom_2_2d(double lambda, vec mu, mat Sigma, double eta, int n_
   
   vec lb = mu - 5.0*sqrt_dg_Sigma;
   vec ub = mu + 5.0*sqrt_dg_Sigma;
-  lb(1) = max(lb(1), -10.0);
   double adjust = 0.5*dot(mu, Q*mu) - dot(mu, r) + eta*(mu(1) + lambda*abs(mu(0))/exp(mu(1)));
   
   vec x_values = linspace(lb(0), ub(0), n_grid);
