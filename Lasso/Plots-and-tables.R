@@ -22,3 +22,17 @@ sim.r.hat.table <- sim.r.hat.cdf %>%
   summarise(mean_max_r_hat = mean(max_r_hat))
 
 ## MCMC convergence for benchmarks
+
+bench.conv.files <- res.files[grep("Benchmarks-conv-results", res.files)]
+bench.r.hat.cdf <- data.frame()
+
+for (file in bench.conv.files) {
+  load(paste0("Lasso/Results/", file))
+  bench.r.hat.cdf <- rbind(bench.r.hat.cdf, bench.r.hat.df)
+}
+
+bench.r.hat.table <- bench.r.hat.cdf %>% 
+  group_by(bench, mcmc_iter, seed) %>% 
+  summarise(max_r_hat = max(r_hat)) %>% 
+  group_by(bench, mcmc_iter) %>% 
+  summarise(mean_max_r_hat = mean(max_r_hat))
