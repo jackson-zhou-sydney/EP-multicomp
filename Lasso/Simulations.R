@@ -201,11 +201,11 @@ for (type.iter in 1:num.sim) {
     
     mcmc.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
     
-    sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
-                                               sim = type.iter,
-                                               iteration = iteration,
-                                               method = "mcmc",
-                                               lppd = lppd(X.test, y.test, tail(mcmc.samples, eval.size)))
+    sim.lppd.df <- sim.lppd.df %>% add_row(seed = seed,
+                                           sim = type.iter,
+                                           iteration = iteration,
+                                           method = "mcmc",
+                                           lppd = lppd(X.test, y.test, tail(mcmc.samples, eval.size)))
     
     ### MCMC-S
     
@@ -288,11 +288,11 @@ for (type.iter in 1:num.sim) {
     
     mcmc.s.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
     
-    sim.lppd.df <- sim.cov.norm.df %>% add_row(seed = seed,
-                                               sim = type.iter,
-                                               iteration = iteration,
-                                               method = "mcmc-s",
-                                               lppd = lppd(X.test, y.test, tail(mcmc.s.samples, eval.size)))
+    sim.lppd.df <- sim.lppd.df %>% add_row(seed = seed,
+                                           sim = type.iter,
+                                           iteration = iteration,
+                                           method = "mcmc-s",
+                                           lppd = lppd(X.test, y.test, tail(mcmc.s.samples, eval.size)))
     
     ### EP
     
