@@ -69,8 +69,6 @@ for (type.iter in 1:num.sim) {
   
   mcmc.s.iter <- sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat < r.hat.tol) %>% pull(mcmc_iter) %>% min()
   mcmc.s.warmup <- warmup.mult*mcmc.s.iter
-  mcmc.iter <- long.mult*mcmc.s.iter
-  mcmc.warmup <- warmup.mult*mcmc.iter
   
   for (iteration in 1:num.sim.iter) {
     print(paste0("Current iteration: ", iteration))

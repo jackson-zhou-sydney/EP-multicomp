@@ -40,6 +40,8 @@ train.size <- 0.9
 ## R hat evaluation
 r.hat.tol <- 1.05
 warmup.mult <- 0.1
-long.mult <- 4
 mcmc.check.iter <- c(50, 100, 200, 500, 1000, 2000)
 mcmc.check.warmup <- warmup.mult*mcmc.check.iter
+mcmc.iter <- 5000
+mcmc.warmup <- warmup.mult*mcmc.iter
+
