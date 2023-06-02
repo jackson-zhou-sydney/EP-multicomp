@@ -24,7 +24,7 @@ library(RcppNumerical) # Optimisation in Rcpp
 options(rcpp.cache.dir = "Rcpp-cache/")
 
 ## General settings
-num.cores <- 6
+num.cores <- 10
 num.sim.iter <- 5
 num.sim <- 3
 num.bench <- 4
