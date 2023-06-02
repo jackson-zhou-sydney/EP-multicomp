@@ -347,7 +347,6 @@ for (type.iter in 1:num.sim) {
                                            sim = type.iter,
                                            iteration = iteration,
                                            method = "ep",
-                                           fold = fold,
                                            lppd = lppd(X.test, y.test, ep.samples))
     
     ### EP-2D
@@ -403,7 +402,6 @@ for (type.iter in 1:num.sim) {
                                            sim = type.iter,
                                            iteration = iteration,
                                            method = "ep-2d",
-                                           fold = fold,
                                            lppd = lppd(X.test, y.test, ep.2d.samples))
     
     ### MFVB
@@ -455,7 +453,6 @@ for (type.iter in 1:num.sim) {
                                            sim = type.iter,
                                            iteration = iteration,
                                            method = "mfvb",
-                                           fold = fold,
                                            lppd = lppd(X.test, y.test, mfvb.samples))
   }
 }
