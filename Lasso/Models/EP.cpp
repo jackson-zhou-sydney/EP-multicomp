@@ -70,7 +70,7 @@ tuple <vec, mat> h_mom_1(double y, vec mu, mat Sigma, double eta, int n_grid) {
   double Q_12 = Q(0, 1);
   double Q_22 = Q(1, 1);
   
-  double lb = max(mu_2 - 5.0*sqrt(Sigma(1, 1)), -5.0);
+  double lb = mu_2 - 5.0*sqrt(Sigma(1, 1));
   double ub = mu_2 + 5.0*sqrt(Sigma(1, 1));
   double adjust = -eta*(2.0*mu_2 + pow(y - mu_1, 2)/exp(2.0*mu_2));
   
@@ -120,7 +120,7 @@ tuple <vec, mat> h_mom_2(double lambda, vec mu, mat Sigma, double eta, int n_gri
   double Q_12 = Q(0, 1);
   double Q_22 = Q(1, 1);
   
-  double lb = max(mu_2 - 5.0*sqrt(Sigma(1, 1)), -10.0);
+  double lb = mu_2 - 5.0*sqrt(Sigma(1, 1));
   double ub = mu_2 + 5.0*sqrt(Sigma(1, 1));
   double adjust = -eta*2.0*mu_2;
   
