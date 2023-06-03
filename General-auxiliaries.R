@@ -28,6 +28,7 @@ num.cores <- 10
 num.sim.iter <- 5
 num.sim <- 3
 num.bench <- 4
+table.dp <- 3
 
 ## Marginal L1 evaluation
 sd.multiple <- 5
