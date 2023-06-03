@@ -131,7 +131,7 @@ for (type.iter in 1:num.sim) {
                                         mu_kappa = mu.kappa,
                                         sigma_2_kappa = sigma.2.kappa,
                                         lambda = lambda), 
-                            seed = seed, 
+                            seed = seed + 1, 
                             chains = num.cores, 
                             parallel_chains = num.cores,
                             iter_sampling = mcmc.iter,
@@ -183,7 +183,7 @@ for (type.iter in 1:num.sim) {
                                            sim = type.iter,
                                            iteration = iteration,
                                            method = "mcmc",
-                                           time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+                                           time = total.time["elapsed"])
     
     stan.res <- mcmc$sample(data = list(N = n.train,
                                         p = p,
@@ -192,7 +192,7 @@ for (type.iter in 1:num.sim) {
                                         mu_kappa = mu.kappa,
                                         sigma_2_kappa = sigma.2.kappa,
                                         lambda = lambda), 
-                            seed = seed, 
+                            seed = seed + 1, 
                             chains = num.cores, 
                             parallel_chains = num.cores,
                             iter_sampling = mcmc.iter,
@@ -218,7 +218,7 @@ for (type.iter in 1:num.sim) {
                                         mu_kappa = mu.kappa,
                                         sigma_2_kappa = sigma.2.kappa,
                                         lambda = lambda), 
-                            seed = seed, 
+                            seed = seed + 2, 
                             chains = num.cores, 
                             parallel_chains = num.cores,
                             iter_sampling = mcmc.s.iter,
@@ -270,7 +270,7 @@ for (type.iter in 1:num.sim) {
                                            sim = type.iter,
                                            iteration = iteration,
                                            method = "mcmc-s",
-                                           time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+                                           time = total.time["elapsed"])
     
     stan.res <- mcmc$sample(data = list(N = n.train,
                                         p = p,
@@ -279,7 +279,7 @@ for (type.iter in 1:num.sim) {
                                         mu_kappa = mu.kappa,
                                         sigma_2_kappa = sigma.2.kappa,
                                         lambda = lambda), 
-                            seed = seed, 
+                            seed = seed + 2, 
                             chains = num.cores, 
                             parallel_chains = num.cores,
                             iter_sampling = mcmc.s.iter,
@@ -334,7 +334,7 @@ for (type.iter in 1:num.sim) {
                                            sim = type.iter,
                                            iteration = iteration,
                                            method = "ep",
-                                           time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+                                           time = total.time["elapsed"])
     
     ep.res <- ep(X.train, y.train, sigma.2.kappa, mu.kappa,
                  lambda, eta = 0.5, alpha = 0.5, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
@@ -389,7 +389,7 @@ for (type.iter in 1:num.sim) {
                                            sim = type.iter,
                                            iteration = iteration,
                                            method = "ep-2d",
-                                           time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+                                           time = total.time["elapsed"])
     
     ep.2d.res <- ep_2d(X.train, y.train, sigma.2.kappa, mu.kappa,
                        lambda, eta = 0.5, alpha = 0.5, Q_star_init = 0.01*diag(2), r_star_init = rep(0, 2),
@@ -442,7 +442,7 @@ for (type.iter in 1:num.sim) {
                                            sim = type.iter,
                                            iteration = iteration,
                                            method = "mfvb",
-                                           time = sum(total.time[c(1, 2, 4, 5)], na.rm = T))
+                                           time = total.time["elapsed"])
     
     mfvb.res <- mfvb(X.train, y.train, sigma.2.kappa, mu.kappa, lambda, maxit = 2000, tol = 1.0E-10)
     mfvb.mu <- mfvb.res$mu
