@@ -96,5 +96,3 @@ bench.r.hat.table <- bench.r.hat.cdf %>%
   summarise(max_r_hat = max(r_hat)) %>% 
   group_by(bench, mcmc_iter) %>% 
   summarise(mean_max_r_hat = mean(max_r_hat))
-
-
