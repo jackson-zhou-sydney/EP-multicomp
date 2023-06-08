@@ -1,5 +1,5 @@
 
-# R hat evaluation for lasso linear regression benchmarks
+# Convergence evaluation for lasso linear regression benchmarks
 
 source("General-auxiliaries.R")
 source("Lasso/Auxiliaries.R")

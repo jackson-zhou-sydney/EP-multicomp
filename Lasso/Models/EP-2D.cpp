@@ -120,7 +120,7 @@ tuple <vec, mat> h_mom_2_2d(double lambda, vec mu, mat Sigma, double eta, int n_
 // [[Rcpp::export]]
 List ep_2d(mat X, vec y, double sigma_2_kappa, double mu_kappa,
            double lambda, double eta, double alpha, mat Q_star_init, vec r_star_init,
-           double min_passes, double max_passes, double thresh, int n_grid, bool verbose) {
+           int min_passes, int max_passes, double thresh, int n_grid, bool verbose) {
   // Dampened power EP for Bayesian lasso linear regression
   int n = X.n_rows;
   int p = X.n_cols;
@@ -263,7 +263,7 @@ List ep_2d(mat X, vec y, double sigma_2_kappa, double mu_kappa,
       Rcout << "Maximum delta for r: " << md_r << '\n';
     }
     
-    if (md_Q < thresh*bmd_Q && md_r < thresh*bmd_r && pass > min_passes) {
+    if (md_Q < thresh*bmd_Q && md_r < thresh*bmd_r && pass >= min_passes - 1) {
       if (verbose) {
         Rcout << "EP has converged; stopping EP\n";
       }
