@@ -51,7 +51,7 @@ double E_lnig(double A, double B, double C, double D, double E, String fun, int 
   }
   
   double mu = x_est(0);
-  double sigma = 1/sqrt((4*A*exp(-2*mu) - B*exp(-mu) + 1/E));
+  double sigma = 1.0/sqrt((4.0*A*exp(-2.0*mu) - B*exp(-mu) + 1.0/E));
   
   double lb = mu - 5.0*sigma;
   double ub = mu + 5.0*sigma;

@@ -377,7 +377,8 @@ for (type.iter in 1:num.bench) {
   
   start.time <- proc.time()
   
-  mfvb.res <- mfvb(X, y, sigma.2.kappa, mu.kappa, lambda, maxit = 2000, tol = 1.0E-10)
+  mfvb.res <- mfvb(X, y, sigma.2.kappa, mu.kappa, lambda,
+                   min_iter = 6, max_iter = 200, thresh = 0.05, n_grid = 400, verbose = F)
   mfvb.mu <- mfvb.res$mu
   mfvb.Sigma <- mfvb.res$Sigma
   mfvb.samples <- rmvnorm(eval.size, mfvb.mu, mfvb.Sigma)
@@ -409,7 +410,8 @@ for (type.iter in 1:num.bench) {
                                              method = "mfvb",
                                              time = total.time["elapsed"])
   
-  mfvb.res <- mfvb(X.train, y.train, sigma.2.kappa, mu.kappa, lambda, maxit = 2000, tol = 1.0E-10)
+  mfvb.res <- mfvb(X.train, y.train, sigma.2.kappa, mu.kappa, lambda,
+                   min_iter = 6, max_iter = 200, thresh = 0.05, n_grid = 400, verbose = F)
   mfvb.mu <- mfvb.res$mu
   mfvb.Sigma <- mfvb.res$Sigma
   mfvb.samples <- rmvnorm(eval.size, mfvb.mu, mfvb.Sigma)

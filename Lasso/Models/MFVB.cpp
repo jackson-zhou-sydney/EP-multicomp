@@ -31,67 +31,14 @@ public:
   }
 };
 
-class MFVB_q: public Func {
-private:
-  double A;
-  double B;
-  double C;
-  double D;
-  double E;
-public:
-  MFVB_q(double A_, double B_, double C_, double D_, double E_) : A(A_), B(B_), C(C_), D(D_), E(E_) {}
-  
-  double operator()(const double& x) const {
-    return exp(-A*x - pow(x - B, 2.0)/(2.0*C) - D/(2.0*exp(2.0*x)) - E);
-  }
-};
+double trap_unif(double delta_x, rowvec y) {
+  // Trapezoidal integration with uniform intervals
+  y(0) = 0.5*y(0);
+  y.back() = 0.5*y.back();
+  return delta_x*sum(y);
+}
 
-class MFVB_r_x: public Func {
-private:
-  double A;
-  double B;
-  double C;
-  double D;
-  double E;
-public:
-  MFVB_r_x(double A_, double B_, double C_, double D_, double E_) : A(A_), B(B_), C(C_), D(D_), E(E_) {}
-  
-  double operator()(const double& x) const {
-    return exp(-A*x - pow(x - B, 2.0)/(2.0*C) - D/(2.0*exp(2.0*x)) - E)*x;
-  }
-};
-
-class MFVB_r_x2: public Func {
-private:
-  double A;
-  double B;
-  double C;
-  double D;
-  double E;
-public:
-  MFVB_r_x2(double A_, double B_, double C_, double D_, double E_) : A(A_), B(B_), C(C_), D(D_), E(E_) {}
-  
-  double operator()(const double& x) const {
-    return exp(-A*x - pow(x - B, 2.0)/(2.0*C) - D/(2.0*exp(2.0*x)) - E)*pow(x, 2.0);
-  }
-};
-
-class MFVB_r_exp_2x: public Func {
-private:
-  double A;
-  double B;
-  double C;
-  double D;
-  double E;
-public:
-  MFVB_r_exp_2x(double A_, double B_, double C_, double D_, double E_) : A(A_), B(B_), C(C_), D(D_), E(E_) {}
-  
-  double operator()(const double& x) const {
-    return exp(-A*x - pow(x - B, 2.0)/(2.0*C) - D/(2.0*exp(2.0*x)) - E - 2*x);
-  }
-};
-
-double E_lnig(double A, double B, double C, double D, String fun) {
+double E_lnig(double A, double B, double C, double D, String fun, int n_grid) {
   // Expectation of log-normal and inverse gamma product
   Neg_Expnt neg_expnt(A, B, C, D);
   
@@ -102,35 +49,51 @@ double E_lnig(double A, double B, double C, double D, String fun) {
     stop("Failed to converge");
   }
   
-  MFVB_q q(A, B, C, D, -fopt);
-  double err_est_q;
-  double err_est_r;
-  int err_code_q;
-  int err_code_r;
+  double mu = x_est(0);
+  double sigma = 1.0/sqrt((1.0/C + 2*D*exp(-2.0*mu)));
+  
+  double lb = mu - 5.0*sigma;
+  double ub = mu + 5.0*sigma;
+  
+  vec x_values = linspace(lb, ub, n_grid);
+  double delta_x = x_values(1) - x_values(0);
+  mat y_matrix = zeros(2, n_grid);
   
   if (fun == "x") {
-    MFVB_r_x r(A, B, C, D, -fopt);
-    return integrate(r, -INFINITY, INFINITY, err_est_r, err_code_r)/
-           integrate(q, -INFINITY, INFINITY, err_est_q, err_code_q);
+    for (int i = 0; i < n_grid; ++i) {
+      double x = x_values(i);
+      y_matrix(0, i) = exp(-A*x - pow(x - B, 2.0)/(2.0*C) - D/(2.0*exp(2.0*x)) + fopt);
+      y_matrix(1, i) = x*y_matrix(0, i);
+    }
   } else if (fun == "x^2") {
-    MFVB_r_x2 r(A, B, C, D, -fopt);
-    return integrate(r, -INFINITY, INFINITY, err_est_r, err_code_r)/
-           integrate(q, -INFINITY, INFINITY, err_est_q, err_code_q);
+    for (int i = 0; i < n_grid; ++i) {
+      double x = x_values(i);
+      y_matrix(0, i) = exp(-A*x - pow(x - B, 2.0)/(2.0*C) - D/(2.0*exp(2.0*x)) + fopt);
+      y_matrix(1, i) = pow(x, 2.0)*y_matrix(0, i);
+    }
   } else if (fun == "1/exp(2*x)") {
-    MFVB_r_exp_2x r(A, B, C, D, -fopt);
-    return integrate(r, -INFINITY, INFINITY, err_est_r, err_code_r)/
-           integrate(q, -INFINITY, INFINITY, err_est_q, err_code_q);
+    for (int i = 0; i < n_grid; ++i) {
+      double x = x_values(i);
+      y_matrix(0, i) = exp(-A*x - pow(x - B, 2.0)/(2.0*C) - D/(2.0*exp(2.0*x)) + fopt);
+      y_matrix(1, i) = exp(-2*x)*y_matrix(0, i);
+    }
   } else {
     stop("fun must be one of: x, x^2, or 1/exp(2*x)");
   }
+  
+  return trap_unif(delta_x, y_matrix.row(1))/trap_unif(delta_x, y_matrix.row(0));
 }
 
 // [[Rcpp::export]]
 List mfvb(mat X, vec y, double sigma_2_kappa, double mu_kappa,
-          double lambda, int maxit, double tol) {
+          double lambda, int min_iter, int max_iter, double thresh, int n_grid, bool verbose) {
   // MFVB for Bayesian lasso linear regression
   int n = X.n_rows;
   int p = X.n_cols;
+  
+  double bd_mu;
+  double bd_Sigma;
+  double bd_a;
   
   mat XTX = X.t()*X;
   vec XTy = X.t()*y;
@@ -144,9 +107,15 @@ List mfvb(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   mat Q_inv;
   
   // Main MFVB loop
-  for (int i = 0; i < maxit; ++i) {
+  for (int i = 0; i < max_iter; ++i) {
     // Store old values
     vec mu_beta_old = mu_beta;
+    mat Sigma_beta_old = Sigma_beta;
+    vec E_a_old = E_a;
+    
+    if (verbose) {
+      Rcout << "---- Current iteration: " << i << " ----\n";
+    }
     
     // Update q(beta)
     Q_inv = XTX + pow(lambda, 2.0)*diagmat(E_a);
@@ -157,14 +126,41 @@ List mfvb(mat X, vec y, double sigma_2_kappa, double mu_kappa,
     // Update q(kappa)
     E_ie_2_kappa = E_lnig(n + p, mu_kappa, sigma_2_kappa,
                           sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
-                          "1/exp(2*x)");
+                          "1/exp(2*x)", n_grid);
     
     // Update q(a)
     E_a = sqrt(1/(E_ie_2_kappa*(pow(mu_beta, 2.0) + diagvec(Sigma_beta))))/lambda;
     
     // Check for convergence
-    double delta = norm(mu_beta - mu_beta_old);
-    if (delta < tol) {
+    if (i == 0) {
+      // Base deltas
+      bd_mu = norm(mu_beta - mu_beta_old, 2);
+      bd_Sigma = norm(Sigma_beta - Sigma_beta_old, "fro");
+      bd_a = norm(E_a - E_a_old, 2);
+      
+      if (verbose) {
+        Rcout << "Delta for mu: " << bd_mu << '\n';
+        Rcout << "Delta for Sigma: " << bd_Sigma << '\n';
+        Rcout << "Delta for a: " << bd_a << '\n';
+      }
+      
+      continue;
+    }
+    
+    double d_mu = norm(mu_beta - mu_beta_old, 2);
+    double d_Sigma = norm(Sigma_beta - Sigma_beta_old, "fro");
+    double d_a = norm(E_a - E_a_old, 2);
+    
+    if (verbose) {
+      Rcout << "Delta for mu: " << d_mu << '\n';
+      Rcout << "Delta for Sigma: " << d_Sigma << '\n';
+      Rcout << "Delta for a: " << d_a << '\n';
+    }
+    
+    if (d_mu < thresh*bd_mu && d_Sigma < thresh*bd_Sigma && d_a < thresh*bd_a && i >= min_iter - 1) {
+      if (verbose) {
+        Rcout << "MFVB has converged; stopping MFVB\n";
+      }
       break;
     }
   }
@@ -172,10 +168,10 @@ List mfvb(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   // Return parameters
   double mu_kappa_q = E_lnig(n + p, mu_kappa, sigma_2_kappa,
                              sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
-                             "x");
+                             "x", n_grid);
   double sigma_2_kappa_q = E_lnig(n + p, mu_kappa, sigma_2_kappa,
                                   sum(pow(y - X*mu_beta, 2.0)) + pow(lambda, 2.0)*sum(E_a%pow(mu_beta, 2.0)) + trace(Q_inv*Sigma_beta),
-                                  "x^2") - pow(mu_kappa_q, 2.0);
+                                  "x^2", n_grid) - pow(mu_kappa_q, 2.0);
   
   vec mu_theta = zeros(p + 1);
   mu_theta.subvec(0, p - 1) = mu_beta;
