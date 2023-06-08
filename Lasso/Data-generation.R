@@ -16,7 +16,7 @@ for (type.iter in 1:num.sim) {
   
   for (iteration in 1:num.sim.iter) {
     X <- cbind(1, scale(matrix(data = rnorm(n = n*(p - 1)), nrow = n)))
-    y <- rnorm(n, X%*%beta, exp(kappa))
+    y <- as.vector(scale(rnorm(n, X%*%beta, exp(kappa))))
     save(X, y, file = paste0("Lasso/Data/Simulations/Sim-", type.iter, "-iter-", str_pad(iteration, 2, pad = "0"), ".RData"))
   }
 }
@@ -25,21 +25,21 @@ for (type.iter in 1:num.sim) {
 
 load("Benchmark-data/efron2004.Rdata")
 X <- cbind(1, scale(efron2004$x))
-y <- as.vector(efron2004$y)
+y <- as.vector(scale(efron2004$y))
 save(X, y, file = "Lasso/Data/Benchmarks/Bench-1.RData")
 
 ## Benchmark 2
 
 load("Benchmark-data/Prostate.RData")
 X <- cbind(1, scale(Prostate[, -9]))
-y <- Prostate[, 9]
+y <- as.vector(scale(Prostate[, 9]))
 save(X, y, file = "Lasso/Data/Benchmarks/Bench-2.RData")
 
 ## Benchmark 3
 
 load("Benchmark-data/eyedata.RData")
 X <- cbind(1, scale(unname(x)))
-y <- y
+y <- as.vector(scale(y))
 save(X, y, file = "Lasso/Data/Benchmarks/Bench-3.RData")
 
 ## Benchmark 4
