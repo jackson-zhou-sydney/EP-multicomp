@@ -75,7 +75,7 @@ double E_lnig(double A, double B, double C, double D, String fun, int n_grid) {
     for (int i = 0; i < n_grid; ++i) {
       double x = x_values(i);
       y_matrix(0, i) = exp(-A*x - pow(x - B, 2.0)/(2.0*C) - D/(2.0*exp(2.0*x)) + fopt);
-      y_matrix(1, i) = exp(-2*x)*y_matrix(0, i);
+      y_matrix(1, i) = exp(-2.0*x)*y_matrix(0, i);
     }
   } else {
     stop("fun must be one of: x, x^2, or 1/exp(2*x)");
