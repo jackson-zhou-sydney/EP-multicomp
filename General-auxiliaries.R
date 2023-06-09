@@ -28,6 +28,7 @@ num.cores <- 10
 num.sim.iter <- 5
 num.sim <- 3
 num.bench <- 4
+log.lb <- 0.00001
 table.dp <- 3
 
 ## Marginal L1 evaluation
@@ -41,7 +42,5 @@ train.size <- 0.9
 ## R hat evaluation
 r.hat.tol <- 1.05
 warmup.mult <- 0.1
-mcmc.check.iter <- c(8000)
-mcmc.check.warmup <- warmup.mult*mcmc.check.iter
-mcmc.iter <- 10000
-mcmc.warmup <- warmup.mult*mcmc.iter
+mcmc.g.iter <- 10000
+mcmc.g.warmup <- warmup.mult*mcmc.iter
