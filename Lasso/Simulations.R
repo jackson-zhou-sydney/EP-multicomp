@@ -54,6 +54,9 @@ sim.r.hat.df <- data.frame(seed = integer(),
 for (type.iter in 1:num.sim) {
   print(paste0("Current simulation: ", type.iter))
   
+  mcmc.s.iter <- sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat < r.hat.tol) %>% pull(mcmc_iter) %>% min()
+  mcmc.s.warmup <- warmup.mult*mcmc.s.iter
+  
   for (iteration in 1:num.sim.iter) {
     print(paste0("Current iteration: ", iteration))
     
@@ -195,8 +198,6 @@ for (type.iter in 1:num.sim) {
                                              lppd = lppd(X.test, y.test, tail(mcmc.samples, eval.size)))
     } else if (method == "mcmc-s") {
       load(paste0("Lasso/Results/Simulations-results-MCMC-G-", type.iter, "-", str_pad(iteration, 2, pad = "0"), "-", str_pad(seed, 2, pad = "0"), ".RData"))
-      mcmc.s.iter <- sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat < r.hat.tol) %>% pull(mcmc_iter) %>% min()
-      mcmc.s.warmup <- warmup.mult*mcmc.s.iter
       
       start.time <- proc.time()
       
