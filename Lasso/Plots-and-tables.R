@@ -3,7 +3,8 @@
 
 source("General-auxiliaries.R")
 source("Lasso/Auxiliaries.R")
-res.files <- list.files("Lasso/Results/")
+res.directory <- "Lasso/Results/"
+res.files <- list.files(res.directory)
 
 ## Simulations
 
@@ -11,7 +12,7 @@ sim.conv.files <- res.files[grep("Simulations-conv-results", res.files)]
 sim.r.hat.cdf <- data.frame()
 
 for (file in sim.conv.files) {
-  load(paste0(res.files, file))
+  load(paste0(res.directory, file))
   sim.r.hat.cdf <- rbind(sim.r.hat.cdf, sim.r.hat.df)
 }
 
@@ -23,7 +24,7 @@ sim.cov.norm.cdf <- data.frame()
 sim.time.cdf <- data.frame()
 
 for (file in sim.files) {
-  load(paste0(res.files, file))
+  load(paste0(res.directory, file))
   sim.l1.cdf <- rbind(sim.l1.cdf, sim.l1.df)
   sim.mmd.cdf <- rbind(sim.mmd.cdf, sim.mmd.df)
   sim.lppd.cdf <- rbind(sim.lppd.cdf, sim.lppd.df)
@@ -39,7 +40,7 @@ sim.r.hat.table <- sim.r.hat.cdf %>%
   group_by(sim, mcmc_iter) %>% 
   summarise(mean_max_r_hat = mean(max_r_hat))
 
-save(sim.r.hat.table, file = paste0(res.files, "Simulations-conv-table.RData"))
+save(sim.r.hat.table, file = paste0(res.directory, "Simulations-conv-table.RData"))
 
 ### L1 accuracy
 
@@ -103,7 +104,7 @@ bench.conv.files <- res.files[grep("Benchmarks-conv-results", res.files)]
 bench.r.hat.cdf <- data.frame()
 
 for (file in bench.conv.files) {
-  load(paste0(res.files, file))
+  load(paste0(res.directory, file))
   bench.r.hat.cdf <- rbind(bench.r.hat.cdf, bench.r.hat.df)
 }
 
@@ -115,7 +116,7 @@ bench.cov.norm.cdf <- data.frame()
 bench.time.cdf <- data.frame()
 
 for (file in bench.files) {
-  load(paste0(res.files, file))
+  load(paste0(res.directory, file))
   bench.l1.cdf <- rbind(bench.l1.cdf, bench.l1.df)
   bench.mmd.cdf <- rbind(bench.mmd.cdf, bench.mmd.df)
   bench.lppd.cdf <- rbind(bench.lppd.cdf, bench.lppd.df)
@@ -131,7 +132,7 @@ bench.r.hat.table <- bench.r.hat.cdf %>%
   group_by(bench, mcmc_iter) %>% 
   summarise(mean_max_r_hat = mean(max_r_hat))
 
-save(bench.r.hat.table, file = paste0(res.files, "Benchmarks-conv-table.RData"))
+save(bench.r.hat.table, file = paste0(res.directory, "Benchmarks-conv-table.RData"))
 
 ### L1 accuracy
 
