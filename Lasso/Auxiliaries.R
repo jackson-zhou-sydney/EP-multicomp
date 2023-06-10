@@ -14,6 +14,10 @@ sim.settings <- list(c(n = 200, p = 40),
                      c(n = 40, p = 40),
                      c(n = 10, p = 40))
 
+sim.labels <- c("1" = "n = 200, p = 40",
+                "2" = "n = 40, p = 40",
+                "3" = "n = 10, p = 40")
+
 bench.settings <- list(c(n = 442, p = 11),
                        c(n = 97, p = 9),
                        c(n = 120, p = 201))

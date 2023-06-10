@@ -17,6 +17,7 @@ for (file in sim.conv.files) {
 }
 
 sim.files <- res.files[grep("Simulations-results", res.files)]
+sim.files <- sim.files[-grep("MCMC-G", sim.files)]
 sim.l1.cdf <- data.frame()
 sim.mmd.cdf <- data.frame()
 sim.lppd.cdf <- data.frame()
@@ -44,6 +45,22 @@ save(sim.r.hat.table, file = paste0(res.directory, "Simulations-conv-table.RData
 
 ### L1 accuracy
 
+sim.l1.plot <- sim.l1.cdf %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  mutate(block = case_when(j <= as.numeric(map(sim, ~sim.settings[[.]][["p"]])) ~ "beta",
+                           TRUE ~ "kappa")) %>% 
+  group_by(seed, sim, iteration, method, block) %>% 
+  summarise(m_l1 = mean(l1)) %>%
+  group_by(seed, sim, method, block) %>%
+  summarise(m_m_l1 = mean(m_l1)) %>% 
+  ggplot(mapping = aes(x = method, y = m_m_l1)) +
+  geom_boxplot() +
+  facet_grid2(block ~ sim, scales = "free_y", independent = "y",
+              labeller = labeller(block = as_labeller(c("beta" = "Beta", "kappa" = "Kappa")),
+                                  sim = as_labeller(sim.labels))) +
+  labs(x = "Method", y = "Mean L1 accuracy for setting-block combination") +
+  theme_bw()
+
 sim.l1.table <- sim.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(sim, ~sim.settings[[.]][["p"]])) ~ "beta",
                            TRUE ~ "kappa")) %>%
@@ -58,6 +75,18 @@ sim.l1.table <- sim.l1.cdf %>%
 
 ### M-star
 
+sim.m.star.plot <- sim.mmd.cdf %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  mutate(m_star = -log(mmd + log.lb)) %>%
+  group_by(seed, sim, method) %>%
+  summarise(m_m_star = mean(m_star)) %>% 
+  ggplot(mapping = aes(x = method, y = m_m_star)) +
+  geom_boxplot() +
+  facet_wrap(~sim, scales = "free_y",
+             labeller = as_labeller(sim.labels)) +
+  labs(x = "Method", y = "Mean M-star for setting") +
+  theme_bw()
+
 sim.m.star.table <- sim.mmd.cdf %>%
   mutate(m_star = -log(mmd + log.lb)) %>%
   group_by(seed, sim, method) %>%
@@ -69,6 +98,17 @@ sim.m.star.table <- sim.mmd.cdf %>%
 
 ### LPPD
 
+sim.lppd.plot <- sim.lppd.cdf %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  group_by(seed, sim, method) %>%
+  summarise(m_lppd = mean(lppd)) %>% 
+  ggplot(mapping = aes(x = method, y = m_lppd)) +
+  geom_boxplot() +
+  facet_wrap(~sim, scales = "free_y",
+             labeller = as_labeller(sim.labels)) +
+  labs(x = "Method", y = "Mean lppd for setting") +
+  theme_bw()
+
 sim.lppd.table <- sim.lppd.cdf %>%
   group_by(seed, sim, method) %>%
   summarise(m_lppd = mean(lppd)) %>%
@@ -78,6 +118,18 @@ sim.lppd.table <- sim.lppd.cdf %>%
   arrange(sim, method)
 
 ### F-star
+
+sim.f.star.plot <- sim.cov.norm.cdf %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  mutate(f_star = -log(cov_norm + log.lb)) %>%
+  group_by(seed, sim, method) %>%
+  summarise(m_f_star = mean(f_star)) %>% 
+  ggplot(mapping = aes(x = method, y = m_f_star)) +
+  geom_boxplot() +
+  facet_wrap(~sim, scales = "free_y",
+             labeller = as_labeller(sim.labels)) +
+  labs(x = "Method", y = "Mean F-star for setting") +
+  theme_bw()
 
 sim.f.star.table <- sim.cov.norm.cdf %>%
   mutate(f_star = -log(cov_norm + log.lb)) %>%
@@ -89,6 +141,18 @@ sim.f.star.table <- sim.cov.norm.cdf %>%
   arrange(sim, method)
 
 ### Run time
+
+sim.time.plot <- sim.time.cdf %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  group_by(seed, sim, method) %>%
+  summarise(m_time = mean(time)) %>% 
+  ggplot(mapping = aes(x = method, y = m_time)) +
+  geom_boxplot() +
+  facet_wrap(~sim, scales = "free_y",
+             labeller = as_labeller(sim.labels)) +
+  scale_y_log10() +
+  labs(x = "Method", y = "Mean time for setting (log scale)") +
+  theme_bw()
 
 sim.time.table <- sim.time.cdf %>%
   group_by(seed, sim, method) %>%
@@ -109,6 +173,7 @@ for (file in bench.conv.files) {
 }
 
 bench.files <- res.files[grep("Benchmarks-results", res.files)]
+bench.files <- bench.files[-grep("MCMC-G", bench.files)]
 bench.l1.cdf <- data.frame()
 bench.mmd.cdf <- data.frame()
 bench.lppd.cdf <- data.frame()

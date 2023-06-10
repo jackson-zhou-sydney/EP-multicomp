@@ -17,6 +17,7 @@ for (file in sim.conv.files) {
 }
 
 sim.files <- res.files[grep("Simulations-results", res.files)]
+sim.files <- sim.files[-grep("MCMC-G", sim.files)]
 sim.l1.cdf <- data.frame()
 sim.mmd.cdf <- data.frame()
 sim.lppd.cdf <- data.frame()
@@ -109,6 +110,7 @@ for (file in bench.conv.files) {
 }
 
 bench.files <- res.files[grep("Benchmarks-results", res.files)]
+bench.files <- bench.files[-grep("MCMC-G", bench.files)]
 bench.l1.cdf <- data.frame()
 bench.mmd.cdf <- data.frame()
 bench.lppd.cdf <- data.frame()
