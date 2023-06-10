@@ -98,7 +98,7 @@ for (type.iter in 1:num.bench) {
     }
     
     tail.mcmc.g.samples <- tail(mcmc.g.samples, eval.size)
-    save(tail.mcmc.g.samples, mcmc.g.mu, mcmc.g.Sigma, mcmc.g.values, 
+    save(tail.mcmc.g.samples, mcmc.g.mu, mcmc.g.Sigma, grid.points, mcmc.g.values, 
          file = paste0("Lasso/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
   } else if (method == "mcmc") {
     load(paste0("Lasso/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))

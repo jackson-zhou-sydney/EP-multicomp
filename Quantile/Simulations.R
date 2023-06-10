@@ -114,7 +114,7 @@ for (type.iter in 1:num.sim) {
       }
       
       tail.mcmc.g.samples <- tail(mcmc.g.samples, eval.size)
-      save(tail.mcmc.g.samples, mcmc.g.mu, mcmc.g.Sigma, mcmc.g.values, 
+      save(tail.mcmc.g.samples, mcmc.g.mu, mcmc.g.Sigma, grid.points, mcmc.g.values, 
            file = paste0("Quantile/Results/Simulations-results-MCMC-G-", type.iter, "-", str_pad(iteration, 2, pad = "0"), "-", str_pad(seed, 2, pad = "0"), ".RData"))
     } else if (method == "mcmc") {
       load(paste0("Quantile/Results/Simulations-results-MCMC-G-", type.iter, "-", str_pad(iteration, 2, pad = "0"), "-", str_pad(seed, 2, pad = "0"), ".RData"))
