@@ -19,7 +19,6 @@ library(Rcpp)          # C++ in R
 library(RcppArmadillo) # Efficient linear algebra for Rcpp
 library(RcppEigen)     # Alternate linear algebra for Rcpp
 library(RcppNumerical) # Optimisation in Rcpp
-library(ggh4x)         # Free scales for facet_grid
 
 ## Options
 options(rcpp.cache.dir = "Rcpp-cache/")

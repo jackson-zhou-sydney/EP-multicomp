@@ -55,8 +55,8 @@ sim.l1.plot <- sim.l1.cdf %>%
   summarise(m_m_l1 = mean(m_l1)) %>% 
   ggplot(mapping = aes(x = method, y = m_m_l1)) +
   geom_boxplot() +
-  facet_grid2(block ~ sim, scales = "free_y", independent = "y",
-              labeller = labeller(block = as_labeller(c("beta" = "Beta", "kappa" = "Kappa")),
+  ggh4x::facet_grid2(block ~ sim, scales = "free_y", independent = "y",
+                     labeller = labeller(block = as_labeller(c("beta" = "Beta", "kappa" = "Kappa")),
                                   sim = as_labeller(sim.labels))) +
   labs(x = "Method", y = "Mean L1 accuracy for setting-block combination") +
   theme_bw()
