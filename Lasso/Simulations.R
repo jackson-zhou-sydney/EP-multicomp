@@ -6,9 +6,9 @@ source("Lasso/Auxiliaries.R")
 load("Lasso/Results/Simulations-conv-table.RData")
 
 args <- commandArgs(trailingOnly = T)
-seed <- as.numeric(args[1])
+method <- args[1]
+seed <- as.numeric(args[2])
 set.seed(seed)
-method <- args[2]
 
 library(cmdstanr)
 mcmc <- cmdstan_model("Lasso/Models/MCMC.stan")

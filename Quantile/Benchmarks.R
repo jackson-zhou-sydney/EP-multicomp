@@ -6,9 +6,9 @@ source("Quantile/Auxiliaries.R")
 load("Quantile/Results/Benchmarks-conv-table.RData")
 
 args <- commandArgs(trailingOnly = T)
-seed <- as.numeric(args[1])
+method <- args[1]
+seed <- as.numeric(args[2])
 set.seed(seed)
-method <- args[2]
 
 library(cmdstanr)
 mcmc <- cmdstan_model("Quantile/Models/MCMC.stan")

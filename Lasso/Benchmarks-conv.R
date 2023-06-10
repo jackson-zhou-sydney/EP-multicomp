@@ -5,10 +5,10 @@ source("General-auxiliaries.R")
 source("Lasso/Auxiliaries.R")
 
 args <- commandArgs(trailingOnly = T)
-seed <- as.numeric(args[1])
-set.seed(seed)
-mcmc.iter <- as.numeric(args[2])
+mcmc.iter <- as.numeric(args[1])
 mcmc.warmup <- warmup.mult*mcmc.iter
+seed <- as.numeric(args[2])
+set.seed(seed)
 
 library(cmdstanr)
 mcmc <- cmdstan_model("Lasso/Models/MCMC.stan")
