@@ -1,3 +1,0 @@
-Heteroscedastic/Heteroscedastic-data/Bench-4.RData filter=lfs diff=lfs merge=lfs -text
-Lasso/Data/Benchmarks/Bench-4.RData filter=lfs diff=lfs merge=lfs -text
-Quantile/Data/Benchmarks/Bench-4.RData filter=lfs diff=lfs merge=lfs -text
