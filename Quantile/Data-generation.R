@@ -53,7 +53,8 @@ save(X, y, file = "Quantile/Data/Benchmarks/Bench-3.RData")
 ## Benchmark 4
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
-energy_cleaned <- as.data.frame(scale(energy[, -c(1, 3, 28, 29)]))
+energy_filtered <- energy[sample(1:nrow(energy), 6000), ]
+energy_cleaned <- as.data.frame(scale(energy_filtered[, -c(1, 3, 28, 29)]))
 
 energy_squared <- energy_cleaned %>% 
   mutate_all(function(x) x^2) %>% 
