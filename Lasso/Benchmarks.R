@@ -75,8 +75,8 @@ for (type.iter in 1:num.bench) {
                             seed = seed, 
                             chains = num.cores, 
                             parallel_chains = num.cores,
-                            iter_sampling = mcmc.iter,
-                            iter_warmup = mcmc.warmup,
+                            iter_sampling = mcmc.g.iter,
+                            iter_warmup = mcmc.g.warmup,
                             refresh = 1)
     
     mcmc.g.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
@@ -115,8 +115,8 @@ for (type.iter in 1:num.bench) {
                             seed = seed + 1, 
                             chains = num.cores, 
                             parallel_chains = num.cores,
-                            iter_sampling = mcmc.iter,
-                            iter_warmup = mcmc.warmup,
+                            iter_sampling = mcmc.g.iter,
+                            iter_warmup = mcmc.g.warmup,
                             refresh = 1)
     
     mcmc.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
@@ -171,8 +171,8 @@ for (type.iter in 1:num.bench) {
                             seed = seed + 1, 
                             chains = num.cores, 
                             parallel_chains = num.cores,
-                            iter_sampling = mcmc.iter,
-                            iter_warmup = mcmc.warmup,
+                            iter_sampling = mcmc.g.iter,
+                            iter_warmup = mcmc.g.warmup,
                             refresh = 1)
     
     mcmc.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
