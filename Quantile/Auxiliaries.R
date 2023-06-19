@@ -22,6 +22,11 @@ bench.settings <- list(c(n = 298, p = 2),
                        c(n = 235, p = 2),
                        c(n = 21, p = 4))
 
+bench.labels <- c("1" = "IgG (n = 298, p = 2)",
+                  "2" = "Engel (n = 235, p = 2)",
+                  "3" = "Stack (n = 21, p = 4)",
+                  "4" = "Energy (n = 6000, p = 1177)")
+
 rho <- function(x, tau) {
   # Quantile loss function
   0.5*(abs(x) + (2*tau - 1)*x)

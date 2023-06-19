@@ -57,8 +57,8 @@ sim.l1.plot <- sim.l1.cdf %>%
   geom_boxplot() +
   ggh4x::facet_grid2(block ~ sim, scales = "free_y", independent = "y",
                      labeller = labeller(block = as_labeller(c("beta" = "Beta", "kappa" = "Kappa")),
-                                  sim = as_labeller(sim.labels))) +
-  labs(x = "Method", y = "Mean L1 accuracy for setting-block combination") +
+                                         sim = as_labeller(sim.labels))) +
+  labs(x = "Method", y = "Mean L1 accuracy across iterations and marginals") +
   theme_bw()
 
 sim.l1.table <- sim.l1.cdf %>%
@@ -84,7 +84,7 @@ sim.m.star.plot <- sim.mmd.cdf %>%
   geom_boxplot() +
   facet_wrap(~sim, scales = "free_y",
              labeller = as_labeller(sim.labels)) +
-  labs(x = "Method", y = "Mean M-star for setting") +
+  labs(x = "Method", y = "Mean M-star across iterations") +
   theme_bw()
 
 sim.m.star.table <- sim.mmd.cdf %>%
@@ -106,7 +106,7 @@ sim.lppd.plot <- sim.lppd.cdf %>%
   geom_boxplot() +
   facet_wrap(~sim, scales = "free_y",
              labeller = as_labeller(sim.labels)) +
-  labs(x = "Method", y = "Mean lppd for setting") +
+  labs(x = "Method", y = "Mean lppd across iterations") +
   theme_bw()
 
 sim.lppd.table <- sim.lppd.cdf %>%
@@ -128,7 +128,7 @@ sim.f.star.plot <- sim.cov.norm.cdf %>%
   geom_boxplot() +
   facet_wrap(~sim, scales = "free_y",
              labeller = as_labeller(sim.labels)) +
-  labs(x = "Method", y = "Mean F-star for setting") +
+  labs(x = "Method", y = "Mean F-star across iterations") +
   theme_bw()
 
 sim.f.star.table <- sim.cov.norm.cdf %>%
@@ -151,7 +151,7 @@ sim.time.plot <- sim.time.cdf %>%
   facet_wrap(~sim, scales = "free_y",
              labeller = as_labeller(sim.labels)) +
   scale_y_log10() +
-  labs(x = "Method", y = "Mean time for setting (log scale)") +
+  labs(x = "Method", y = "Mean time across iterations (log scale)") +
   theme_bw()
 
 sim.time.table <- sim.time.cdf %>%
@@ -201,6 +201,20 @@ save(bench.r.hat.table, file = paste0(res.directory, "Benchmarks-conv-table.RDat
 
 ### L1 accuracy
 
+bench.l1.plot <- bench.l1.cdf %>%
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p"]])) ~ "beta",
+                           TRUE ~ "kappa")) %>%
+  group_by(seed, bench, method, block) %>% 
+  summarise(m_l1 = mean(l1)) %>%
+  ggplot(mapping = aes(x = method, y = m_l1)) +
+  geom_boxplot() +
+  ggh4x::facet_grid2(block ~ bench, scales = "free_y", independent = "y",
+                     labeller = labeller(block = as_labeller(c("beta" = "Beta", "kappa" = "Kappa")),
+                                         bench = as_labeller(bench.labels))) +
+  labs(x = "Method", y = "Mean L1 accuracy across marginals") +
+  theme_bw()
+
 bench.l1.table <- bench.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p"]])) ~ "beta",
                            TRUE ~ "kappa")) %>%
@@ -213,6 +227,16 @@ bench.l1.table <- bench.l1.cdf %>%
 
 ### M-star
 
+bench.m.star.plot <- bench.mmd.cdf %>%
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  mutate(m_star = -log(mmd + log.lb)) %>% 
+  ggplot(mapping = aes(x = method, y = m_star)) +
+  geom_boxplot() +
+  facet_wrap(~bench, scales = "free_y",
+             labeller = as_labeller(bench.labels)) +
+  labs(x = "Method", y = "M-star") +
+  theme_bw()
+
 bench.m.star.table <- bench.mmd.cdf %>%
   mutate(m_star = -log(mmd + log.lb)) %>%
   group_by(bench, method) %>%
@@ -222,6 +246,15 @@ bench.m.star.table <- bench.mmd.cdf %>%
 
 ### LPPD
 
+bench.lppd.plot <- bench.lppd.cdf %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  ggplot(mapping = aes(x = method, y = lppd)) +
+  geom_boxplot() +
+  facet_wrap(~bench, scales = "free_y",
+             labeller = as_labeller(bench.labels)) +
+  labs(x = "Method", y = "lppd") +
+  theme_bw()
+
 bench.lppd.table <- bench.lppd.cdf %>%
   group_by(bench, method) %>%
   summarise(m_lppd = round(mean(lppd), table.dp),
@@ -229,6 +262,16 @@ bench.lppd.table <- bench.lppd.cdf %>%
   arrange(bench, method)
 
 ### F-star
+
+bench.f.star.plot <- bench.cov.norm.cdf %>%
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  mutate(f_star = -log(cov_norm + log.lb)) %>% 
+  ggplot(mapping = aes(x = method, y = f_star)) +
+  geom_boxplot() +
+  facet_wrap(~bench, scales = "free_y",
+             labeller = as_labeller(bench.labels)) +
+  labs(x = "Method", y = "F-star") +
+  theme_bw()
 
 bench.f.star.table <- bench.cov.norm.cdf %>%
   mutate(f_star = -log(cov_norm + log.lb)) %>%
@@ -238,6 +281,16 @@ bench.f.star.table <- bench.cov.norm.cdf %>%
   arrange(bench, method)
 
 ### Run time
+
+bench.time.plot <- bench.time.cdf %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
+  ggplot(mapping = aes(x = method, y = time)) +
+  geom_boxplot() +
+  facet_wrap(~bench, scales = "free_y",
+             labeller = as_labeller(bench.labels)) +
+  scale_y_log10() +
+  labs(x = "Method", y = "Time (log scale)") +
+  theme_bw()
 
 bench.time.table <- bench.time.cdf %>%
   group_by(bench, method) %>%
