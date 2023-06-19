@@ -14,6 +14,10 @@ sim.settings <- list(c(n = 200, p = 40, dist = "normal"),
                      c(n = 200, p = 40, dist = "poisson"),
                      c(n = 200, p = 40, dist = "binomial"))
 
+sim.labels <- c("1" = "Normal (n = 200, p = 40)",
+                "2" = "Poisson (n = 200, p = 40)",
+                "3" = "Binomial (n = 200, p = 40)")
+
 bench.settings <- list(c(n = 298, p = 2),
                        c(n = 235, p = 2),
                        c(n = 21, p = 4))
