@@ -187,7 +187,7 @@ for (type.iter in 1:num.bench) {
     bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
                                                bench = type.iter,
                                                method = "mcmc",
-                                               lppd = lppd(X.test, y.test, tail(mcmc.samples, eval.size)))
+                                               lppd = lppd(X.test, y.test, tau, tail(mcmc.samples, eval.size)))
   } else if (method == "mcmc-s") {
     load(paste0("Quantile/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     
@@ -268,7 +268,7 @@ for (type.iter in 1:num.bench) {
     bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
                                                bench = type.iter,
                                                method = "mcmc-s",
-                                               lppd = lppd(X.test, y.test, tail(mcmc.s.samples, eval.size)))
+                                               lppd = lppd(X.test, y.test, tau, tail(mcmc.s.samples, eval.size)))
   } else if (method = "ep") {
     load(paste0("Quantile/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     
@@ -318,7 +318,7 @@ for (type.iter in 1:num.bench) {
     bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
                                                bench = type.iter,
                                                method = "ep",
-                                               lppd = lppd(X.test, y.test, ep.samples))
+                                               lppd = lppd(X.test, y.test, tau, ep.samples))
   } else if (method == "ep-2d") {
     load(paste0("Quantile/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     
@@ -368,7 +368,7 @@ for (type.iter in 1:num.bench) {
     bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
                                                bench = type.iter,
                                                method = "ep-2d",
-                                               lppd = lppd(X.test, y.test, ep.2d.samples))
+                                               lppd = lppd(X.test, y.test, tau, ep.2d.samples))
   } else if (method == "mfvb") {
     load(paste0("Quantile/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     
@@ -416,7 +416,7 @@ for (type.iter in 1:num.bench) {
     bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
                                                bench = type.iter,
                                                method = "mfvb",
-                                               lppd = lppd(X.test, y.test, mfvb.samples))
+                                               lppd = lppd(X.test, y.test, tau, mfvb.samples))
   } else {
     stop("method must be in one of mcmc-g, mcmc, mcmc-s, ep, ep-2d, or mfvb")
   }
