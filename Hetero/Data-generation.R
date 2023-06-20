@@ -8,14 +8,14 @@ set.seed(1)
 
 ## Simulations
 
-for (type.iter in 1:num.each.type) {
+for (type.iter in 1:num.sim) {
   n <- sim.settings[[type.iter]][["n"]]
   p.1 <- sim.settings[[type.iter]][["p.1"]]
   p.2 <- sim.settings[[type.iter]][["p.2"]]
   beta.1 <- rep(c(2, -2)/p.1, p.1/2)
   beta.2 <- rep(c(2, -2)/p.2, p.2/2)
   
-  for (iteration in 1:num.sim) {
+  for (iteration in 1:num.sim.iter) {
     X.1 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.1 - 1)), nrow = n)))
     X.2 <- cbind(1, scale(matrix(data = rnorm(n = n*(p.2 - 1)), nrow = n)))
     y <- as.vector(scale(rnorm(n, X.1%*%beta.1, exp(X.2%*%beta.2))))
