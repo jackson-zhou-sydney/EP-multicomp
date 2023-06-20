@@ -50,7 +50,7 @@ save(X.1, X.2, y, file = "Hetero/Data/Benchmarks/Bench-3.RData")
 ## Benchmark 4
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
-energy_filtered <- energy[sample(1:nrow(energy), 6000), ]
+energy_filtered <- energy[sample(1:nrow(energy), 3000), ]
 energy_cleaned <- as.data.frame(scale(energy_filtered[, -c(1, 3, 28, 29)]))
 
 energy_squared <- energy_cleaned %>% 
