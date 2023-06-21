@@ -379,7 +379,8 @@ for (type.iter in 1:num.bench) {
     start.time <- proc.time()
     
     gvb.res <- gvb(X.1, X.2, y, Sigma.theta, mu.theta,
-                   min_iter = 6, max_iter = 200, thresh = 0.05, n_grid = 400, verbose = F)
+                   S = 200, weights = c(0.9, 0.9), eps_0 = 0.0001, tau = 50, init = rep(0, p.1 + p.2), laplace_max_iter = 1000,
+                   min_iter = 6, max_iter = 200, thresh = 0.05, verbose = T)
     gvb.mu <- gvb.res$mu
     gvb.Sigma <- gvb.res$Sigma
     gvb.samples <- rmvnorm(eval.size, gvb.mu, gvb.Sigma)
@@ -412,7 +413,8 @@ for (type.iter in 1:num.bench) {
                                                time = total.time["elapsed"])
     
     gvb.res <- gvb(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta,
-                   min_iter = 6, max_iter = 200, thresh = 0.05, n_grid = 400, verbose = F)
+                   S = 200, weights = c(0.9, 0.9), eps_0 = 0.0001, tau = 50, init = rep(0, p.1 + p.2), laplace_max_iter = 1000,
+                   min_iter = 6, max_iter = 200, thresh = 0.05, verbose = T)
     gvb.mu <- gvb.res$mu
     gvb.Sigma <- gvb.res$Sigma
     gvb.samples <- rmvnorm(eval.size, gvb.mu, gvb.Sigma)
