@@ -238,6 +238,23 @@ List gvb(arma::mat X_1, arma::mat X_2, arma::vec y, arma::mat Sigma_theta, arma:
   arma::mat Sigma_init = laplace_res["Sigma"];
   arma::vec mu_init = laplace_res["mu"];
   
+  if (!Sigma_init.is_sympd()) {
+    arma::cx_vec eigval_comp;
+    arma::cx_mat eigvec_comp;
+    eig_gen(eigval_comp, eigvec_comp, Sigma_init);
+    arma::vec eigval = real(eigval_comp);
+    arma::mat eigvec = real(eigvec_comp);
+    
+    double min_eigval = abs(eigval).min();
+    for (int i = 0; i < eigval.n_elem; ++i) {
+      if (eigval(i) <= 0) {
+        eigval(i) = min_eigval;
+      }
+    }
+    
+    Sigma_init = eigvec*diagmat(eigval)*eigvec.t();
+  }
+  
   arma::vec lambda = arma::zeros(d + 0.5*d*(d + 1));
   lambda.subvec(d, lambda.n_elem - 1) = vech(chol(Sigma_init, "lower"));
   lambda.subvec(0, d - 1) = mu_init;
