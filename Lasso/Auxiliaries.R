@@ -20,12 +20,13 @@ sim.labels <- c("1" = "n = 200, p = 40",
 
 bench.settings <- list(c(n = 442, p = 11),
                        c(n = 97, p = 9),
-                       c(n = 120, p = 201))
+                       c(n = 120, p = 201),
+                       c(n = 3000, p = 1177))
 
 bench.labels <- c("1" = "Diabetes (n = 442, p = 11)",
                   "2" = "Prostate (n = 97, p = 9)",
                   "3" = "Eye (n = 120, p = 201)",
-                  "4" = "Energy (n = 6000, p = 1177)")
+                  "4" = "Energy (n = 3000, p = 1177)")
 
 point.likelihood <- function(theta, x, y) {
   # Likelihood evaluated at a point

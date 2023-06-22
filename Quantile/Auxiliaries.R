@@ -20,12 +20,13 @@ sim.labels <- c("1" = "Normal (n = 200, p = 40)",
 
 bench.settings <- list(c(n = 298, p = 2),
                        c(n = 235, p = 2),
-                       c(n = 21, p = 4))
+                       c(n = 21, p = 4),
+                       c(n = 3000, p = 1177))
 
 bench.labels <- c("1" = "IgG (n = 298, p = 2)",
                   "2" = "Engel (n = 235, p = 2)",
                   "3" = "Stack (n = 21, p = 4)",
-                  "4" = "Energy (n = 6000, p = 1177)")
+                  "4" = "Energy (n = 3000, p = 1177)")
 
 rho <- function(x, tau) {
   # Quantile loss function
