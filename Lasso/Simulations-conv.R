@@ -11,7 +11,7 @@ seed <- as.numeric(args[2])
 set.seed(seed)
 
 library(cmdstanr)
-mcmc <- cmdstan_model("Lasso/Models/MCMC.stan")
+mcmc <- cmdstan_model("Lasso/Methods/MCMC.stan")
 
 sim.r.hat.df <- data.frame(seed = integer(),
                            sim = integer(),

@@ -1,9 +1,9 @@
 
 # Auxiliary functions and variables for quantile regression
 
-sourceCpp("Quantile/Models/EP.cpp")
-sourceCpp("Quantile/Models/EP-2D.cpp")
-sourceCpp("Quantile/Models/MFVB.cpp")
+sourceCpp("Quantile/Methods/EP.cpp")
+sourceCpp("Quantile/Methods/EP-2D.cpp")
+sourceCpp("Quantile/Methods/MFVB.cpp")
 
 sigma.2.theta <- 10000
 tau <- 0.75

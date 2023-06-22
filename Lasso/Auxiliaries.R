@@ -1,9 +1,9 @@
 
 # Auxiliary functions and variables for lasso linear regression
 
-sourceCpp("Lasso/Models/EP.cpp")
-sourceCpp("Lasso/Models/EP-2D.cpp")
-sourceCpp("Lasso/Models/MFVB.cpp")
+sourceCpp("Lasso/Methods/EP.cpp")
+sourceCpp("Lasso/Methods/EP-2D.cpp")
+sourceCpp("Lasso/Methods/MFVB.cpp")
 
 mu.kappa <- 0
 sigma.2.kappa <- 10000

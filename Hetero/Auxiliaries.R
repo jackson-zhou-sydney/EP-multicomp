@@ -1,9 +1,9 @@
 
 # Auxiliary functions and variables for heteroscedastic linear regression
 
-sourceCpp("Hetero/Models/EP.cpp")
-sourceCpp("Hetero/Models/EP-2D.cpp")
-sourceCpp("Hetero/Models/GVB.cpp")
+sourceCpp("Hetero/Methods/EP.cpp")
+sourceCpp("Hetero/Methods/EP-2D.cpp")
+sourceCpp("Hetero/Methods/GVB.cpp")
 
 sigma.2.theta <- 10000
 
