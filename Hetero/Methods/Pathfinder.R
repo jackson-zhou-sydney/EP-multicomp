@@ -1,5 +1,5 @@
 
-# Pathfinder (source: https://github.com/LuZhangstat/Pathfinder/blob/master/utils/sim_pf.R)
+# Pathfinder code (source: https://github.com/LuZhangstat/Pathfinder/blob/master/utils/sim_pf.R)
 
 library(loo)
 library(Matrix)
