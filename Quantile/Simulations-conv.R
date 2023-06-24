@@ -45,6 +45,7 @@ for (type.iter in 1:num.sim) {
                           parallel_chains = num.cores,
                           iter_sampling = mcmc.iter,
                           iter_warmup = mcmc.warmup,
+                          max_treedepth = max.tree.depth,
                           refresh = 1)
   
   mcmc.summary <- stan.res$summary()

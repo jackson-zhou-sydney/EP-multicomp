@@ -44,3 +44,4 @@ r.hat.tol <- 1.05
 warmup.mult <- 0.1
 mcmc.g.iter <- 10000
 mcmc.g.warmup <- warmup.mult*mcmc.g.iter
+max.tree.depth <- 5
