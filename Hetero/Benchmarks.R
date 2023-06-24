@@ -375,15 +375,27 @@ for (type.iter in 1:num.bench) {
                                                lppd = lppd(X.1.test, X.2.test, y.test, ep.2d.samples))
   } else if (method == "gvb") {
     load(paste0("Hetero/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
+    mcmc.rstan <- rstan::stan_model("Hetero/Methods/MCMC.stan")
     
     start.time <- proc.time()
     
-    gvb.res <- gvb(X.1, X.2, y, Sigma.theta, mu.theta,
-                   S = 200, weights = c(0.9, 0.9), eps_0 = 0.0001, tau = 50, init = rep(0, p.1 + p.2), laplace_max_iter = 1000,
-                   min_iter = 6, max_iter = 200, thresh = 0.05, verbose = F)
-    gvb.mu <- gvb.res$mu
-    gvb.Sigma <- gvb.res$Sigma
-    gvb.samples <- rmvnorm(eval.size, gvb.mu, gvb.Sigma)
+    opath <- opt_path_stan_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num.cores, 
+                                    seed_list = (seed - 1)*length(num.cores) + 1:num.cores, 
+                                    mc.cores = num.cores, 
+                                    model = mcmc.rstan,
+                                    data = list(N = n,
+                                                p_1 = p.1,
+                                                p_2 = p.2,
+                                                X_1 = X.1,
+                                                X_2 = X.2,
+                                                y = y,
+                                                mu_theta = mu.theta,
+                                                Sigma_theta = Sigma.theta),
+                                    N_sam = round(mcmc.s.iter/num.cores))
+    
+    gvb.samples <- t(Imp_Resam_WR(opath, n_sam = mcmc.s.iter, seed = seed))
+    gvb.mu <- colMeans(gvb.samples)
+    gvb.Sigma <- var(gvb.samples)
     
     total.time <- proc.time() - start.time
     
@@ -399,7 +411,7 @@ for (type.iter in 1:num.bench) {
     out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
                                                                    bench = type.iter,
                                                                    method = "gvb",
-                                                                   mmd = max(kmmd(gvb.samples, 
+                                                                   mmd = max(kmmd(tail(gvb.samples, eval.size), 
                                                                                   tail.mcmc.g.samples)@mmdstats[2], 0)))
     
     bench.cov.norm.df <- bench.cov.norm.df %>% add_row(seed = seed,
@@ -412,17 +424,26 @@ for (type.iter in 1:num.bench) {
                                                method = "gvb",
                                                time = total.time["elapsed"])
     
-    gvb.res <- gvb(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta,
-                   S = 200, weights = c(0.9, 0.9), eps_0 = 0.0001, tau = 50, init = rep(0, p.1 + p.2), laplace_max_iter = 1000,
-                   min_iter = 6, max_iter = 200, thresh = 0.05, verbose = F)
-    gvb.mu <- gvb.res$mu
-    gvb.Sigma <- gvb.res$Sigma
-    gvb.samples <- rmvnorm(eval.size, gvb.mu, gvb.Sigma)
+    opath <- opt_path_stan_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num.cores, 
+                                    seed_list = (seed - 1)*length(num.cores) + 1:num.cores, 
+                                    mc.cores = num.cores, 
+                                    model = mcmc.rstan,
+                                    data = list(N = n.train,
+                                                p_1 = p.1,
+                                                p_2 = p.2,
+                                                X_1 = X.1.train,
+                                                X_2 = X.2.train,
+                                                y = y.train,
+                                                mu_theta = mu.theta,
+                                                Sigma_theta = Sigma.theta),
+                                    N_sam = round(mcmc.s.iter/num.cores))
+    
+    gvb.samples <- t(Imp_Resam_WR(opath, n_sam = mcmc.s.iter, seed = seed))
     
     bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
                                                bench = type.iter,
                                                method = "gvb",
-                                               lppd = lppd(X.1.test, X.2.test, y.test, gvb.samples))
+                                               lppd = lppd(X.1.test, X.2.test, y.test, tail(gvb.samples, eval.size)))
   } else {
     stop("method must be in one of mcmc-g, mcmc, mcmc-s, ep, ep-2d, or gvb")
   }
