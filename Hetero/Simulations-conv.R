@@ -23,16 +23,21 @@ for (type.iter in 1:num.sim) {
   print(paste0("Current simulation: ", type.iter))
   
   load(paste0("Hetero/Data/Simulations/Sim-", type.iter, "-iter-01.RData"))
-  n <- nrow(X)
-  p <- ncol(X)
+  n <- nrow(X.1)
+  p.1 <- ncol(X.1)
+  p.2 <- ncol(X.2)
+  
+  mu.theta <- rep(0, p.1 + p.2)
+  Sigma.theta <- sigma.2.theta*diag(p.1 + p.2)
   
   stan.res <- mcmc$sample(data = list(N = n,
-                                      p = p,
-                                      X = X,
+                                      p_1 = p.1,
+                                      p_2 = p.2,
+                                      X_1 = X.1,
+                                      X_2 = X.2,
                                       y = y,
-                                      mu_kappa = mu.kappa,
-                                      sigma_2_kappa = sigma.2.kappa,
-                                      lambda = lambda), 
+                                      mu_theta = mu.theta,
+                                      Sigma_theta = Sigma.theta),
                           seed = seed, 
                           chains = num.cores, 
                           parallel_chains = num.cores,
