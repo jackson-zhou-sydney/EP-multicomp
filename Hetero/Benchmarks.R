@@ -57,7 +57,7 @@ for (type.iter in 1:num.bench) {
   p.2 <- ncol(X.2)
   
   mu.theta <- rep(0, p.1 + p.2)
-  Sigma.theta <- diag(c(rep(sigma.beta.1, p.1), rep(sigma.beta.2, p.2)))
+  Sigma.theta <- diag(c(rep(sigma.2.beta.1, p.1), rep(sigma.2.beta.2, p.2)))
   
   train.ind <- sample(1:n)[1:ceiling(train.size*n)]
   X.1.train <- X.1[train.ind, , drop = F]
