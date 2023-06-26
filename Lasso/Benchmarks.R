@@ -3,7 +3,6 @@
 
 source("General-auxiliaries.R")
 source("Lasso/Auxiliaries.R")
-load("Lasso/Results/Benchmarks-conv-table.RData")
 
 args <- commandArgs(trailingOnly = T)
 method <- args[1]
@@ -47,9 +46,6 @@ bench.r.hat.df <- data.frame(seed = integer(),
 
 for (type.iter in 1:num.bench) {
   print(paste0("Current benchmark: ", type.iter))
-  
-  mcmc.s.iter <- bench.r.hat.table %>% filter(bench == type.iter) %>% filter(mean_max_r_hat < r.hat.tol) %>% pull(mcmc_iter) %>% min()
-  mcmc.s.warmup <- warmup.mult*mcmc.s.iter
   
   load(paste0("Lasso/Data/Benchmarks/Bench-", type.iter, ".RData"))
   n <- nrow(X)
@@ -186,6 +182,12 @@ for (type.iter in 1:num.bench) {
                                                lppd = lppd(X.test, y.test, tail(mcmc.samples, eval.size)))
   } else if (method == "mcmc-s") {
     load(paste0("Lasso/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
+    
+    if (type.iter == 1) {
+      load("Lasso/Results/Benchmarks-conv-table.RData")
+      mcmc.s.iter <- bench.r.hat.table %>% filter(bench == type.iter) %>% filter(mean_max_r_hat < r.hat.tol) %>% pull(mcmc_iter) %>% min()
+      mcmc.s.warmup <- warmup.mult*mcmc.s.iter
+    }
     
     start.time <- proc.time()
     
