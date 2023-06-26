@@ -48,7 +48,7 @@ for (type.iter in 1:num.sim) {
   
   mcmc.summary <- stan.res$summary()
   
-  for (j in 1:(p + 1)) {
+  for (j in 1:(p.1 + p.2)) {
     sim.r.hat.df <- sim.r.hat.df %>% add_row(seed = seed,
                                              sim = type.iter,
                                              mcmc_iter = mcmc.iter,
