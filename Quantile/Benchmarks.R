@@ -276,7 +276,7 @@ for (type.iter in 1:num.bench) {
                                                bench = type.iter,
                                                method = "mcmc-s",
                                                lppd = lppd(X.test, y.test, tau, tail(mcmc.s.samples, eval.size)))
-  } else if (method = "ep") {
+  } else if (method == "ep") {
     load(paste0("Quantile/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     
     start.time <- proc.time()
