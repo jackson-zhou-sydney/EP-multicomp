@@ -6,7 +6,7 @@ sourceCpp("Lasso/Methods/EP-2D.cpp")
 sourceCpp("Lasso/Methods/MFVB.cpp")
 
 mu.kappa <- 0
-sigma.2.kappa <- 10000
+sigma.2.kappa <- 1
 lambda <- 0.5
 kappa <- -1
 
