@@ -11,7 +11,7 @@ seed <- as.numeric(args[2])
 set.seed(seed)
 
 library(cmdstanr)
-mcmc <- cmdstan_model("Quantile/Methods/MCMC.stan")
+mcmc <- cmdstan_model("Quantile/Methods/MCMC.stan", stanc_options = list("O1"))
 
 bench.r.hat.df <- data.frame(seed = integer(),
                              bench = integer(),
