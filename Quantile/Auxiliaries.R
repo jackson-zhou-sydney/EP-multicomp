@@ -5,7 +5,8 @@ sourceCpp("Quantile/Methods/EP.cpp")
 sourceCpp("Quantile/Methods/EP-2D.cpp")
 sourceCpp("Quantile/Methods/MFVB.cpp")
 
-sigma.2.theta <- 10000
+sigma.2.beta <- 1
+sigma.2.kappa <- 0.01
 tau <- 0.75
 sigma <- 0.2
 n.binom <- 10

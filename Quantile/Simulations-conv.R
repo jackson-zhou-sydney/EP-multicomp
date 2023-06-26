@@ -27,7 +27,7 @@ for (type.iter in 1:num.sim) {
   p <- ncol(X)
   
   mu.theta <- rep(0, p + 1)
-  Sigma.theta <- sigma.2.theta*diag(p + 1)
+  Sigma.theta <- diag(c(rep(sigma.2.beta, p), sigma.2.kappa))
   mu.beta <- mu.theta[1:p]
   Sigma.beta <- Sigma.theta[1:p, 1:p]
   mu.kappa <- mu.theta[p + 1]
