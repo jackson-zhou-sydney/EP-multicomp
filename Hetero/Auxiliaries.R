@@ -5,7 +5,8 @@ sourceCpp("Hetero/Methods/EP.cpp")
 sourceCpp("Hetero/Methods/EP-2D.cpp")
 source("Hetero/Methods/GVB.R")
 
-sigma.2.theta <- 10000
+sigma.beta.1 <- 1
+sigma.beta.2 <- 0.1
 
 sim.settings <- list(c(n = 200, p.1 = 40, p.2 = 10),
                      c(n = 200, p.1 = 20, p.2 = 20),

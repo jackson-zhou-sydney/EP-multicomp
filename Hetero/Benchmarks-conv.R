@@ -28,7 +28,7 @@ for (type.iter in 1:num.bench) {
   p.2 <- ncol(X.2)
   
   mu.theta <- rep(0, p.1 + p.2)
-  Sigma.theta <- sigma.2.theta*diag(p.1 + p.2)
+  Sigma.theta <- diag(c(rep(sigma.beta.1, p.1), rep(sigma.beta.2, p.2)))
   
   stan.res <- mcmc$sample(data = list(N = n,
                                       p_1 = p.1,
