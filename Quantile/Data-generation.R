@@ -53,18 +53,35 @@ save(X, y, file = "Quantile/Data/Benchmarks/Bench-3.RData")
 ## Benchmark 4
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
-energy_filtered <- energy[sample(1:nrow(energy), 3000), ]
-energy_cleaned <- as.data.frame(scale(energy_filtered[, -c(1, 3, 28, 29)]))
-
-energy_squared <- energy_cleaned %>% 
-  mutate_all(function(x) x^2) %>% 
-  select(-Appliances)
+energy_sub <- energy[, -c(1, 3, 28, 29)]
+energy_squared <- energy_sub %>% select(-Appliances) %>% mutate_all(function(x) x^2) 
 colnames(energy_squared) <- paste0(colnames(energy_squared), "_sqr")
+energy_all <- cbind(energy_sub, energy_squared)
 
-energy_all <- cbind(energy_cleaned, energy_squared)
+X.all <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
+attr(X.all, "assign") <- NULL
+y.all <- as.vector(energy_all[, 1])
 
-X <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
-attr(X, "assign") <- NULL
-X[, 2:1177] <- scale(X[, 2:1177])
-y <- energy_all[, 1]
+train.id <- sample(1:nrow(energy), 3000)
+
+for (j in 2:ncol(X.all)) {
+  X.all[, j] <- X.all[, j] - mean(X.all[train.id, j])
+  X.all[, j] <- X.all[, j]/sd(X.all[train.id, j])
+}
+
+y.all <- y.all - mean(y.all[train.id])
+y.all <- y.all/sd(y.all[train.id])
+
+X <- X.all[train.id, ]
+y <- y.all[train.id]
+
 save(X, y, file = "Quantile/Data/Benchmarks/Bench-4.RData")
+
+for (i in 1:8) {
+  test.id <- sample(setdiff(1:nrow(energy), train.id))[1:ceiling(train.size*3000)]
+  
+  X.test <- X.all[test.id, ]
+  y.test <- y.all[test.id]
+  
+  save(X.test, y.test, file = "Quantile/Data/Benchmarks/Bench-4-test-", str_pad(i, 2, pad = "0"), ".RData")
+}

@@ -50,19 +50,43 @@ save(X.1, X.2, y, file = "Hetero/Data/Benchmarks/Bench-3.RData")
 ## Benchmark 4
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
-energy_filtered <- energy[sample(1:nrow(energy), 3000), ]
-energy_cleaned <- as.data.frame(scale(energy_filtered[, -c(1, 3, 28, 29)]))
-
-energy_squared <- energy_cleaned %>% 
-  mutate_all(function(x) x^2) %>% 
-  select(-Appliances)
+energy_sub <- energy[, -c(1, 3, 28, 29)]
+energy_squared <- energy_sub %>% select(-Appliances) %>% mutate_all(function(x) x^2) 
 colnames(energy_squared) <- paste0(colnames(energy_squared), "_sqr")
+energy_all <- cbind(energy_sub, energy_squared)
 
-energy_all <- cbind(energy_cleaned, energy_squared)
+X.1.all <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
+attr(X.1.all, "assign") <- NULL
+X.2.all <- unname(as.matrix(cbind(1, energy_sub[, -1])))
+y.all <- as.vector(energy_all[, 1])
 
-X.1 <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
-attr(X.1, "assign") <- NULL
-X.1[, 2:1177] <- scale(X.1[, 2:1177])
-X.2 <- cbind(1, scale(unname(energy_cleaned[, -1])))
-y <- as.vector(scale(energy_all[, 1]))
+train.id <- sample(1:nrow(energy), 3000)
+
+for (j in 2:ncol(X.1.all)) {
+  X.1.all[, j] <- X.1.all[, j] - mean(X.1.all[train.id, j])
+  X.1.all[, j] <- X.1.all[, j]/sd(X.1.all[train.id, j])
+}
+
+for (j in 2:ncol(X.2.all)) {
+  X.2.all[, j] <- X.2.all[, j] - mean(X.2.all[train.id, j])
+  X.2.all[, j] <- X.2.all[, j]/sd(X.2.all[train.id, j])
+}
+
+y.all <- y.all - mean(y.all[train.id])
+y.all <- y.all/sd(y.all[train.id])
+
+X.1 <- X.1.all[train.id, ]
+X.2 <- X.2.all[train.id, ]
+y <- y.all[train.id]
+
 save(X.1, X.2, y, file = "Hetero/Data/Benchmarks/Bench-4.RData")
+
+for (i in 1:8) {
+  test.id <- sample(setdiff(1:nrow(energy), train.id))[1:ceiling(train.size*3000)]
+  
+  X.1.test <- X.1.all[test.id, ]
+  X.2.test <- X.2.all[test.id, ]
+  y.test <- y.all[test.id]
+  
+  save(X.1.test, X.2.test, y.test, file = "Hetero/Data/Benchmarks/Bench-4-test-", str_pad(i, 2, pad = "0"), ".RData")
+}
