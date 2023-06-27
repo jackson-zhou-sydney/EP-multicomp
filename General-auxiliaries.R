@@ -37,11 +37,12 @@ total.grid.points <- 1024
 
 ## MMD and LPPD evaluation
 eval.size <- 500
-train.size <- 0.9
 
 ## R hat evaluation
-r.hat.tol <- 1.05
+r.hat.tol <- 1.1
 warmup.mult <- 0.1
-mcmc.g.iter <- 10000
+mcmc.min.iter <- 100
+mcmc.step <- 100
+mcmc.g.iter <- 16000
 mcmc.g.warmup <- warmup.mult*mcmc.g.iter
-max.tree.depth <- 8
+max.tree.depth <- 10
