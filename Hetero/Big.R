@@ -214,7 +214,8 @@ if (method == "mcmc") {
                                              method = "ep-2d",
                                              lppd = lppd(X.1.test, X.2.test, y.test, ep.2d.samples))
 } else if (method == "gvb") {
-  mcmc.rstan <- rstan::stan_model("Hetero/Methods/MCMC.stan")
+  library(rstan)
+  mcmc.rstan <- stan_model("Hetero/Methods/MCMC.stan")
   
   start.time <- proc.time()
   
