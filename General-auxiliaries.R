@@ -42,8 +42,7 @@ eval.size <- 500
 ## R hat evaluation
 r.hat.tol <- 1.1
 warmup.mult <- 0.1
-mcmc.min.iter <- 100
-mcmc.step <- 100
+big.test.iter <- c(100, 200, 400, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000, 16000)
 mcmc.g.iter <- 16000
 mcmc.g.warmup <- warmup.mult*mcmc.g.iter
 max.tree.depth <- 10

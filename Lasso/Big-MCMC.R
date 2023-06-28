@@ -62,7 +62,7 @@ for (j in 1:(p + 1)) {
 for (j in 1:(p + 1)) {
   param_samples <- matrix(as.numeric(mcmc.g.draws[, , 1 + j]), nrow = mcmc.g.iter)
   
-  for (mcmc.iter in seq(from = mcmc.min.iter, to = mcmc.g.iter, by = mcmc.step)) {
+  for (mcmc.iter in big.test.iter) {
     r.hat.df <- r.hat.df %>% add_row(mcmc_iter = mcmc.iter,
                                      j = j,
                                      r_hat = rstan::Rhat(param_samples[1:mcmc.iter, ]))
