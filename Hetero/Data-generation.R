@@ -47,7 +47,7 @@ X.2 <- cbind(1, scale(unname(sniffer[, -5])))
 y <- as.vector(scale(sniffer[, 5]))
 save(X.1, X.2, y, file = "Hetero/Data/Benchmarks/Bench-3.RData")
 
-## Benchmark 4
+## Big data
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
 energy_sub <- energy[, -c(1, 3, 28, 29)]
@@ -79,7 +79,7 @@ X.1 <- X.1.all[train.id, ]
 X.2 <- X.2.all[train.id, ]
 y <- y.all[train.id]
 
-save(X.1, X.2, y, file = "Hetero/Data/Benchmarks/Bench-4.RData")
+save(X.1, X.2, y, file = "Hetero/Data/Big/Big.RData")
 
 for (i in 1:8) {
   test.id <- sample(setdiff(1:nrow(energy), train.id))[1:ceiling(train.size*3000)]
@@ -88,5 +88,5 @@ for (i in 1:8) {
   X.2.test <- X.2.all[test.id, ]
   y.test <- y.all[test.id]
   
-  save(X.1.test, X.2.test, y.test, file = "Hetero/Data/Benchmarks/Bench-4-test-", str_pad(i, 2, pad = "0"), ".RData")
+  save(X.1.test, X.2.test, y.test, file = "Hetero/Data/Big/Big-test-", str_pad(i, 2, pad = "0"), ".RData")
 }

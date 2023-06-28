@@ -50,7 +50,7 @@ X <- cbind(1, scale(stackloss[, 1:3]))
 y <- as.vector(scale(stackloss[, 4]))
 save(X, y, file = "Quantile/Data/Benchmarks/Bench-3.RData")
 
-## Benchmark 4
+## Big data
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
 energy_sub <- energy[, -c(1, 3, 28, 29)]
@@ -75,7 +75,7 @@ y.all <- y.all/sd(y.all[train.id])
 X <- X.all[train.id, ]
 y <- y.all[train.id]
 
-save(X, y, file = "Quantile/Data/Benchmarks/Bench-4.RData")
+save(X, y, file = "Quantile/Data/Big/Big.RData")
 
 for (i in 1:8) {
   test.id <- sample(setdiff(1:nrow(energy), train.id))[1:ceiling(train.size*3000)]
@@ -83,5 +83,5 @@ for (i in 1:8) {
   X.test <- X.all[test.id, ]
   y.test <- y.all[test.id]
   
-  save(X.test, y.test, file = "Quantile/Data/Benchmarks/Bench-4-test-", str_pad(i, 2, pad = "0"), ".RData")
+  save(X.test, y.test, file = "Quantile/Data/Big/Big-test-", str_pad(i, 2, pad = "0"), ".RData")
 }
