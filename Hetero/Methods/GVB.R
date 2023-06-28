@@ -9,8 +9,8 @@ library(parallel)
 printf <- function(msg, ...) cat(sprintf(msg, ...), "\n")
 
 to_posterior <- function(model, data) {
-  sampling(model, data = data, chains = 1, iter = 1, refresh = 0,
-           algorithm = "Fixed_param")
+  rstan::sampling(model, data = data, chains = 1, iter = 1, refresh = 0,
+                  algorithm = "Fixed_param")
 }
 
 
@@ -236,7 +236,7 @@ opt_path_stan <- function(model, data, init_bound = 2, N1 = 1000,
   #' @return 
   
   posterior <- to_posterior(model, data)
-  D <- get_num_upars(posterior)
+  D <- rstan::get_num_upars(posterior)
   set.seed(seed)
   init <- runif(D, -init_bound, init_bound)
   fn <- function(theta) -log_prob(posterior, theta, adjust_transform = TRUE, 
@@ -276,11 +276,11 @@ opt_path_stan_parallel <- function(seed_init, seed_list, mc.cores, model, data,
   #' @return 
   
   posterior <- to_posterior(model, data)
-  D <- get_num_upars(posterior)
-  fn <- function(theta) -log_prob(posterior, theta, adjust_transform = TRUE, 
-                                  gradient = TRUE)[1]
-  gr <- function(theta) -grad_log_prob(posterior, theta, 
-                                       adjust_transform = TRUE)
+  D <- rstan::get_num_upars(posterior)
+  fn <- function(theta) -rstan::log_prob(posterior, theta, adjust_transform = TRUE, 
+                                         gradient = TRUE)[1]
+  gr <- function(theta) -rstan::grad_log_prob(posterior, theta, 
+                                              adjust_transform = TRUE)
   
   MC = length(seed_init)
   init = c()
@@ -322,11 +322,11 @@ opt_path_stan_init_parallel <- function(init_ls, mc.cores, model, data,
   #' @return 
   
   posterior <- to_posterior(model, data)
-  D <- get_num_upars(posterior)
-  fn <- function(theta) -log_prob(posterior, theta, adjust_transform = TRUE, 
-                                  gradient = TRUE)[1]
-  gr <- function(theta) -grad_log_prob(posterior, theta, 
-                                       adjust_transform = TRUE)
+  D <- rstan::get_num_upars(posterior)
+  fn <- function(theta) -rstan::log_prob(posterior, theta, adjust_transform = TRUE, 
+                                         gradient = TRUE)[1]
+  gr <- function(theta) -rstan::grad_log_prob(posterior, theta, 
+                                              adjust_transform = TRUE)
   
   list_ind = c()
   for(i in 1:length(init_ls)){

@@ -214,8 +214,7 @@ if (method == "mcmc") {
                                              method = "ep-2d",
                                              lppd = lppd(X.1.test, X.2.test, y.test, ep.2d.samples))
 } else if (method == "gvb") {
-  library(rstan)
-  mcmc.rstan <- stan_model("Hetero/Methods/MCMC.stan")
+  mcmc.rstan <- rstan::stan_model("Hetero/Methods/MCMC.stan")
   
   load(paste0("Hetero/Results/Big-MCMC-results-", str_pad(seed + 2, 2, pad = "0"), ".Rdata"))
   ind <- which(big.test.iter == r.hat.df %>% filter(max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1

@@ -419,8 +419,7 @@ for (type.iter in 1:num.sim) {
                                              lppd = lppd(X.1.test, X.2.test, y.test, ep.2d.samples))
     } else if (method == "gvb") {
       load(paste0("Hetero/Results/Simulations-results-MCMC-G-", type.iter, "-", str_pad(iteration, 2, pad = "0"), "-", str_pad(seed, 2, pad = "0"), ".RData"))
-      library(rstan)
-      mcmc.rstan <- stan_model("Hetero/Methods/MCMC.stan")
+      rstan::mcmc.rstan <- stan_model("Hetero/Methods/MCMC.stan")
       
       if (iteration == 1) {
         load("Hetero/Results/Simulations-conv-table.RData")
