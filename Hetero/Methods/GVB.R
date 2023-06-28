@@ -61,7 +61,7 @@ opt_path <- function(init, fn, gr,
       y[1, 1:D] <- runif(D, -init_bound, init_bound)
     }
     tryCatch(y[1, D + 1] <- -fn(y[1, 1:D]), 
-             error = function(e) { LBFGS_fail <<- TRUE})
+             error = function(e) { print("y[1, D + 1]"); print(e); LBFGS_fail <<- TRUE})
     if(LBFGS_fail | is.infinite(y[1, D + 1])){
       LBFGS_fail <- TRUE
       fn_call = fn_call + 1  # record the evaluation of log-density of ill initials
@@ -83,7 +83,7 @@ opt_path <- function(init, fn, gr,
                                     factr = factr_tol,
                                     trace = 6, REPORT = 1, lmm = lmm)),
         type = "output"), 
-      error = function(e) { LBFGS_fail <<- TRUE})
+      error = function(e) { print("optimx"); print(e); LBFGS_fail <<- TRUE})
     if(LBFGS_fail){ # fail the section of code that does the checking
       fn_call = fn_call + 1
       gr_call = gr_call + 1
