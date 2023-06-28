@@ -46,6 +46,7 @@ for (type.iter in 1:num.sim) {
                           iter_sampling = mcmc.iter,
                           iter_warmup = mcmc.warmup,
                           max_treedepth = max.tree.depth,
+                          init = 0,
                           refresh = 1)
   
   mcmc.summary <- stan.res$summary()

@@ -42,6 +42,7 @@ stan.res <- mcmc$sample(data = list(N = n,
                         iter_sampling = mcmc.g.iter,
                         iter_warmup = mcmc.g.warmup,
                         max_treedepth = max.tree.depth,
+                        init = 0,
                         refresh = 1)
 
 mcmc.g.draws <- stan.res$draws()
