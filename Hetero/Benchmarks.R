@@ -389,6 +389,13 @@ for (type.iter in 1:num.bench) {
     library(rstan)
     mcmc.rstan <- stan_model("Hetero/Methods/MCMC.stan")
     
+    if (iteration == 1) {
+      load("Hetero/Results/Benchmarks-conv-table.RData")
+      mcmc.test.iter <- bench.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
+      ind <- which(mcmc.test.iter == bench.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+      mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
+    }
+    
     start.time <- proc.time()
     
     opath <- opt_path_stan_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num.cores, 
