@@ -83,6 +83,7 @@ for (type.iter in 1:num.sim) {
                               iter_sampling = mcmc.g.iter,
                               iter_warmup = mcmc.g.warmup,
                               max_treedepth = max.tree.depth,
+                              init = 0,
                               refresh = 1)
       
       mcmc.g.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
@@ -124,6 +125,7 @@ for (type.iter in 1:num.sim) {
                               iter_sampling = mcmc.g.iter,
                               iter_warmup = mcmc.g.warmup,
                               max_treedepth = max.tree.depth,
+                              init = 0,
                               refresh = 1)
       
       mcmc.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
@@ -186,6 +188,7 @@ for (type.iter in 1:num.sim) {
                               iter_sampling = mcmc.g.iter,
                               iter_warmup = mcmc.g.warmup,
                               max_treedepth = max.tree.depth,
+                              init = 0,
                               refresh = 1)
       
       mcmc.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
@@ -219,6 +222,7 @@ for (type.iter in 1:num.sim) {
                               iter_sampling = mcmc.s.iter,
                               iter_warmup = mcmc.s.warmup,
                               max_treedepth = max.tree.depth,
+                              init = 0,
                               refresh = 1)
       
       mcmc.s.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
@@ -281,6 +285,7 @@ for (type.iter in 1:num.sim) {
                               iter_sampling = mcmc.s.iter,
                               iter_warmup = mcmc.s.warmup,
                               max_treedepth = max.tree.depth,
+                              init = 0,
                               refresh = 1)
       
       mcmc.s.samples <- as.matrix(stan.res$draws(format = "df"))[, 2:(1 + p + 1)]
