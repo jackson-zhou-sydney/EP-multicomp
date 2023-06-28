@@ -78,7 +78,8 @@ for (j in 1:(p + 1)) {
 }
 
 r.hat.df <- r.hat.df %>% group_by(mcmc_iter) %>% summarise(max_r_hat = max(r_hat))
-mcmc.s.iter <- r.hat.df %>% filter(max_r_hat < r.hat.tol) %>% pull(mcmc_iter) %>% min()
+ind <- which(big.test.iter == r.hat.df %>% filter(max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+mcmc.s.iter <- big.test.iter[min(ind, length(big.test.iter))]
 
 mcmc.s.draws <- head(mcmc.g.draws, mcmc.s.iter)
 mcmc.s.samples <- as.matrix(as_draws_df(mcmc.s.draws))[, 2:(1 + p + 1)]

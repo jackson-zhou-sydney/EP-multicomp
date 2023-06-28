@@ -208,10 +208,11 @@ for (type.iter in 1:num.sim) {
     } else if (method == "mcmc-s") {
       load(paste0("Quantile/Results/Simulations-results-MCMC-G-", type.iter, "-", str_pad(iteration, 2, pad = "0"), "-", str_pad(seed, 2, pad = "0"), ".RData"))
       
-      if (type.iter == 1 && iteration == 1) {
+      if (iteration == 1) {
         load("Quantile/Results/Simulations-conv-table.RData")
-        mcmc.s.iter <- sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat < r.hat.tol) %>% pull(mcmc_iter) %>% min()
-        mcmc.s.warmup <- warmup.mult*mcmc.s.iter
+        mcmc.test.iter <- sim.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
+        ind <- which(mcmc.test.iter == sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+        mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
       }
       
       start.time <- proc.time()
