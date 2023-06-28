@@ -174,13 +174,14 @@ for (file in bench.conv.files) {
 
 bench.files <- res.files[grep("Benchmarks-results", res.files)]
 bench.files <- bench.files[-grep("MCMC-G", bench.files)]
+big.files <- res.files[grep("Big-results", res.files)]
 bench.l1.cdf <- data.frame()
 bench.mmd.cdf <- data.frame()
 bench.lppd.cdf <- data.frame()
 bench.cov.norm.cdf <- data.frame()
 bench.time.cdf <- data.frame()
 
-for (file in bench.files) {
+for (file in c(bench.files, big.files)) {
   load(paste0(res.directory, file))
   bench.l1.cdf <- rbind(bench.l1.cdf, bench.l1.df)
   bench.mmd.cdf <- rbind(bench.mmd.cdf, bench.mmd.df)
