@@ -217,6 +217,10 @@ if (method == "mcmc") {
   library(rstan)
   mcmc.rstan <- stan_model("Hetero/Methods/MCMC.stan")
   
+  load(paste0("Hetero/Results/Big-MCMC-results-", str_pad(seed + 2, 2, pad = "0"), ".Rdata"))
+  ind <- which(big.test.iter == r.hat.df %>% filter(max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+  mcmc.s.iter <- big.test.iter[min(ind, length(big.test.iter))]
+  
   start.time <- proc.time()
   
   opath <- opt_path_stan_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num.cores, 
