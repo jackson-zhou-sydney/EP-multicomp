@@ -9,8 +9,8 @@ library(parallel)
 printf <- function(msg, ...) cat(sprintf(msg, ...), "\n")
 
 to_posterior <- function(model, data) {
-  sampling(model, data = data, chains = 1, iter = 1, refresh = 0,
-           algorithm = "Fixed_param")
+  rstan::sampling(model, data = data, chains = 1, iter = 1, refresh = 0,
+                  algorithm = "Fixed_param")
 }
 
 
