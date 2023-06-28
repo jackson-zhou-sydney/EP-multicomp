@@ -75,5 +75,5 @@ for (i in 1:8) {
   X.test <- X.all[test.id, ]
   y.test <- y.all[test.id]
   
-  save(X.test, y.test, file = "Lasso/Data/Big/Big-test-", str_pad(i, 2, pad = "0"), ".RData")
+  save(X.test, y.test, file = paste0("Lasso/Data/Big/Big-test-", str_pad(i, 2, pad = "0"), ".RData"))
 }

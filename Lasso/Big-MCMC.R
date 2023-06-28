@@ -1,5 +1,5 @@
 
-# MCMC for lasso linear regression benchmarks
+# MCMC for lasso linear regression big data example
 
 source("General-auxiliaries.R")
 source("Lasso/Auxiliaries.R")
@@ -19,6 +19,8 @@ r.hat.df <- data.frame(mcmc_iter = integer(),
 load("Lasso/Data/Big/Big.RData")
 n <- nrow(X)
 p <- ncol(X)
+
+start.time <- proc.time()
 
 stan.res <- mcmc$sample(data = list(N = n,
                                     p = p,
@@ -40,6 +42,9 @@ mcmc.g.samples <- as.matrix(as_draws_df(mcmc.g.draws))[, 2:(1 + p + 1)]
 tail.mcmc.g.samples <- as.matrix(as_draws_df(tail(mcmc.g.draws, round(eval.size/num.cores))))[, 2:(1 + p + 1)]
 mcmc.g.mu <- colMeans(mcmc.g.samples)
 mcmc.g.Sigma <- var(mcmc.g.samples)
+
+total.time <- proc.time() - start.time
+mcmc.g.time <- total.time["elapsed"]
 
 grid.points <- matrix(nrow = p + 1, ncol = total.grid.points)
 mcmc.g.values <- matrix(nrow = p + 1, ncol = total.grid.points)
@@ -72,7 +77,8 @@ mcmc.s.samples <- as.matrix(as_draws_df(mcmc.s.draws))[, 2:(1 + p + 1)]
 tail.mcmc.s.samples <- as.matrix(as_draws_df(tail(mcmc.s.draws, round(eval.size/num.cores))))[, 2:(1 + p + 1)]
 mcmc.s.mu <- colMeans(mcmc.s.samples)
 mcmc.s.Sigma <- var(mcmc.s.samples)
+mcmc.s.time <- (mcmc.s.iter/mcmc.g.iter)*mcmc.g.time
 
-save(mcmc.g.mu, mcmc.g.Sigma, tail.mcmc.g.samples, grid.points, mcmc.g.values,
-     mcmc.s.mu, mcmc.s.Sigma, tail.mcmc.s.samples, r.hat.df, mcmc.s.iter,
+save(mcmc.g.mu, mcmc.g.Sigma, tail.mcmc.g.samples, mcmc.g.time, grid.points, mcmc.g.values,
+     mcmc.s.mu, mcmc.s.Sigma, tail.mcmc.s.samples, mcmc.s.time, r.hat.df, mcmc.s.iter,
      file = paste0("Lasso/Results/Big-MCMC-results-", str_pad(seed, 2, pad = "0"), ".Rdata"))

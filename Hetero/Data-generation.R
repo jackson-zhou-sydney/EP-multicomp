@@ -88,5 +88,5 @@ for (i in 1:8) {
   X.2.test <- X.2.all[test.id, ]
   y.test <- y.all[test.id]
   
-  save(X.1.test, X.2.test, y.test, file = "Hetero/Data/Big/Big-test-", str_pad(i, 2, pad = "0"), ".RData")
+  save(X.1.test, X.2.test, y.test, file = paste0("Hetero/Data/Big/Big-test-", str_pad(i, 2, pad = "0"), ".RData"))
 }
