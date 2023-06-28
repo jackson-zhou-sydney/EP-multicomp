@@ -19,6 +19,7 @@ library(Rcpp)          # C++ in R
 library(RcppArmadillo) # Efficient linear algebra for Rcpp
 library(RcppEigen)     # Alternate linear algebra for Rcpp
 library(RcppNumerical) # Optimisation in Rcpp
+library(calculus)      # Numerical derivatives
 
 ## Options
 options(rcpp.cache.dir = "Rcpp-cache/")

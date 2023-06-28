@@ -239,10 +239,9 @@ opt_path_stan <- function(model, data, init_bound = 2, N1 = 1000,
   D <- rstan::get_num_upars(posterior)
   set.seed(seed)
   init <- runif(D, -init_bound, init_bound)
-  fn <- function(theta) -log_prob(posterior, theta, adjust_transform = TRUE, 
-                                  gradient = TRUE)[1] 
-  gr <- function(theta) -grad_log_prob(posterior, theta, 
-                                       adjust_transform = TRUE)
+  fn <- function(theta) -rstan::log_prob(posterior, theta, adjust_transform = TRUE, 
+                                         gradient = TRUE)[1] 
+  gr <- function(theta) gradient(fn, theta)
   
   out <- opt_path(init, fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
                   N_sam = N_sam, factr_tol = factr_tol,
@@ -279,8 +278,7 @@ opt_path_stan_parallel <- function(seed_init, seed_list, mc.cores, model, data,
   D <- rstan::get_num_upars(posterior)
   fn <- function(theta) -rstan::log_prob(posterior, theta, adjust_transform = TRUE, 
                                          gradient = TRUE)[1]
-  gr <- function(theta) -rstan::grad_log_prob(posterior, theta, 
-                                              adjust_transform = TRUE)
+  gr <- function(theta) gradient(fn, theta)
   
   MC = length(seed_init)
   init = c()
@@ -325,8 +323,7 @@ opt_path_stan_init_parallel <- function(init_ls, mc.cores, model, data,
   D <- rstan::get_num_upars(posterior)
   fn <- function(theta) -rstan::log_prob(posterior, theta, adjust_transform = TRUE, 
                                          gradient = TRUE)[1]
-  gr <- function(theta) -rstan::grad_log_prob(posterior, theta, 
-                                              adjust_transform = TRUE)
+  gr <- function(theta) gradient(fn, theta)
   
   list_ind = c()
   for(i in 1:length(init_ls)){
