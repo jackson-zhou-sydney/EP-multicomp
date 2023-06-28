@@ -27,7 +27,7 @@ options(rcpp.cache.dir = "Rcpp-cache/")
 num.cores <- 10
 num.sim.iter <- 5
 num.sim <- 3
-num.bench <- 4
+num.bench <- 3
 log.lb <- 0.00001
 table.dp <- 3
 train.size <- 0.125
