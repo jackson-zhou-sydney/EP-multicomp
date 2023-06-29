@@ -389,12 +389,10 @@ for (type.iter in 1:num.bench) {
     load(paste0("Hetero/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     mcmc.rstan <- rstan::stan_model("Hetero/Methods/MCMC.stan")
     
-    if (iteration == 1) {
-      load("Hetero/Results/Benchmarks-conv-table.RData")
-      mcmc.test.iter <- bench.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
-      ind <- which(mcmc.test.iter == bench.r.hat.table %>% filter(bench == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
-      mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
-    }
+    load("Hetero/Results/Benchmarks-conv-table.RData")
+    mcmc.test.iter <- bench.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
+    ind <- which(mcmc.test.iter == bench.r.hat.table %>% filter(bench == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+    mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
     
     start.time <- proc.time()
     
