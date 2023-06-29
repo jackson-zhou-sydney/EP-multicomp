@@ -76,7 +76,8 @@ for (j in 1:(p.1 + p.2)) {
 }
 
 r.hat.df <- r.hat.df %>% group_by(mcmc_iter) %>% summarise(max_r_hat = max(r_hat))
-ind <- which(big.test.iter == r.hat.df %>% filter(max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+iters <- r.hat.df %>% filter(max_r_hat > r.hat.tol) %>% pull(mcmc_iter)
+ind <- if(length(iters) != 0) which(big.test.iter == max(iters)) + 1 else 1
 mcmc.s.iter <- big.test.iter[min(ind, length(big.test.iter))]
 
 mcmc.s.draws <- head(mcmc.g.draws, mcmc.s.iter)

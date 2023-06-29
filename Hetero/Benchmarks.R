@@ -391,7 +391,8 @@ for (type.iter in 1:num.bench) {
     
     load("Hetero/Results/Benchmarks-conv-table.RData")
     mcmc.test.iter <- bench.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
-    ind <- which(mcmc.test.iter == bench.r.hat.table %>% filter(bench == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+    iters <- bench.r.hat.table %>% filter(bench == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter)
+    ind <- if(length(iters) != 0) which(mcmc.test.iter == max(iters)) + 1 else 1
     mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
     
     start.time <- proc.time()

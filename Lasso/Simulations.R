@@ -204,7 +204,8 @@ for (type.iter in 1:num.sim) {
       if (iteration == 1) {
         load("Lasso/Results/Simulations-conv-table.RData")
         mcmc.test.iter <- sim.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
-        ind <- which(mcmc.test.iter == sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+        iters <- sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter)
+        ind <- if(length(iters) != 0) which(mcmc.test.iter == max(iters)) + 1 else 1
         mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
         mcmc.s.warmup <- warmup.mult*mcmc.s.iter
       }
