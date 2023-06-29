@@ -7,7 +7,7 @@ sourceCpp("Quantile/Methods/MFVB.cpp")
 
 sigma.2.beta <- 1
 sigma.2.kappa <- 0.01
-tau <- 0.75
+tau <- 0.5
 sigma <- 0.2
 n.binom <- 10
 
