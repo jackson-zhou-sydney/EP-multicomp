@@ -197,7 +197,7 @@ for (type.iter in 1:num.bench) {
     
     load("Hetero/Results/Benchmarks-conv-table.RData")
     mcmc.test.iter <- bench.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
-    ind <- which(mcmc.test.iter == bench.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+    ind <- which(mcmc.test.iter == bench.r.hat.table %>% filter(bench == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
     mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
     mcmc.s.warmup <- warmup.mult*mcmc.s.iter
     
@@ -392,7 +392,7 @@ for (type.iter in 1:num.bench) {
     if (iteration == 1) {
       load("Hetero/Results/Benchmarks-conv-table.RData")
       mcmc.test.iter <- bench.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
-      ind <- which(mcmc.test.iter == bench.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
+      ind <- which(mcmc.test.iter == bench.r.hat.table %>% filter(bench == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
       mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
     }
     
