@@ -442,7 +442,8 @@ for (type.iter in 1:num.sim) {
                                                   y = y,
                                                   mu_theta = mu.theta,
                                                   Sigma_theta = Sigma.theta),
-                                      N_sam = round(mcmc.s.iter/num.cores))
+                                      N_sam = round(mcmc.s.iter/num.cores),
+                                      init_bound = 0.1)
       
       gvb.samples <- t(Imp_Resam_WR(opath, n_sam = mcmc.s.iter, seed = seed))
       gvb.mu <- colMeans(gvb.samples)
@@ -491,7 +492,8 @@ for (type.iter in 1:num.sim) {
                                                   y = y.train,
                                                   mu_theta = mu.theta,
                                                   Sigma_theta = Sigma.theta),
-                                      N_sam = round(mcmc.s.iter/num.cores))
+                                      N_sam = round(mcmc.s.iter/num.cores),
+                                      init_bound = 0.1)
       
       gvb.samples <- t(Imp_Resam_WR(opath, n_sam = mcmc.s.iter, seed = seed))
       
