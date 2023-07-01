@@ -80,5 +80,5 @@ X.1.test <- X.1.all[-train.id, ]
 X.2.test <- X.2.all[-train.id, ]
 y.test <- y.all[-train.id]
 
-save(X.1, X.2, y, file = "Hetero/Data/Big/Big.RData")
-save(X.1.test, X.2.test, y.test, file = "Hetero/Data/Big/Big-test.RData")
+save(X.1, X.2, y, file = "Hetero/Data/Big/Big.RData", compress = T)
+save(X.1.test, X.2.test, y.test, file = "Hetero/Data/Big/Big-test.RData", compress = T)

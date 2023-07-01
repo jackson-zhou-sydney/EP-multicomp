@@ -70,5 +70,5 @@ y <- y.all[train.id]
 X.test <- X.all[-train.id, ]
 y.test <- y.all[-train.id]
 
-save(X, y, file = "Lasso/Data/Big/Big.RData")
-save(X.test, y.test, file = "Lasso/Data/Big/Big-test.RData")
+save(X, y, file = "Lasso/Data/Big/Big.RData", compress = T)
+save(X.test, y.test, file = "Lasso/Data/Big/Big-test.RData", compress = T)
