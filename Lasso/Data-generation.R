@@ -54,7 +54,7 @@ X.all <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
 attr(X.all, "assign") <- NULL
 y.all <- as.vector(energy_all[, 1])
 
-train.id <- sample(1:nrow(energy), 3000)
+train.id <- sample(1:nrow(energy), round(train.size*nrow(energy)))
 
 for (j in 2:ncol(X.all)) {
   X.all[, j] <- X.all[, j] - mean(X.all[train.id, j])
@@ -67,13 +67,8 @@ y.all <- y.all/sd(y.all[train.id])
 X <- X.all[train.id, ]
 y <- y.all[train.id]
 
-save(X, y, file = "Lasso/Data/Big/Big.RData")
+X.test <- X.all[-train.id, ]
+y.test <- y.all[-train.id]
 
-for (i in 1:8) {
-  test.id <- sample(setdiff(1:nrow(energy), train.id))[1:ceiling(train.size*3000)]
-  
-  X.test <- X.all[test.id, ]
-  y.test <- y.all[test.id]
-  
-  save(X.test, y.test, file = paste0("Lasso/Data/Big/Big-test-", str_pad(i, 2, pad = "0"), ".RData"))
-}
+save(X, y, file = "Lasso/Data/Big/Big.RData")
+save(X.test, y.test, file = "Lasso/Data/Big/Big-test.RData")

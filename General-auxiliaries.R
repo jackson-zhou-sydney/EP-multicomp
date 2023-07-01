@@ -31,7 +31,7 @@ num.sim <- 3
 num.bench <- 3
 log.lb <- 0.00001
 table.dp <- 3
-train.size <- 0.125
+train.size <- 0.875
 
 ## Marginal L1 evaluation
 sd.multiple <- 5
