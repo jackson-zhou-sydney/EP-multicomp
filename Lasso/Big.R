@@ -44,7 +44,7 @@ load("Lasso/Data/Big/Big.RData")
 n <- nrow(X)
 p <- ncol(X)
 
-load(paste0("Lasso/Data/Big/Big-test-", str_pad(seed, 2, pad = "0"), ".RData"))
+load(paste0("Lasso/Data/Big/Big-test.RData"))
 
 load(paste0("Lasso/Results/Big-MCMC-results-", str_pad(seed, 2, pad = "0"), ".Rdata"), envir = temp.env)
 mcmc.g.mu <- temp.env$mcmc.g.mu

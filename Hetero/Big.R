@@ -48,7 +48,7 @@ p.2 <- ncol(X.2)
 mu.theta <- rep(0, p.1 + p.2)
 Sigma.theta <- diag(c(rep(sigma.2.beta.1, p.1), rep(sigma.2.beta.2, p.2)))
 
-load(paste0("Hetero/Data/Big/Big-test-", str_pad(seed, 2, pad = "0"), ".RData"))
+load(paste0("Hetero/Data/Big/Big-test.RData"))
 
 load(paste0("Hetero/Results/Big-MCMC-results-", str_pad(seed, 2, pad = "0"), ".Rdata"), envir = temp.env)
 mcmc.g.mu <- temp.env$mcmc.g.mu

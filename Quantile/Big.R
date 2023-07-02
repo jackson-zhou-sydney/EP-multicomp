@@ -51,7 +51,7 @@ Sigma.beta <- Sigma.theta[1:p, 1:p]
 mu.kappa <- mu.theta[p + 1]
 sigma.2.kappa <- Sigma.theta[p + 1, p + 1]
 
-load(paste0("Quantile/Data/Big/Big-test-", str_pad(seed, 2, pad = "0"), ".RData"))
+load(paste0("Quantile/Data/Big/Big-test.RData"))
 
 load(paste0("Quantile/Results/Big-MCMC-results-", str_pad(seed, 2, pad = "0"), ".Rdata"), envir = temp.env)
 mcmc.g.mu <- temp.env$mcmc.g.mu
