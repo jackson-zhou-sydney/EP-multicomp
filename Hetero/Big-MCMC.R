@@ -37,8 +37,8 @@ stan.res <- mcmc$sample(data = list(N = n,
                         seed = seed, 
                         chains = num.cores, 
                         parallel_chains = num.cores,
-                        iter_sampling = mcmc.g.iter,
-                        iter_warmup = mcmc.g.warmup,
+                        iter_sampling = big.mcmc.g.iter,
+                        iter_warmup = big.mcmc.g.warmup,
                         max_treedepth = max.tree.depth,
                         init = 0,
                         refresh = 1)
@@ -66,7 +66,7 @@ for (j in 1:(p.1 + p.2)) {
 }
 
 for (j in 1:(p.1 + p.2)) {
-  param_samples <- matrix(as.numeric(mcmc.g.draws[, , 1 + j]), nrow = mcmc.g.iter)
+  param_samples <- matrix(as.numeric(mcmc.g.draws[, , 1 + j]), nrow = big.mcmc.g.iter)
   
   for (mcmc.iter in big.test.iter) {
     r.hat.df <- r.hat.df %>% add_row(mcmc_iter = mcmc.iter,
@@ -85,7 +85,7 @@ mcmc.s.samples <- as.matrix(as_draws_df(mcmc.s.draws))[, 2:(1 + p.1 + p.2)]
 tail.mcmc.s.samples <- as.matrix(as_draws_df(tail(mcmc.s.draws, round(eval.size/num.cores))))[, 2:(1 + p.1 + p.2)]
 mcmc.s.mu <- colMeans(mcmc.s.samples)
 mcmc.s.Sigma <- var(mcmc.s.samples)
-mcmc.s.time <- (mcmc.s.iter/mcmc.g.iter)*mcmc.g.time
+mcmc.s.time <- (mcmc.s.iter/big.mcmc.g.iter)*mcmc.g.time
 
 save(mcmc.g.mu, mcmc.g.Sigma, tail.mcmc.g.samples, mcmc.g.time, grid.points, mcmc.g.values,
      mcmc.s.mu, mcmc.s.Sigma, tail.mcmc.s.samples, mcmc.s.time, r.hat.df, mcmc.s.iter,
