@@ -4,6 +4,9 @@
 source("General-auxiliaries.R")
 source("Quantile/Auxiliaries.R")
 
+mcmc.g.iter <- 400
+big.test.iter <- c(100, 200, 400)
+
 args <- commandArgs(trailingOnly = T)
 seed <- as.numeric(args[1])
 set.seed(seed)
