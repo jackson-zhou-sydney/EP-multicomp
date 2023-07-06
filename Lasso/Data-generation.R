@@ -45,7 +45,7 @@ save(X, y, file = "Lasso/Data/Benchmarks/Bench-3.RData")
 ## Big data
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
-energy_sub <- energy[, -c(1, 3, 23, 25, 26, 27, 28, 29)]
+energy_sub <- energy[, -c(1, 3, 22:29)]
 energy_squared <- energy_sub %>% select(-Appliances) %>% mutate_all(function(x) x^2) 
 colnames(energy_squared) <- paste0(colnames(energy_squared), "_sqr")
 energy_all <- cbind(energy_sub, energy_squared)

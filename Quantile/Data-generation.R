@@ -53,7 +53,7 @@ save(X, y, file = "Quantile/Data/Benchmarks/Bench-3.RData")
 ## Big data
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
-energy_sub <- energy[, -c(1, 3, 23, 25, 26, 27, 28, 29)]
+energy_sub <- energy[, -c(1, 3, 22:29)]
 
 X.all <- unname(model.matrix(Appliances ~ .^2, data = energy_sub))
 attr(X.all, "assign") <- NULL
