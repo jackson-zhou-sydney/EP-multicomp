@@ -71,7 +71,7 @@ if (method == "mcmc") {
                                            bench = 4,
                                            method = "mcmc",
                                            j = j,
-                                           l1 = 1 - trapz(grid.points[j, ], abs(mcmc.g.values[j, ] - approx(mcmc.grid.points[j, ], mcmc.values[j, ], grid.points[j, ])$y))/2)
+                                           l1 = 1 - trapz(grid.points[j, ], abs(mcmc.g.values[j, ] - approx(mcmc.grid.points[j, ], mcmc.values[j, ], grid.points[j, ], rule = 2)$y))/2)
   }
   
   out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
@@ -108,7 +108,7 @@ if (method == "mcmc") {
                                            bench = 4,
                                            method = "mcmc-s",
                                            j = j,
-                                           l1 = 1 - trapz(grid.points[j, ], abs(mcmc.g.values[j, ] - approx(mcmc.s.grid.points[j, ], mcmc.s.values[j, ], grid.points[j, ])$y))/2)
+                                           l1 = 1 - trapz(grid.points[j, ], abs(mcmc.g.values[j, ] - approx(mcmc.s.grid.points[j, ], mcmc.s.values[j, ], grid.points[j, ], rule = 2)$y))/2)
   }
   
   out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
