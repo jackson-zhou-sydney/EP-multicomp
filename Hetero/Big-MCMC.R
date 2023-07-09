@@ -87,6 +87,19 @@ mcmc.s.mu <- colMeans(mcmc.s.samples)
 mcmc.s.Sigma <- var(mcmc.s.samples)
 mcmc.s.time <- (mcmc.s.iter/big.mcmc.g.iter)*mcmc.g.time
 
+mcmc.s.grid.points <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
+mcmc.s.values <- matrix(nrow = p.1 + p.2, ncol = total.grid.points)
+
+for (j in 1:(p.1 + p.2)) {
+  density.res <- density(mcmc.s.samples[, j], bw = "SJ-ste",
+                         from = mcmc.s.mu[j] - sd.multiple*sqrt(mcmc.s.Sigma[j, j]),
+                         to = mcmc.s.mu[j] + sd.multiple*sqrt(mcmc.s.Sigma[j, j]),
+                         n = total.grid.points)
+  
+  mcmc.s.grid.points[j, ] <- density.res$x
+  mcmc.s.values[j, ] <- density.res$y
+}
+
 save(mcmc.g.mu, mcmc.g.Sigma, tail.mcmc.g.samples, mcmc.g.time, grid.points, mcmc.g.values,
-     mcmc.s.mu, mcmc.s.Sigma, tail.mcmc.s.samples, mcmc.s.time, r.hat.df, mcmc.s.iter,
+     mcmc.s.mu, mcmc.s.Sigma, tail.mcmc.s.samples, mcmc.s.time, mcmc.s.grid.points, mcmc.s.values, r.hat.df, mcmc.s.iter,
      file = paste0("Hetero/Results/Big-MCMC-results-", str_pad(seed, 2, pad = "0"), ".Rdata"))

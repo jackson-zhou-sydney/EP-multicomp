@@ -99,7 +99,7 @@ if (method == "mcmc") {
   mcmc.s.mu <- temp.env$mcmc.s.mu
   mcmc.s.Sigma <- temp.env$mcmc.s.Sigma
   tail.mcmc.s.samples <- temp.env$tail.mcmc.s.samples
-  mcmc.s.grid.points <- temp.env$grid.points
+  mcmc.s.grid.points <- temp.env$mcmc.s.grid.points
   mcmc.s.values <- temp.env$mcmc.s.values
   mcmc.s.time <- temp.env$mcmc.s.time
   
