@@ -45,14 +45,11 @@ save(X, y, file = "Lasso/Data/Benchmarks/Bench-3.RData")
 ## Big data
 
 energy <- read.csv("Benchmark-data/energydata_complete.csv")
-energy_sub <- energy[, -c(1, 3, 22:29)]
-energy_squared <- energy_sub %>% select(-Appliances) %>% mutate_all(function(x) x^2) 
-colnames(energy_squared) <- paste0(colnames(energy_squared), "_sqr")
-energy_all <- cbind(energy_sub, energy_squared)
+energy_sub <- energy[, -c(1, 3, 28:29)]
 
-X.all <- unname(model.matrix(Appliances ~ .^2, data = energy_all))
+X.all <- unname(model.matrix(Appliances ~ .^2, data = energy_sub))
 attr(X.all, "assign") <- NULL
-y.all <- as.vector(energy_all[, 1])
+y.all <- as.vector(energy_sub[, 1])
 
 train.id <- sample(1:nrow(energy), round(train.size*nrow(energy)))
 
