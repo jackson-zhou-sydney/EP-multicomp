@@ -289,11 +289,21 @@ opt_path_stan_parallel <- function(seed_init, seed_list, mc.cores, model, data,
     list_ind[[i]] <- i
   }
   
-  out <- mclapply(list_ind, f <- function(x){
-    opt_path(init = init[[x]] ,fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
-             N_sam = N_sam,  factr_tol = factr_tol,
-             lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws)
-  }, mc.cores = mc.cores)
+  out <- vector("list", length = length(list_ind))
+  for (i in 1:length(list_ind)) {
+    x <- list_ind[[i]]
+    out[[i]] <- opt_path(init = init[[x]] ,fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
+                         N_sam = N_sam,  factr_tol = factr_tol,
+                         lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws)
+  }
+  
+  return(out)
+  
+  # out <- mclapply(list_ind, f <- function(x){
+  #   opt_path(init = init[[x]] ,fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
+  #            N_sam = N_sam,  factr_tol = factr_tol,
+  #            lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws)
+  # }, mc.cores = mc.cores)
 }
 
 opt_path_stan_init_parallel <- function(init_ls, mc.cores, model, data, 
