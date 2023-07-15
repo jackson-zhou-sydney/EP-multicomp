@@ -43,25 +43,48 @@ mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
 start.time <- proc.time()
 Rprof(tf <- "rprof.log", memory.profiling = T, interval = 0.005)
 
-opath <- opt_path_stan_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num.cores, 
-                                seed_list = (seed - 1)*length(num.cores) + 1:num.cores, 
-                                mc.cores = num.cores, 
-                                model = mcmc.rstan,
-                                data = list(N = n,
-                                            p_1 = p.1,
-                                            p_2 = p.2,
-                                            X_1 = X.1,
-                                            X_2 = X.2,
-                                            y = y,
-                                            mu_theta = mu.theta,
-                                            Sigma_theta = Sigma.theta),
-                                N_sam = round(mcmc.s.iter/num.cores),
-                                init_bound = 0.1,
-                                eval_lp_draws = F)
+seed_init <- (seed - 1)*length(num.cores) + 1:num.cores
+seed_list <- (seed - 1)*length(num.cores) + 1:num.cores
+mc.cores <- num.cores
+model <- mcmc.rstan
+data <- list(N = n,
+             p_1 = p.1,
+             p_2 = p.2,
+             X_1 = X.1,
+             X_2 = X.2,
+             y = y,
+             mu_theta = mu.theta,
+             Sigma_theta = Sigma.theta)
+N_sam <- round(mcmc.s.iter/num.cores)
+init_bound <- 0.1
 
-gvb.samples <- t(Imp_Resam_WR(opath, n_sam = mcmc.s.iter, seed = seed))
-gvb.mu <- colMeans(gvb.samples)
-gvb.Sigma <- var(gvb.samples)
+N1 <- 1000
+N_sam_DIV <- 5
+N_sam <- 100
+factr_tol <- 1e2
+lmm <- 6
+eval_lp_draws <- TRUE
+
+posterior <- to_posterior(model, data)
+D <- rstan::get_num_upars(posterior)
+fn <- function(theta) -rstan::log_prob(posterior, theta, adjust_transform = TRUE, gradient = TRUE)[1]
+gr <- function(theta) gradient(fn, theta)
+
+MC = length(seed_init)
+init = c()
+list_ind = c()
+for(i in 1:MC){
+  set.seed(seed_init[i])
+  init[[i]] <- runif(D, -init_bound, init_bound)
+  list_ind[[i]] <- i
+}
+
+i <- 1
+x <- list_ind[[i]]
+
+test <- opt_path(init = init[[x]] ,fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
+                 N_sam = N_sam,  factr_tol = factr_tol,
+                 lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws)
 
 total.time <- proc.time() - start.time
 Rprof(NULL)
