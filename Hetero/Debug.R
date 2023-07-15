@@ -41,6 +41,7 @@ ind <- if(length(iters) != 0) which(mcmc.test.iter == max(iters)) + 1 else 1
 mcmc.s.iter <- mcmc.test.iter[min(ind, length(mcmc.test.iter))]
 
 start.time <- proc.time()
+Rprof(tf <- "rprof.log", memory.profiling = T)
 
 opath <- opt_path_stan_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num.cores, 
                                 seed_list = (seed - 1)*length(num.cores) + 1:num.cores, 
@@ -62,4 +63,7 @@ gvb.mu <- colMeans(gvb.samples)
 gvb.Sigma <- var(gvb.samples)
 
 total.time <- proc.time() - start.time
+Rprof(NULL)
+
 print(total.time)
+summaryRprof(tf, memory = "stats")
