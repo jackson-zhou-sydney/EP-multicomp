@@ -56,7 +56,8 @@ opath <- opt_path_stan_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num
                                             mu_theta = mu.theta,
                                             Sigma_theta = Sigma.theta),
                                 N_sam = round(mcmc.s.iter/num.cores),
-                                init_bound = 0.1)
+                                init_bound = 0.1,
+                                eval_lp_draws = F)
 
 gvb.samples <- t(Imp_Resam_WR(opath, n_sam = mcmc.s.iter, seed = seed))
 gvb.mu <- colMeans(gvb.samples)
