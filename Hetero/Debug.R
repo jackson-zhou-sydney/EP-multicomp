@@ -32,6 +32,8 @@ X.2.test <- X.2[-train.ind, , drop = F]
 y.test <- y[-train.ind]
 n.test <- nrow(X.1.test)
 
+mcmc.rstan <- rstan::stan_model("Hetero/Methods/MCMC.stan")
+
 load("Hetero/Results/Simulations-conv-table.RData")
 mcmc.test.iter <- sim.r.hat.table %>% pull(mcmc_iter) %>% unique() %>% sort()
 iters <- sim.r.hat.table %>% filter(sim == type.iter) %>% filter(mean_max_r_hat > r.hat.tol) %>% pull(mcmc_iter)
