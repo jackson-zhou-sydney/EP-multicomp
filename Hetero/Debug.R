@@ -79,12 +79,13 @@ for(i in 1:MC){
   list_ind[[i]] <- i
 }
 
-i <- 1
-x <- list_ind[[i]]
+for (i in 1:5) {
+    x <- list_ind[[i]]
 
-test <- opt_path(init = init[[x]] ,fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
-                 N_sam = N_sam,  factr_tol = factr_tol,
-                 lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws)
+    test <- opt_path(init = init[[x]] ,fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
+                     N_sam = N_sam,  factr_tol = factr_tol,
+                     lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws)
+}
 
 total.time <- proc.time() - start.time
 Rprof(NULL)
