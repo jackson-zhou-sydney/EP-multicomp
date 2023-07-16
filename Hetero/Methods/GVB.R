@@ -276,9 +276,6 @@ opt_path_stan_parallel <- function(seed_init, seed_list, mc.cores, model, data,
   
   posterior <- to_posterior(model, data)
   D <- rstan::get_num_upars(posterior)
-  # fn <- function(theta) -rstan::log_prob(posterior, theta, adjust_transform = TRUE, 
-  #                                        gradient = TRUE)[1]
-  # gr <- function(theta) gradient(fn, theta)
   fn <- function(theta) -rstan::log_prob(posterior, theta)
   gr <- function(theta) -rstan::grad_log_prob(posterior, theta)
   
@@ -290,16 +287,6 @@ opt_path_stan_parallel <- function(seed_init, seed_list, mc.cores, model, data,
     init[[i]] <- runif(D, -init_bound, init_bound)
     list_ind[[i]] <- i
   }
-  
-  # out <- vector("list", length = length(list_ind))
-  # for (i in 1:length(list_ind)) {
-  #   x <- list_ind[[i]]
-  #   out[[i]] <- opt_path(init = init[[x]] ,fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
-  #                        N_sam = N_sam,  factr_tol = factr_tol,
-  #                        lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws)
-  # }
-  # 
-  # return(out)
   
   out <- mclapply(list_ind, f <- function(x){
     opt_path(init = init[[x]] ,fn = fn, gr = gr, N1 = N1, N_sam_DIV = N_sam_DIV,
