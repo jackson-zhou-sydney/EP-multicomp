@@ -3,6 +3,7 @@
 
 sourceCpp("Hetero/Methods/EP.cpp")
 sourceCpp("Hetero/Methods/EP-2D.cpp")
+sourceCpp("Hetero/Methods/Laplace.cpp")
 sourceCpp("Hetero/Methods/GVB.cpp")
 source("Hetero/Methods/GVB.R")
 
