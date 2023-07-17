@@ -211,6 +211,27 @@ opt_path <- function(init, fn, gr,
               status = "samples"))
 }
 
+opt_path_parallel <- function(seed_init, seed_list, mc.cores, fn, gr, D, init_bound = 2, 
+                              N1 = 1000, N_sam_DIV = 5, N_sam = 100, factr_tol = 100, lmm = 6, eval_lp_draws = T) {
+  MC <- length(seed_init)
+  init <- c()
+  list_ind <- c()
+  
+  for (i in 1:MC) {
+    set.seed(seed_init[i])
+    init[[i]] <- runif(D, -init_bound, init_bound)
+    list_ind[[i]] <- i
+  }
+  
+  out <- mclapply(list_ind, 
+                  f <- function(x) opt_path(init = init[[x]], fn = fn, gr = gr, 
+                                            N1 = N1, N_sam_DIV = N_sam_DIV, 
+                                            N_sam = N_sam,  factr_tol = factr_tol, 
+                                            lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws), 
+                  mc.cores = mc.cores)
+  
+  return(out)
+}
 
 opt_path_stan <- function(model, data, init_bound = 2, N1 = 1000,
                           N_sam_DIV = 5, N_sam = 100,
@@ -275,9 +296,11 @@ opt_path_stan_parallel <- function(seed_init, seed_list, mc.cores, model, data,
   #' @return 
   
   posterior <- to_posterior(model, data)
-  D <- rstan::get_num_upars(posterior)
-  fn <- function(theta) -rstan::log_prob(posterior, theta)
-  gr <- function(theta) -rstan::grad_log_prob(posterior, theta)
+  D <- get_num_upars(posterior)
+  fn <- function(theta) -log_prob(posterior, theta, adjust_transform = TRUE, 
+                                  gradient = TRUE)[1]
+  gr <- function(theta) -grad_log_prob(posterior, theta, 
+                                       adjust_transform = TRUE)
   
   MC = length(seed_init)
   init = c()
@@ -293,28 +316,6 @@ opt_path_stan_parallel <- function(seed_init, seed_list, mc.cores, model, data,
              N_sam = N_sam,  factr_tol = factr_tol,
              lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws)
   }, mc.cores = mc.cores)
-}
-
-opt_path_parallel <- function(seed_init, seed_list, mc.cores, fn, gr, D, init_bound = 2, 
-                              N1 = 1000, N_sam_DIV = 5, N_sam = 100, factr_tol = 100, lmm = 6, eval_lp_draws = T) {
-  MC <- length(seed_init)
-  init <- c()
-  list_ind <- c()
-  
-  for (i in 1:MC) {
-    set.seed(seed_init[i])
-    init[[i]] <- runif(D, -init_bound, init_bound)
-    list_ind[[i]] <- i
-  }
-  
-  out <- mclapply(list_ind, 
-                  f <- function(x) opt_path(init = init[[x]], fn = fn, gr = gr, 
-                                            N1 = N1, N_sam_DIV = N_sam_DIV, 
-                                            N_sam = N_sam,  factr_tol = factr_tol, 
-                                            lmm = lmm, seed = seed_list[x], eval_lp_draws = eval_lp_draws), 
-                  mc.cores = mc.cores)
-  
-  return(out)
 }
 
 opt_path_stan_init_parallel <- function(init_ls, mc.cores, model, data, 
