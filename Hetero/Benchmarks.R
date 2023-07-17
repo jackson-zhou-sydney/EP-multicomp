@@ -385,52 +385,52 @@ for (type.iter in 1:num.bench) {
                                                bench = type.iter,
                                                method = "ep-2d",
                                                lppd = lppd(X.1.test, X.2.test, y.test, ep.2d.samples))
-  } else if (method == "laplace") {
+  } else if (method == "lm") {
     load(paste0("Hetero/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     
     start.time <- proc.time()
     
-    laplace.res <- laplace(X.1, X.2, y, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
-    laplace.mu <- laplace.res$mu
-    laplace.Sigma <- laplace.res$Sigma
-    laplace.samples <- rmvnorm(eval.size, laplace.mu, laplace.Sigma)
+    lm.res <- lm(X.1, X.2, y, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
+    lm.mu <- lm.res$mu
+    lm.Sigma <- lm.res$Sigma
+    lm.samples <- rmvnorm(eval.size, lm.mu, lm.Sigma)
     
     total.time <- proc.time() - start.time
     
     for (j in 1:(p.1 + p.2)) {
       bench.l1.df <- bench.l1.df %>% add_row(seed = seed,
                                              bench = type.iter,
-                                             method = "laplace",
+                                             method = "lm",
                                              j = j,
                                              l1 = 1 - trapz(grid.points[j, ], 
-                                                            abs(mcmc.g.values[j, ] - dnorm(grid.points[j, ], laplace.mu[j], sqrt(laplace.Sigma[j, j]))))/2)
+                                                            abs(mcmc.g.values[j, ] - dnorm(grid.points[j, ], lm.mu[j], sqrt(lm.Sigma[j, j]))))/2)
     }
     
     out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
                                                                    bench = type.iter,
-                                                                   method = "laplace",
-                                                                   mmd = max(kmmd(laplace.samples, 
+                                                                   method = "lm",
+                                                                   mmd = max(kmmd(lm.samples, 
                                                                                   tail.mcmc.g.samples)@mmdstats[2], 0)))
     
     bench.cov.norm.df <- bench.cov.norm.df %>% add_row(seed = seed,
                                                        bench = type.iter,
-                                                       method = "laplace",
-                                                       cov_norm = norm(mcmc.g.Sigma - laplace.Sigma, "F"))
+                                                       method = "lm",
+                                                       cov_norm = norm(mcmc.g.Sigma - lm.Sigma, "F"))
     
     bench.time.df <- bench.time.df %>% add_row(seed = seed,
                                                bench = type.iter,
-                                               method = "laplace",
+                                               method = "lm",
                                                time = total.time["elapsed"])
     
-    laplace.res <- laplace(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
-    laplace.mu <- laplace.res$mu
-    laplace.Sigma <- laplace.res$Sigma
-    laplace.samples <- rmvnorm(eval.size, laplace.mu, laplace.Sigma)
+    lm.res <- lm(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
+    lm.mu <- lm.res$mu
+    lm.Sigma <- lm.res$Sigma
+    lm.samples <- rmvnorm(eval.size, lm.mu, lm.Sigma)
     
     bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
                                                bench = type.iter,
-                                               method = "laplace",
-                                               lppd = lppd(X.1.test, X.2.test, y.test, laplace.samples))
+                                               method = "lm",
+                                               lppd = lppd(X.1.test, X.2.test, y.test, lm.samples))
   } else if (method == "gvb") {
     load(paste0("Hetero/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     mcmc.rstan <- rstan::stan_model("Hetero/Methods/MCMC.stan")

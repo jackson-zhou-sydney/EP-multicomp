@@ -83,10 +83,10 @@ public:
   }
 };
 
-List laplace(arma::mat X_1, arma::mat X_2, arma::vec y, 
-             arma::mat Sigma_theta, arma::vec mu_theta, 
-             arma::vec init, int max_iter) {
-  // Laplace approximation for Bayesian heteroscedastic linear regression
+List lm(arma::mat X_1, arma::mat X_2, arma::vec y, 
+        arma::mat Sigma_theta, arma::vec mu_theta, 
+        arma::vec init, int max_iter) {
+  // Laplace's method for Bayesian heteroscedastic linear regression
   const MapMat M_X_1 = as<MapMat>(wrap(X_1));
   const MapMat M_X_2 = as<MapMat>(wrap(X_2));
   const MapVec M_y = as<MapVec>(wrap(y));
