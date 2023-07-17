@@ -83,6 +83,7 @@ public:
   }
 };
 
+// [[Rcpp::export]]
 List lm(arma::mat X_1, arma::mat X_2, arma::vec y, 
         arma::mat Sigma_theta, arma::vec mu_theta, 
         arma::vec init, int max_iter) {
