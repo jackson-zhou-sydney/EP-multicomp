@@ -385,52 +385,6 @@ for (type.iter in 1:num.bench) {
                                                bench = type.iter,
                                                method = "ep-2d",
                                                lppd = lppd(X.1.test, X.2.test, y.test, ep.2d.samples))
-  } else if (method == "lm") {
-    load(paste0("Hetero/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
-    
-    start.time <- proc.time()
-    
-    lm.res <- lm(X.1, X.2, y, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
-    lm.mu <- lm.res$mu
-    lm.Sigma <- lm.res$Sigma
-    lm.samples <- rmvnorm(eval.size, lm.mu, lm.Sigma)
-    
-    total.time <- proc.time() - start.time
-    
-    for (j in 1:(p.1 + p.2)) {
-      bench.l1.df <- bench.l1.df %>% add_row(seed = seed,
-                                             bench = type.iter,
-                                             method = "lm",
-                                             j = j,
-                                             l1 = 1 - trapz(grid.points[j, ], 
-                                                            abs(mcmc.g.values[j, ] - dnorm(grid.points[j, ], lm.mu[j], sqrt(lm.Sigma[j, j]))))/2)
-    }
-    
-    out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
-                                                                   bench = type.iter,
-                                                                   method = "lm",
-                                                                   mmd = max(kmmd(lm.samples, 
-                                                                                  tail.mcmc.g.samples)@mmdstats[2], 0)))
-    
-    bench.cov.norm.df <- bench.cov.norm.df %>% add_row(seed = seed,
-                                                       bench = type.iter,
-                                                       method = "lm",
-                                                       cov_norm = norm(mcmc.g.Sigma - lm.Sigma, "F"))
-    
-    bench.time.df <- bench.time.df %>% add_row(seed = seed,
-                                               bench = type.iter,
-                                               method = "lm",
-                                               time = total.time["elapsed"])
-    
-    lm.res <- lm(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
-    lm.mu <- lm.res$mu
-    lm.Sigma <- lm.res$Sigma
-    lm.samples <- rmvnorm(eval.size, lm.mu, lm.Sigma)
-    
-    bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
-                                               bench = type.iter,
-                                               method = "lm",
-                                               lppd = lppd(X.1.test, X.2.test, y.test, lm.samples))
   } else if (method == "gvb") {
     load(paste0("Hetero/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
     mcmc.rstan <- rstan::stan_model("Hetero/Methods/MCMC.stan")
@@ -498,6 +452,52 @@ for (type.iter in 1:num.bench) {
                                                bench = type.iter,
                                                method = "gvb",
                                                lppd = lppd(X.1.test, X.2.test, y.test, tail(gvb.samples, eval.size)))
+  } else if (method == "lm") {
+    load(paste0("Hetero/Results/Benchmarks-results-MCMC-G-", type.iter, "-", str_pad(seed, 2, pad = "0"), ".RData"))
+    
+    start.time <- proc.time()
+    
+    lm.res <- lm(X.1, X.2, y, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
+    lm.mu <- lm.res$mu
+    lm.Sigma <- lm.res$Sigma
+    lm.samples <- rmvnorm(eval.size, lm.mu, lm.Sigma)
+    
+    total.time <- proc.time() - start.time
+    
+    for (j in 1:(p.1 + p.2)) {
+      bench.l1.df <- bench.l1.df %>% add_row(seed = seed,
+                                             bench = type.iter,
+                                             method = "lm",
+                                             j = j,
+                                             l1 = 1 - trapz(grid.points[j, ], 
+                                                            abs(mcmc.g.values[j, ] - dnorm(grid.points[j, ], lm.mu[j], sqrt(lm.Sigma[j, j]))))/2)
+    }
+    
+    out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
+                                                                   bench = type.iter,
+                                                                   method = "lm",
+                                                                   mmd = max(kmmd(lm.samples, 
+                                                                                  tail.mcmc.g.samples)@mmdstats[2], 0)))
+    
+    bench.cov.norm.df <- bench.cov.norm.df %>% add_row(seed = seed,
+                                                       bench = type.iter,
+                                                       method = "lm",
+                                                       cov_norm = norm(mcmc.g.Sigma - lm.Sigma, "F"))
+    
+    bench.time.df <- bench.time.df %>% add_row(seed = seed,
+                                               bench = type.iter,
+                                               method = "lm",
+                                               time = total.time["elapsed"])
+    
+    lm.res <- lm(X.1.train, X.2.train, y.train, Sigma.theta, mu.theta, rep(0, p.1 + p.2), 20000)
+    lm.mu <- lm.res$mu
+    lm.Sigma <- lm.res$Sigma
+    lm.samples <- rmvnorm(eval.size, lm.mu, lm.Sigma)
+    
+    bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
+                                               bench = type.iter,
+                                               method = "lm",
+                                               lppd = lppd(X.1.test, X.2.test, y.test, lm.samples))
   } else {
     stop("method must be in one of mcmc-g, mcmc, mcmc-s, ep, ep-2d, or gvb")
   }
