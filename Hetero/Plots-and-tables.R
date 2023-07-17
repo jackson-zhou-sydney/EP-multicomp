@@ -46,7 +46,7 @@ save(sim.r.hat.table, file = paste0(res.directory, "Simulations-conv-table.RData
 ### L1 accuracy
 
 sim.l1.plot <- sim.l1.cdf %>% 
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   mutate(block = case_when(j <= as.numeric(map(sim, ~sim.settings[[.]][["p.1"]])) ~ "beta_1",
                            TRUE ~ "beta_2")) %>% 
   group_by(seed, sim, iteration, method, block) %>% 
@@ -76,7 +76,7 @@ sim.l1.table <- sim.l1.cdf %>%
 ### M-star
 
 sim.m.star.plot <- sim.mmd.cdf %>% 
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   mutate(m_star = -log(mmd + log.lb)) %>%
   group_by(seed, sim, method) %>%
   summarise(m_m_star = mean(m_star)) %>% 
@@ -99,7 +99,7 @@ sim.m.star.table <- sim.mmd.cdf %>%
 ### LPPD
 
 sim.lppd.plot <- sim.lppd.cdf %>% 
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   group_by(seed, sim, method) %>%
   summarise(m_lppd = mean(lppd)) %>% 
   ggplot(mapping = aes(x = method, y = m_lppd)) +
@@ -120,7 +120,7 @@ sim.lppd.table <- sim.lppd.cdf %>%
 ### F-star
 
 sim.f.star.plot <- sim.cov.norm.cdf %>% 
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   mutate(f_star = -log(cov_norm + log.lb)) %>%
   group_by(seed, sim, method) %>%
   summarise(m_f_star = mean(f_star)) %>% 
@@ -143,7 +143,7 @@ sim.f.star.table <- sim.cov.norm.cdf %>%
 ### Run time
 
 sim.time.plot <- sim.time.cdf %>% 
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   group_by(seed, sim, method) %>%
   summarise(m_time = mean(time)) %>% 
   ggplot(mapping = aes(x = method, y = m_time)) +
@@ -203,7 +203,7 @@ save(bench.r.hat.table, file = paste0(res.directory, "Benchmarks-conv-table.RDat
 ### L1 accuracy
 
 bench.l1.plot <- bench.l1.cdf %>%
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p.1"]])) ~ "beta_1",
                            TRUE ~ "beta_2")) %>% 
   group_by(seed, bench, method, block) %>% 
@@ -229,7 +229,7 @@ bench.l1.table <- bench.l1.cdf %>%
 ### M-star
   
 bench.m.star.plot <- bench.mmd.cdf %>%
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   mutate(m_star = -log(mmd + log.lb)) %>% 
   ggplot(mapping = aes(x = method, y = m_star)) +
   geom_boxplot() +
@@ -248,7 +248,7 @@ bench.m.star.table <- bench.mmd.cdf %>%
 ### LPPD
 
 bench.lppd.plot <- bench.lppd.cdf %>% 
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   ggplot(mapping = aes(x = method, y = lppd)) +
   geom_boxplot() +
   facet_wrap(~bench, scales = "free_y",
@@ -265,7 +265,7 @@ bench.lppd.table <- bench.lppd.cdf %>%
 ### F-star
 
 bench.f.star.plot <- bench.cov.norm.cdf %>%
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   mutate(f_star = -log(cov_norm + log.lb)) %>% 
   ggplot(mapping = aes(x = method, y = f_star)) +
   geom_boxplot() +
@@ -284,7 +284,7 @@ bench.f.star.table <- bench.cov.norm.cdf %>%
 ### Run time
 
 bench.time.plot <- bench.time.cdf %>% 
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB", "LM"))) %>% 
   ggplot(mapping = aes(x = method, y = time)) +
   geom_boxplot() +
   facet_wrap(~bench, scales = "free_y",
