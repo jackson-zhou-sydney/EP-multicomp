@@ -6,6 +6,7 @@ source("Quantile/Auxiliaries.R")
 
 big.mcmc.g.iter <- 10000
 big.mcmc.g.warmup <- 10000
+big.test.iter <- c(100, 200, 400, 1000, 2000, 4000, 6000, 8000, 10000)
 
 args <- commandArgs(trailingOnly = T)
 seed <- as.numeric(args[1])
@@ -107,4 +108,4 @@ for (j in 1:(p + 1)) {
 
 save(mcmc.g.mu, mcmc.g.Sigma, tail.mcmc.g.samples, mcmc.g.time, grid.points, mcmc.g.values,
      mcmc.s.mu, mcmc.s.Sigma, tail.mcmc.s.samples, mcmc.s.time, mcmc.s.grid.points, mcmc.s.values,  r.hat.df, mcmc.s.iter,
-     file = paste0("Quantile/Results/Big-MCMC-results-", str_pad(seed, 2, pad = "0"), ".Rdata"))
+     file = paste0("Quantile/Results/Big-MCMC-test-results-", str_pad(seed, 2, pad = "0"), ".Rdata"))
