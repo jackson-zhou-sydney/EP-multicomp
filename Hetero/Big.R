@@ -232,7 +232,7 @@ if (method == "mcmc") {
     total.time <- proc.time() - start.time
     
     for (j in 1:(p.1 + p.2)) {
-      fine.grid.points <- if (gvb.Sigma[j, j] == 0) grid.points[j, ] else seq(from = grid.points[1], to = grid.points[total.grid.points], by = sqrt(gvb.Sigma[j, j]))
+      fine.grid.points <- if (gvb.Sigma[j, j] == 0) grid.points[j, ] else seq(from = grid.points[j, 1], to = grid.points[j, total.grid.points], by = sqrt(gvb.Sigma[j, j]))
       
       bench.l1.df <- bench.l1.df %>% add_row(seed = seed,
                                              bench = 4,
