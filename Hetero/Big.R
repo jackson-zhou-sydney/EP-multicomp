@@ -214,58 +214,56 @@ if (method == "mcmc") {
                                              method = "ep-2d",
                                              lppd = lppd(X.1.test, X.2.test, y.test, ep.2d.samples))
 } else if (method == "gvb") {
-  mcmc.rstan <- rstan::stan_model("Hetero/Methods/MCMC.stan")
-  
-  load(paste0("Hetero/Results/Big-MCMC-results-", str_pad(seed + 2, 2, pad = "0"), ".Rdata"))
-  ind <- which(big.test.iter == r.hat.df %>% filter(max_r_hat > r.hat.tol) %>% pull(mcmc_iter) %>% max()) + 1
-  mcmc.s.iter <- big.test.iter[min(ind, length(big.test.iter))]
-  
-  start.time <- proc.time()
-  
-  opath <- opt_path_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num.cores, 
-                             seed_list = (seed - 1)*length(num.cores) + 1:num.cores, 
-                             mc.cores = num.cores, 
-                             fn = function(theta) nljl(theta, X.1, X.2, y, Sigma.theta, mu.theta),
-                             gr = function(theta) nljl_grad(theta, X.1, X.2, y, Sigma.theta, mu.theta),
-                             D = p.1 + p.2,
-                             N_sam = round(mcmc.s.iter/num.cores),
-                             init_bound = 0.1)
-  
-  gvb.samples <- t(Imp_Resam_WR(opath, n_sam = mcmc.s.iter, seed = seed))
-  gvb.mu <- colMeans(gvb.samples)
-  gvb.Sigma <- var(gvb.samples)
-  
-  total.time <- proc.time() - start.time
-  
-  for (j in 1:(p.1 + p.2)) {
-    bench.l1.df <- bench.l1.df %>% add_row(seed = seed,
-                                           bench = 4,
-                                           method = "gvb",
-                                           j = j,
-                                           l1 = 1 - trapz(grid.points[j, ], 
-                                                          abs(mcmc.g.values[j, ] - dnorm(grid.points[j, ], gvb.mu[j], sqrt(gvb.Sigma[j, j]))))/2)
+  for (i in 1:length(gvb.settings)) {
+    start.time <- proc.time()
+    
+    opath <- opt_path_parallel(seed_init = (seed - 1)*length(num.cores) + 1:num.cores, 
+                               seed_list = (seed - 1)*length(num.cores) + 1:num.cores, 
+                               mc.cores = num.cores, 
+                               fn = function(theta) nljl(theta, X.1, X.2, y, Sigma.theta, mu.theta),
+                               gr = function(theta) nljl_grad(theta, X.1, X.2, y, Sigma.theta, mu.theta),
+                               D = p.1 + p.2, 
+                               N_sam = unname(gvb.settings)[i])
+    
+    gvb.samples <- t(Imp_Resam_WR(opath, n_sam = unname(gvb.settings)[i], seed = seed))
+    gvb.mu <- colMeans(gvb.samples)
+    gvb.Sigma <- var(gvb.samples)
+    
+    total.time <- proc.time() - start.time
+    
+    for (j in 1:(p.1 + p.2)) {
+      bench.l1.df <- bench.l1.df %>% add_row(seed = seed,
+                                             bench = 4,
+                                             method = names(gvb.settings)[i],
+                                             j = j,
+                                             l1 = 1 - 0.5*integrate(function(x) abs(approx(grid.points[j, ], mcmc.g.values[j, ], x, rule = 2)$y - dnorm(x, gvb.mu[j], sqrt(gvb.Sigma[j, j]))), 
+                                                                    lower = grid.points[j, 1], 
+                                                                    upper = grid.points[j, total.grid.points], 
+                                                                    rel.tol = 1e-05, 
+                                                                    abs.tol = 0)$value)
+    }
+    
+    out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
+                                                                   bench = 4,
+                                                                   method = names(gvb.settings)[i],
+                                                                   mmd = max(kmmd(tail(gvb.samples, eval.size), 
+                                                                                  tail.mcmc.g.samples)@mmdstats[2], 0)))
+    
+    bench.cov.norm.df <- bench.cov.norm.df %>% add_row(seed = seed,
+                                                       bench = 4,
+                                                       method = names(gvb.settings)[i],
+                                                       cov_norm = norm(mcmc.g.Sigma - gvb.Sigma, "F"))
+    
+    bench.time.df <- bench.time.df %>% add_row(seed = seed,
+                                               bench = 4,
+                                               method = names(gvb.settings)[i],
+                                               time = total.time["elapsed"])
+    
+    bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
+                                               bench = 4,
+                                               method = names(gvb.settings)[i],
+                                               lppd = lppd(X.1.test, X.2.test, y.test, tail(gvb.samples, eval.size)))
   }
-  
-  out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
-                                                                 bench = 4,
-                                                                 method = "gvb",
-                                                                 mmd = max(kmmd(tail(gvb.samples, eval.size), 
-                                                                                tail.mcmc.g.samples)@mmdstats[2], 0)))
-  
-  bench.cov.norm.df <- bench.cov.norm.df %>% add_row(seed = seed,
-                                                     bench = 4,
-                                                     method = "gvb",
-                                                     cov_norm = norm(mcmc.g.Sigma - gvb.Sigma, "F"))
-  
-  bench.time.df <- bench.time.df %>% add_row(seed = seed,
-                                             bench = 4,
-                                             method = "gvb",
-                                             time = total.time["elapsed"])
-  
-  bench.lppd.df <- bench.lppd.df %>% add_row(seed = seed,
-                                             bench = 4,
-                                             method = "gvb",
-                                             lppd = lppd(X.1.test, X.2.test, y.test, tail(gvb.samples, eval.size)))
 } else if (method == "lm") {
   start.time <- proc.time()
   

@@ -28,6 +28,10 @@ bench.labels <- c("1" = "Food (n = 40, p_1 = 2, p_2 = 2)",
                   "3" = "Sniffer (n = 125, p_1 = 5, p_2 = 5)",
                   "4" = "Energy (n = 17268, p_1 = 172, p_2 = 172)")
 
+gvb.settings <- c("gvb-a" = 100,
+                  "gvb-b" = 1000,
+                  "gvb-c" = 10000)
+
 point.likelihood <- function(theta, x.1, x.2, y) {
   # Likelihood evaluated at a point
   p.1 <- length(x.1)
