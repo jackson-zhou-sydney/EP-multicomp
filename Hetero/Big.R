@@ -232,15 +232,13 @@ if (method == "mcmc") {
     total.time <- proc.time() - start.time
     
     for (j in 1:(p.1 + p.2)) {
+      fine.grid.points <- if (gvb.Sigma[j, j] == 0) grid.points[j, ] else seq(from = grid.points[1], to = grid.points[total.grid.points], by = sqrt(gvb.Sigma[j, j]))
+      
       bench.l1.df <- bench.l1.df %>% add_row(seed = seed,
                                              bench = 4,
                                              method = names(gvb.settings)[i],
                                              j = j,
-                                             l1 = 1 - 0.5*integrate(function(x) abs(approx(grid.points[j, ], mcmc.g.values[j, ], x, rule = 2)$y - dnorm(x, gvb.mu[j], sqrt(gvb.Sigma[j, j]))), 
-                                                                    lower = grid.points[j, 1], 
-                                                                    upper = grid.points[j, total.grid.points], 
-                                                                    rel.tol = 1e-08, 
-                                                                    abs.tol = 0)$value)
+                                             l1 = 1 - trapz(fine.grid.points, abs(approx(grid.points[j, ], mcmc.g.values[j, ], fine.grid.points, rule = 2)$y - dnorm(fine.grid.points, gvb.mu[j], sqrt(gvb.Sigma[j, j]))))/2)
     }
     
     out <- capture.output(bench.mmd.df <- bench.mmd.df %>% add_row(seed = seed,
