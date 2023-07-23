@@ -239,7 +239,7 @@ if (method == "mcmc") {
                                              l1 = 1 - 0.5*integrate(function(x) abs(approx(grid.points[j, ], mcmc.g.values[j, ], x, rule = 2)$y - dnorm(x, gvb.mu[j], sqrt(gvb.Sigma[j, j]))), 
                                                                     lower = grid.points[j, 1], 
                                                                     upper = grid.points[j, total.grid.points], 
-                                                                    rel.tol = 1e-05, 
+                                                                    rel.tol = 1e-08, 
                                                                     abs.tol = 0)$value)
     }
     
