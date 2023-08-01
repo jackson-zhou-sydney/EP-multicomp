@@ -48,7 +48,8 @@ save(sim.r.hat.table, file = paste0(res.directory, "Simulations-conv-table.RData
 sim.l1.plot <- sim.l1.cdf %>% 
   mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
   mutate(block = case_when(j <= as.numeric(map(sim, ~sim.settings[[.]][["p"]])) ~ "beta",
-                           TRUE ~ "kappa")) %>% 
+                           TRUE ~ "kappa"),
+         l1 = 100*l1) %>% 
   group_by(seed, sim, iteration, method, block) %>% 
   summarise(m_l1 = mean(l1)) %>%
   group_by(seed, sim, method, block) %>%
@@ -63,14 +64,15 @@ sim.l1.plot <- sim.l1.cdf %>%
 
 sim.l1.table <- sim.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(sim, ~sim.settings[[.]][["p"]])) ~ "beta",
-                           TRUE ~ "kappa")) %>%
+                           TRUE ~ "kappa"),
+         l1 = 100*l1) %>%
   group_by(seed, sim, iteration, method, block) %>% 
   summarise(m_l1 = mean(l1)) %>%
   group_by(seed, sim, method, block) %>%
   summarise(m_m_l1 = mean(m_l1)) %>%
   group_by(sim, method, block) %>%
-  summarise(m_m_m_l1 = round(mean(m_m_l1), table.dp),
-            sd_m_m_l1 = round(sd(m_m_l1), table.dp)) %>%
+  summarise(m_m_m_l1 = round(mean(m_m_l1), l1.dp),
+            sd_m_m_l1 = round(sd(m_m_l1), l1.dp)) %>%
   arrange(sim, block, method)
 
 ### M-star
@@ -205,7 +207,8 @@ save(bench.r.hat.table, file = paste0(res.directory, "Benchmarks-conv-table.RDat
 bench.l1.plot <- bench.l1.cdf %>%
   mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "MFVB"))) %>% 
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p"]])) ~ "beta",
-                           TRUE ~ "kappa")) %>%
+                           TRUE ~ "kappa"),
+         l1 = 100*l1) %>%
   group_by(seed, bench, method, block) %>% 
   summarise(m_l1 = mean(l1)) %>%
   ggplot(mapping = aes(x = method, y = m_l1)) +
@@ -218,12 +221,13 @@ bench.l1.plot <- bench.l1.cdf %>%
 
 bench.l1.table <- bench.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p"]])) ~ "beta",
-                           TRUE ~ "kappa")) %>%
+                           TRUE ~ "kappa"),
+         l1 = 100*l1) %>%
   group_by(seed, bench, method, block) %>% 
   summarise(m_l1 = mean(l1)) %>%
   group_by(bench, method, block) %>%
-  summarise(m_m_l1 = round(mean(m_l1), table.dp),
-            sd_m_l1 = round(sd(m_l1), table.dp)) %>%
+  summarise(m_m_l1 = round(mean(m_l1), l1.dp),
+            sd_m_l1 = round(sd(m_l1), l1.dp)) %>%
   arrange(bench, block, method)
 
 ### M-star
