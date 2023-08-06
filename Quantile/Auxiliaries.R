@@ -15,19 +15,19 @@ sim.settings <- list(c(n = 200, p = 40, dist = "normal"),
                      c(n = 200, p = 40, dist = "poisson"),
                      c(n = 200, p = 40, dist = "binomial"))
 
-sim.labels <- c("1" = "Normal (n = 200, p = 40)",
-                "2" = "Poisson (n = 200, p = 40)",
-                "3" = "Binomial (n = 200, p = 40)")
+sim.labels <- c("1" = "Normal\nn = 200, p = 40",
+                "2" = "Poisson\nn = 200, p = 40",
+                "3" = "Binomial\nn = 200, p = 40")
 
 bench.settings <- list(c(n = 298, p = 2),
                        c(n = 235, p = 2),
                        c(n = 21, p = 4),
                        c(n = 17268, p = 172))
 
-bench.labels <- c("1" = "IgG (n = 298, p = 2)",
-                  "2" = "Engel (n = 235, p = 2)",
-                  "3" = "Stack (n = 21, p = 4)",
-                  "4" = "Energy (n = 17268, p = 172)")
+bench.labels <- c("1" = "IgG\nn = 298, p = 2",
+                  "2" = "Engel\nn = 235, p = 2",
+                  "3" = "Stack\nn = 21, p = 4",
+                  "4" = "Energy\nn = 17268, p = 172")
 
 rho <- function(x, tau) {
   # Quantile loss function

@@ -23,10 +23,10 @@ bench.settings <- list(c(n = 442, p = 11),
                        c(n = 120, p = 201),
                        c(n = 17268, p = 301))
 
-bench.labels <- c("1" = "Diabetes (n = 442, p = 11)",
-                  "2" = "Prostate (n = 97, p = 9)",
-                  "3" = "Eye (n = 120, p = 201)",
-                  "4" = "Energy (n = 17268, p = 301)")
+bench.labels <- c("1" = "Diabetes\nn = 442, p = 11",
+                  "2" = "Prostate\nn = 97, p = 9",
+                  "3" = "Eye\nn = 120, p = 201",
+                  "4" = "Energy\nn = 17268, p = 301")
 
 point.likelihood <- function(theta, x, y) {
   # Likelihood evaluated at a point

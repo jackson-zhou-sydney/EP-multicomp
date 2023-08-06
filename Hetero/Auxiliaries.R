@@ -23,10 +23,10 @@ bench.settings <- list(c(n = 40, p.1 = 2, p.2 = 2),
                        c(n = 125, p.1 = 5, p.2 = 5),
                        c(n = 17268, p.1 = 172, p.2 = 172))
 
-bench.labels <- c("1" = "Food (n = 40, p_1 = 2, p_2 = 2)",
-                  "2" = "Salary (n = 725, p_1 = 6, p_2 = 2)",
-                  "3" = "Sniffer (n = 125, p_1 = 5, p_2 = 5)",
-                  "4" = "Energy (n = 17268, p_1 = 172, p_2 = 172)")
+bench.labels <- c("1" = "Food\nn = 40, p_1 = 2, p_2 = 2",
+                  "2" = "Salary\nn = 725, p_1 = 6, p_2 = 2",
+                  "3" = "Sniffer\nn = 125, p_1 = 5, p_2 = 5",
+                  "4" = "Energy\nn = 17268, p_1 = 172, p_2 = 172")
 
 gvb.settings <- c("gvb-a" = 100,
                   "gvb-b" = 1000,
