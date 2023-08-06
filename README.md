@@ -1,6 +1,6 @@
 
 # Fast Expectation Propagation for Heteroscedastic, Lasso-Penalized and Quantile Regression
-### Jackson Zhou, John Ormerod and Clara Grazian
+### Jackson Zhou, John Ormerod, and Clara Grazian
 
 This repository contains fast expectation propagation code for the Bayesian versions of:
 
