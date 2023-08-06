@@ -1,13 +1,11 @@
 
-# EP with multiple components
+# Fast Expectation Propagation for Heteroscedastic, Lasso-Penalized and Quantile Regression
 ### Jackson Zhou, John Ormerod and Clara Grazian
 
-This repository contains expectation propagation code (in R and C++) for Bayesian models with two hybrid components.
-These include:
+This repository contains fast expectation propagation code for the Bayesian versions of:
 
 - Heteroscedastic linear regression
-- Lasso linear regression
-- Quantile regression
+- Lasso-penalized linear regression
+- Quantile linear regression
 
-For each model, the performance of EP is compared to other standard Bayesian approaches (mainly Laplace's method and mean-field variational Bayes) on some simulated data and benchmark datasets.
-The main Overleaf document can be found [here (view only)](https://www.overleaf.com/read/wrkrmnyfzskg).
+For each model, the performance of EP is compared to other standard Bayesian approaches.
