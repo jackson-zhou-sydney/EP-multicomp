@@ -1,8 +1,8 @@
 
-# Big data EP comparison for heteroscedastic linear regression
+# Big data EP comparison for quantile regression
 
 source("General-auxiliaries.R")
-source("Hetero/Auxiliaries.R")
+source("Quantile/Auxiliaries.R")
 
 args <- commandArgs(trailingOnly = T)
 method <- args[1]
@@ -20,19 +20,22 @@ bench.time.df <- data.frame(seed = integer(),
                             thresh = double(),
                             time = double())
 
-load("Hetero/Data/Big/Big.RData")
-n <- nrow(X.1)
-p.1 <- ncol(X.1)
-p.2 <- ncol(X.2)
+load("Quantile/Data/Big/Big.RData")
+n <- nrow(X)
+p <- ncol(X)
 
-mu.theta <- rep(0, p.1 + p.2)
-Sigma.theta <- diag(c(rep(sigma.2.beta.1, p.1), rep(sigma.2.beta.2, p.2)))
+mu.theta <- rep(0, p + 1)
+Sigma.theta <- diag(c(rep(sigma.2.beta, p), sigma.2.kappa))
+mu.beta <- mu.theta[1:p]
+Sigma.beta <- Sigma.theta[1:p, 1:p]
+mu.kappa <- mu.theta[p + 1]
+sigma.2.kappa <- Sigma.theta[p + 1, p + 1]
 
 if (method == "ep") {
   start.time <- proc.time()
   
-  ep.res <- ep(X.1, X.2, y, Sigma.theta, mu.theta,
-               eta = 0.5, alpha = 0.5, Q_star_init = diag(2), r_star_init = rep(0, 2),
+  ep.res <- ep(X, y, Sigma.theta, mu.theta,
+               tau, eta = 0.5, alpha = 0.5, Q_star_init = diag(2), r_star_init = rep(0, 2),
                min_passes = min_passes, max_passes = 200, thresh = thresh, n_grid = n_grid, verbose = T)
   
   total.time <- proc.time() - start.time
@@ -46,8 +49,8 @@ if (method == "ep") {
 } else if (method == "ep-2d") {
   start.time <- proc.time()
   
-  ep.2d.res <- ep_2d(X.1, X.2, y, Sigma.theta, mu.theta,
-                     eta = 0.5, alpha = 0.5, Q_star_init = diag(2), r_star_init = rep(0, 2),
+  ep.2d.res <- ep_2d(X, y, Sigma.theta, mu.theta,
+                     tau, eta = 0.5, alpha = 0.5, Q_star_init = diag(2), r_star_init = rep(0, 2),
                      min_passes = min_passes, max_passes = 200, thresh = thresh, n_grid = n_grid, verbose = T)
   
   total.time <- proc.time() - start.time
@@ -63,4 +66,4 @@ if (method == "ep") {
 }
 
 save(bench.time.df,
-     file = paste0("Hetero/Results/Big-comp-results-", toupper(method), "-", str_pad(seed, 2, pad = "0"), "-", n_grid, "-", min_passes, "-", thresh,  ".RData"))
+     file = paste0("Quantile/Results/Big-comp-results-", toupper(method), "-", str_pad(seed, 2, pad = "0"), "-", n_grid, "-", min_passes, "-", thresh,  ".RData"))
