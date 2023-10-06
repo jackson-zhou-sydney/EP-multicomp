@@ -11,6 +11,14 @@ min_passes <- as.numeric(args[4])
 thresh <- as.numeric(args[5])
 set.seed(seed)
 
+load("Hetero/Data/Big/Big.RData")
+n <- nrow(X.1)
+p.1 <- ncol(X.1)
+p.2 <- ncol(X.2)
+
+mu.theta <- rep(0, p.1 + p.2)
+Sigma.theta <- diag(c(rep(sigma.2.beta.1, p.1), rep(sigma.2.beta.2, p.2)))
+
 if (method == "ep") {
   start.time <- proc.time()
   
