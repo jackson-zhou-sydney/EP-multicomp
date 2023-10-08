@@ -274,7 +274,7 @@ sim.latex <- paste0("\\begin{table}\n",
                     "& \\multicolumn{3}{c}{$F^*$} & \\multicolumn{3}{c}{Run time (seconds)} \\\\\n",
                     chunk.3, "\\\\ \\bottomrule\n",
                     "\\end{tabular}}\n",
-                    "\\caption{Results (mean $\\pm$ SD) across lasso-penalized linear regression simulations. Each cell represents eight repetitions. Settings are organized by order of appearance in the main text.}\n",
+                    "\\caption{Results (mean $\\pm$ SD) across lasso-penalized linear regression simulations. Each cell represents thirty repetitions. Settings are organized by order of appearance in the main text.}\n",
                     "\\label{table:lassosim}\n",
                     "\\end{table}")
 
@@ -535,7 +535,7 @@ bench.latex <- paste0("\\begin{table}\n",
                       "& \\multicolumn{3}{c}{$F^*$} & \\multicolumn{3}{c}{Run time (seconds)} \\\\\n",
                       chunk.3, "\\\\ \\bottomrule\n",
                       "\\end{tabular}}\n",
-                      "\\caption{Results (mean $\\pm$ SD) across lasso-penalized linear regression benchmarks. Each cell represents eight repetitions.}\n",
+                      "\\caption{Results (mean $\\pm$ SD) across lasso-penalized linear regression benchmarks. Each cell represents thirty repetitions.}\n",
                       "\\label{table:lassobench}\n",
                       "\\end{table}")
 

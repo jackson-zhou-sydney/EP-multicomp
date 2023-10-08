@@ -294,7 +294,7 @@ sim.latex <- paste0("\\begin{table}\n",
                     "& \\multicolumn{3}{c}{$F^*$} & \\multicolumn{3}{c}{Run time (seconds)} \\\\\n",
                     chunk.3, "\\\\ \\bottomrule\n",
                     "\\end{tabular}}\n",
-                    "\\caption{Results (mean $\\pm$ SD) across heteroscedastic linear regression simulations. Each cell represents eight repetitions. Settings are organized by order of appearance in the main text.}\n",
+                    "\\caption{Results (mean $\\pm$ SD) across heteroscedastic linear regression simulations. Each cell represents thirty repetitions. Settings are organized by order of appearance in the main text.}\n",
                     "\\label{table:heterosim}\n",
                     "\\end{table}")
 
@@ -575,7 +575,7 @@ bench.latex <- paste0("\\begin{table}\n",
                       "& \\multicolumn{3}{c}{$F^*$} & \\multicolumn{3}{c}{Run time (seconds)} \\\\\n",
                       chunk.3, "\\\\ \\bottomrule\n",
                       "\\end{tabular}}\n",
-                      "\\caption{Results (mean $\\pm$ SD) across heteroscedastic linear regression benchmarks. Each cell represents eight repetitions.}\n",
+                      "\\caption{Results (mean $\\pm$ SD) across heteroscedastic linear regression benchmarks. Each cell represents thirty repetitions.}\n",
                       "\\label{table:heterobench}\n",
                       "\\end{table}")
 
