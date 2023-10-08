@@ -83,6 +83,7 @@ List ep_2d(mat X, vec y, mat Sigma_theta, vec mu_theta,
   
   double bmd_Q;
   double bmd_r;
+  bool converged = false;
   
   // Parameter initialisation
   cube Q_star_values = zeros(2, 2, n);
@@ -203,11 +204,16 @@ List ep_2d(mat X, vec y, mat Sigma_theta, vec mu_theta,
     }
     
     if (md_Q < thresh*bmd_Q && md_r < thresh*bmd_r && pass >= min_passes - 1) {
+      converged = true;
       if (verbose) {
         Rcout << "EP has converged; stopping EP\n";
       }
       break;
     }
+  }
+  
+  if (!converged) {
+    stop("EP failed to converge");
   }
   
   // Returning in moment parameterisation

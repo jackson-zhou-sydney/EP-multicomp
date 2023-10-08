@@ -171,6 +171,7 @@ List ep(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   
   double bmd_Q;
   double bmd_r;
+  bool converged = false;
   
   // Parameter initialisation
   cube Q_star_values = zeros(2, 2, n + p);
@@ -308,11 +309,16 @@ List ep(mat X, vec y, double sigma_2_kappa, double mu_kappa,
     }
     
     if (md_Q < thresh*bmd_Q && md_r < thresh*bmd_r && pass >= min_passes - 1) {
+      converged = true;
       if (verbose) {
         Rcout << "EP has converged; stopping EP\n";
       }
       break;
     }
+  }
+  
+  if (!converged) {
+    stop("EP failed to converge");
   }
   
   // Returning in moment parameterisation

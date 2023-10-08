@@ -106,6 +106,8 @@ List mfvb(mat X, vec y, double sigma_2_kappa, double mu_kappa,
   mat Q;
   mat Q_inv;
   
+  bool converged = false;
+  
   // Main MFVB loop
   for (int i = 0; i < max_iter; ++i) {
     // Store old values
@@ -158,11 +160,16 @@ List mfvb(mat X, vec y, double sigma_2_kappa, double mu_kappa,
     }
     
     if (d_mu < thresh*bd_mu && d_Sigma < thresh*bd_Sigma && d_a < thresh*bd_a && i >= min_iter - 1) {
+      converged = true;
       if (verbose) {
         Rcout << "MFVB has converged; stopping MFVB\n";
       }
       break;
     }
+  }
+  
+  if (!converged) {
+    stop("MFVB failed to converge");
   }
   
   // Return parameters

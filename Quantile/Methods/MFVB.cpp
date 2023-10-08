@@ -115,6 +115,8 @@ List mfvb(mat X, vec y, mat Sigma_beta_p, vec mu_beta_p, double sigma_2_kappa, d
   vec E_y_X_beta_2 = pow(y - X*mu_beta, 2.0) + diagvec(X*Sigma_beta*X.t());
   mat A = diagmat(E_a);
   
+  bool converged = false;
+  
   // Main MFVB loop
   for (int i = 0; i < max_iter; ++i) {
     // Store old values
@@ -172,11 +174,16 @@ List mfvb(mat X, vec y, mat Sigma_beta_p, vec mu_beta_p, double sigma_2_kappa, d
     }
     
     if (d_mu < thresh*bd_mu && d_Sigma < thresh*bd_Sigma && d_a < thresh*bd_a && i >= min_iter - 1) {
+      converged = true;
       if (verbose) {
         Rcout << "MFVB has converged; stopping MFVB\n";
       }
       break;
     }
+  }
+  
+  if (!converged) {
+    stop("MFVB failed to converge");
   }
   
   // Return parameters
