@@ -174,6 +174,132 @@ sim.time.table <- sim.time.cdf %>%
             sd_m_time = round(sd(m_time), table.dp)) %>%
   arrange(sim, method)
 
+### Combined LaTeX table
+
+sim.l1.table.clean <- sim.l1.table %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%3.1f", m_m_m_l1), " $\\pm$ ", sprintf("%3.1f", sd_m_m_l1))) %>% 
+  select(-m_m_m_l1, -sd_m_m_l1) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = sim, values_from = res) %>% 
+  ungroup()
+
+sim.beta.1 <- sim.l1.table.clean %>% 
+  filter(block == "beta_1") %>% 
+  select(-block)
+
+sim.beta.2 <- sim.l1.table.clean %>% 
+  filter(block == "beta_2") %>% 
+  select(-block)
+
+sim.m.star <- sim.m.star.table %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%3.2f", m_m_m_star), " $\\pm$ ", sprintf("%3.2f", sd_m_m_star))) %>% 
+  select(-m_m_m_star, -sd_m_m_star) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = sim, values_from = res)
+
+sim.lppd <- sim.lppd.table %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%4.2f", m_m_lppd), " $\\pm$ ", sprintf("%3.2f", sd_m_lppd))) %>% 
+  select(-m_m_lppd, -sd_m_lppd) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = sim, values_from = res)
+
+sim.f.star <- sim.f.star.table %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%3.2f", m_m_f_star), " $\\pm$ ", sprintf("%3.2f", sd_m_f_star))) %>% 
+  select(-m_m_f_star, -sd_m_f_star) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = sim, values_from = res)
+
+sim.time <- sim.time.table %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%4.2f", m_m_time), " $\\pm$ ", sprintf("%3.2f", sd_m_time))) %>% 
+  select(-m_m_time, -sd_m_time) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = sim, values_from = res)
+
+chunk.1 <- cbind(sim.beta.1, sim.beta.2) %>% 
+  `colnames<-`(letters[1:8]) %>% 
+  select(-e) %>% 
+  mutate(a = as.character(a)) %>% 
+  apply(1, function(x) paste0(x, collapse = " & ")) %>% 
+  paste0(collapse = " \\\\\n")
+
+chunk.2 <- cbind(sim.m.star, sim.lppd) %>% 
+  `colnames<-`(letters[1:8]) %>% 
+  select(-e) %>% 
+  mutate(a = as.character(a)) %>% 
+  apply(1, function(x) paste0(x, collapse = " & ")) %>% 
+  paste0(collapse = " \\\\\n")
+
+chunk.3 <- cbind(sim.f.star, sim.time) %>% 
+  `colnames<-`(letters[1:8]) %>% 
+  select(-e) %>% 
+  mutate(a = as.character(a)) %>% 
+  apply(1, function(x) paste0(x, collapse = " & ")) %>% 
+  paste0(collapse = " \\\\\n")
+
+sim.latex <- paste0("\\begin{table}\n",
+                    "\\centering\n",
+                    "\\resizebox{\\linewidth}{!}{\n",
+                    "\\begin{tabular}{@{}ccccccc@{}}\n", 
+                    "\\toprule\n",
+                    "& Setting 1 & Setting 2 & Setting 3 & Setting 1 & Setting 2 & Setting 3 \\\\ \\midrule\n",
+                    "& \\multicolumn{3}{c}{$\\vbeta_1$ $L^1$ accuracy} & \\multicolumn{3}{c}{$\\vbeta_2$ $L^1$ accuracy} \\\\\n",
+                    chunk.1, "\\\\ \\midrule\n",
+                    "& \\multicolumn{3}{c}{$M^*$} & \\multicolumn{3}{c}{lppd} \\\\\n",
+                    chunk.2, "\\\\ \\midrule\n",
+                    "& \\multicolumn{3}{c}{$F^*$} & \\multicolumn{3}{c}{Run time (seconds)} \\\\\n",
+                    chunk.3, "\\\\ \\bottomrule\n",
+                    "\\end{tabular}}\n",
+                    "\\caption{Results (mean $\\pm$ SD) across heteroscedastic linear regression simulations. Each cell represents eight repetitions. Settings are organized by order of appearance in the main text.}\n",
+                    "\\label{table:heterosim}\n",
+                    "\\end{table}")
+
+cat(sim.latex)
+
 ## Benchmarks
 
 bench.conv.files <- res.files[grep("Benchmarks-conv-results", res.files)]
@@ -323,3 +449,134 @@ bench.time.table <- bench.time.cdf %>%
   summarise(m_time = round(mean(time), table.dp),
             sd_time = round(sd(time), table.dp)) %>%
   arrange(bench, method)
+
+### Combined LaTeX table
+
+bench.l1.table.clean <- bench.l1.table %>% 
+  filter(bench != 4) %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%3.1f", m_m_l1), " $\\pm$ ", sprintf("%3.1f", sd_m_l1))) %>% 
+  select(-m_m_l1, -sd_m_l1) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = bench, values_from = res) %>% 
+  ungroup()
+
+bench.beta.1 <- bench.l1.table.clean %>% 
+  filter(block == "beta_1") %>% 
+  select(-block)
+
+bench.beta.2 <- bench.l1.table.clean %>% 
+  filter(block == "beta_2") %>% 
+  select(-block)
+
+bench.m.star <- bench.m.star.table %>% 
+  filter(bench != 4) %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%3.2f", m_m_star), " $\\pm$ ", sprintf("%3.2f", sd_m_star))) %>% 
+  select(-m_m_star, -sd_m_star) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = bench, values_from = res)
+
+bench.lppd <- bench.lppd.table %>% 
+  filter(bench != 4) %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%4.2f", m_lppd), " $\\pm$ ", sprintf("%3.2f", sd_lppd))) %>% 
+  select(-m_lppd, -sd_lppd) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = bench, values_from = res)
+
+bench.f.star <- bench.f.star.table %>% 
+  filter(bench != 4) %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%3.2f", m_f_star), " $\\pm$ ", sprintf("%3.2f", sd_f_star))) %>% 
+  select(-m_f_star, -sd_f_star) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = bench, values_from = res)
+
+bench.time <- bench.time.table %>% 
+  filter(bench != 4) %>% 
+  mutate(method = case_when(method == "mcmc" ~ "MCMC",
+                            method == "mcmc-s" ~ "MCMC-S",
+                            method == "ep" ~ "EP",
+                            method == "ep-2d" ~ "EP-2D",
+                            method == "gvb-a" ~ "Pathfinder-A",
+                            method == "gvb-b" ~ "Pathfinder-B",
+                            method == "gvb-c" ~ "Pathfinder-C",
+                            method == "lm" ~ "Laplace"),
+         method = factor(method, levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "Laplace", "Pathfinder-A", "Pathfinder-B", "Pathfinder-C")),
+         res = paste0(sprintf("%4.2f", m_time), " $\\pm$ ", sprintf("%3.2f", sd_time))) %>% 
+  select(-m_time, -sd_time) %>% 
+  arrange(method) %>% 
+  pivot_wider(names_from = bench, values_from = res)
+
+chunk.1 <- cbind(bench.beta.1, bench.beta.2) %>% 
+  `colnames<-`(letters[1:8]) %>% 
+  select(-e) %>% 
+  mutate(a = as.character(a)) %>% 
+  apply(1, function(x) paste0(x, collapse = " & ")) %>% 
+  paste0(collapse = " \\\\\n")
+
+chunk.2 <- cbind(bench.m.star, bench.lppd) %>% 
+  `colnames<-`(letters[1:8]) %>% 
+  select(-e) %>% 
+  mutate(a = as.character(a)) %>% 
+  apply(1, function(x) paste0(x, collapse = " & ")) %>% 
+  paste0(collapse = " \\\\\n")
+
+chunk.3 <- cbind(bench.f.star, bench.time) %>% 
+  `colnames<-`(letters[1:8]) %>% 
+  select(-e) %>% 
+  mutate(a = as.character(a)) %>% 
+  apply(1, function(x) paste0(x, collapse = " & ")) %>% 
+  paste0(collapse = " \\\\\n")
+
+bench.latex <- paste0("\\begin{table}\n",
+                      "\\centering\n",
+                      "\\resizebox{\\linewidth}{!}{\n",
+                      "\\begin{tabular}{@{}ccccccc@{}}\n", 
+                      "\\toprule\n",
+                      "& Food & Salary & Sniffer & Food & Salary & Sniffer \\\\ \\midrule\n",
+                      "& \\multicolumn{3}{c}{$\\vbeta_1$ $L^1$ accuracy} & \\multicolumn{3}{c}{$\\vbeta_2$ $L^1$ accuracy} \\\\\n",
+                      chunk.1, "\\\\ \\midrule\n",
+                      "& \\multicolumn{3}{c}{$M^*$} & \\multicolumn{3}{c}{lppd} \\\\\n",
+                      chunk.2, "\\\\ \\midrule\n",
+                      "& \\multicolumn{3}{c}{$F^*$} & \\multicolumn{3}{c}{Run time (seconds)} \\\\\n",
+                      chunk.3, "\\\\ \\bottomrule\n",
+                      "\\end{tabular}}\n",
+                      "\\caption{Results (mean $\\pm$ SD) across heteroscedastic linear regression benchmarks. Each cell represents eight repetitions.}\n",
+                      "\\label{table:heterobench}\n",
+                      "\\end{table}")
+
+cat(bench.latex)
