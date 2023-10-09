@@ -36,6 +36,16 @@ for (file in c(bench.files, big.files)) {
   bench.time.cdf <- rbind(bench.time.cdf, bench.time.df)
 }
 
+big.comp.files <- res.files[grep("Big-comp-results", res.files)]
+hetero.comp.cdf <- data.frame()
+
+for (file in big.comp.files) {
+  load(paste0(res.directory, file))
+  hetero.comp.cdf <- rbind(hetero.comp.cdf, bench.time.df)
+}
+
+hetero.comp.cdf$model <- "hetero"
+
 bench.l1.table <- bench.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p.1"]])) ~ "beta_1",
                            TRUE ~ "beta_2"),
@@ -206,6 +216,16 @@ for (file in c(bench.files, big.files)) {
   bench.cov.norm.cdf <- rbind(bench.cov.norm.cdf, bench.cov.norm.df)
   bench.time.cdf <- rbind(bench.time.cdf, bench.time.df)
 }
+
+big.comp.files <- res.files[grep("Big-comp-results", res.files)]
+lasso.comp.cdf <- data.frame()
+
+for (file in big.comp.files) {
+  load(paste0(res.directory, file))
+  lasso.comp.cdf <- rbind(lasso.comp.cdf, bench.time.df)
+}
+
+lasso.comp.cdf$model <- "lasso"
 
 bench.l1.table <- bench.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p"]])) ~ "beta",
@@ -380,6 +400,16 @@ for (file in c(bench.files, big.files)) {
   bench.cov.norm.cdf <- rbind(bench.cov.norm.cdf, bench.cov.norm.df)
   bench.time.cdf <- rbind(bench.time.cdf, bench.time.df)
 }
+
+big.comp.files <- res.files[grep("Big-comp-results", res.files)]
+quantile.comp.cdf <- data.frame()
+
+for (file in big.comp.files) {
+  load(paste0(res.directory, file))
+  quantile.comp.cdf <- rbind(quantile.comp.cdf, bench.time.df)
+}
+
+quantile.comp.cdf$model <- "quantile"
 
 bench.l1.table <- bench.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p"]])) ~ "beta",
@@ -566,3 +596,12 @@ big.latex <- paste0("\\begin{table}\n",
                     "\\end{table}")
 
 cat(big.latex)
+
+## Conservative times
+
+comp.table <- rbind(hetero.comp.cdf, lasso.comp.cdf, quantile.comp.cdf) %>% 
+  select(-c("bench", "n_grid", "min_passes", "thresh")) %>% 
+  group_by(model, method) %>% 
+  summarise(m_time = mean(time)) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = model, values_from = m_time)
