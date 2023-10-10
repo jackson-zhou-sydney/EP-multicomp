@@ -425,6 +425,71 @@ bench.time.table <- bench.time.cdf %>%
             sd_time = round(sd(time), table.dp)) %>%
   arrange(bench, method)
 
+### Accuracy vs. time
+
+mean.l1.beta <- bench.l1.table %>% 
+  ungroup() %>% 
+  filter(bench == 4) %>% 
+  filter(block == "beta") %>% 
+  select(method, m_m_l1)
+
+mean.l1.kappa <- bench.l1.table %>% 
+  ungroup() %>% 
+  filter(bench == 4) %>% 
+  filter(block == "kappa") %>% 
+  select(method, m_m_l1)
+
+mean.time <- bench.time.table %>% 
+  ungroup() %>% 
+  filter(bench == 4) %>% 
+  select(method, m_time)
+
+beta.plot <- merge(mean.l1.beta, mean.time, by = "method") %>% 
+  mutate(method_clean = case_when(method == "mcmc" ~ "MCMC",
+                                  method == "mcmc-s" ~ "MCMC-S",
+                                  method == "ep" ~ "EP",
+                                  method == "ep-2d" ~ "EP-2D",
+                                  method == "mfvb" ~ "MFVB"),
+         hjust = case_when(method == "mcmc" ~ -0.12,
+                           method == "mcmc-s" ~ 1.1,
+                           method == "ep" ~ -0.12,
+                           method == "ep-2d" ~ -0.12,
+                           method == "mfvb" ~ -0.12)) %>% 
+  ggplot(aes(x = m_time, y = m_m_l1, label = method_clean)) +
+  geom_point() +
+  geom_text(aes(hjust = hjust), size = 4, vjust = 1.3) +
+  lims(y = c(-4, 100)) +
+  scale_x_log10() +
+  coord_cartesian(xlim = c(1, 1000000)) +
+  labs(x = "Run time (seconds)",
+       y = "beta mean L1 accuracy") +
+  theme_bw()
+
+ggsave(paste0(plot.directory, "Benchmarks-beta.png"), plot = beta.plot, dpi = 600, width = 24, height = 14, units = "cm")
+
+kappa.plot <- merge(mean.l1.kappa, mean.time, by = "method") %>% 
+  mutate(method_clean = case_when(method == "mcmc" ~ "MCMC",
+                                  method == "mcmc-s" ~ "MCMC-S",
+                                  method == "ep" ~ "EP",
+                                  method == "ep-2d" ~ "EP-2D",
+                                  method == "mfvb" ~ "MFVB"),
+         hjust = case_when(method == "mcmc" ~ -0.12,
+                           method == "mcmc-s" ~ 1.1,
+                           method == "ep" ~ -0.12,
+                           method == "ep-2d" ~ -0.12,
+                           method == "mfvb" ~ -0.12)) %>% 
+  ggplot(aes(x = m_time, y = m_m_l1, label = method_clean)) +
+  geom_point() +
+  geom_text(aes(hjust = hjust), size = 4, vjust = 1.3) +
+  lims(y = c(-4, 100)) +
+  scale_x_log10() +
+  coord_cartesian(xlim = c(1, 1000000)) +
+  labs(x = "Run time (seconds)",
+       y = "kappa mean L1 accuracy") +
+  theme_bw()
+
+ggsave(paste0(plot.directory, "Benchmarks-kappa.png"), plot = kappa.plot, dpi = 600, width = 24, height = 14, units = "cm")
+
 ### Combined LaTeX table
 
 bench.l1.table.clean <- bench.l1.table %>% 

@@ -450,6 +450,67 @@ bench.time.table <- bench.time.cdf %>%
             sd_time = round(sd(time), table.dp)) %>%
   arrange(bench, method)
 
+### Accuracy vs. time
+
+mean.l1.beta.1 <- bench.l1.table %>% 
+  ungroup() %>% 
+  filter(bench == 4) %>% 
+  filter(block == "beta_1") %>% 
+  select(method, m_m_l1)
+
+mean.l1.beta.2 <- bench.l1.table %>% 
+  ungroup() %>% 
+  filter(bench == 4) %>% 
+  filter(block == "beta_2") %>% 
+  select(method, m_m_l1)
+
+mean.time <- bench.time.table %>% 
+  ungroup() %>% 
+  filter(bench == 4) %>% 
+  select(method, m_time)
+
+beta.1.plot <- merge(mean.l1.beta.1, mean.time, by = "method") %>% 
+  mutate(method_clean = case_when(method == "mcmc" ~ "MCMC",
+                                  method == "mcmc-s" ~ "MCMC-S",
+                                  method == "ep" ~ "EP",
+                                  method == "ep-2d" ~ "EP-2D",
+                                  method == "gvb-a" ~ "Pathfinder-A",
+                                  method == "gvb-b" ~ "Pathfinder-B",
+                                  method == "gvb-c" ~ "Pathfinder-C",
+                                  method == "lm" ~ "Laplace")) %>% 
+  ggplot(aes(x = m_time, y = m_m_l1, label = method_clean)) +
+  geom_point() +
+  geom_text(size = 4, vjust = 0.5, hjust = -0.18) +
+  lims(y = c(-4, 100)) +
+  scale_x_log10() +
+  coord_cartesian(xlim = c(1, 1000000)) +
+  labs(x = "Run time (seconds)",
+       y = "beta_1 mean L1 accuracy") +
+  theme_bw()
+
+ggsave(paste0(plot.directory, "Benchmarks-beta-1.png"), plot = beta.1.plot, dpi = 600, width = 24, height = 14, units = "cm")
+
+beta.2.plot <- merge(mean.l1.beta.2, mean.time, by = "method") %>% 
+  mutate(method_clean = case_when(method == "mcmc" ~ "MCMC",
+                                  method == "mcmc-s" ~ "MCMC-S",
+                                  method == "ep" ~ "EP",
+                                  method == "ep-2d" ~ "EP-2D",
+                                  method == "gvb-a" ~ "Pathfinder-A",
+                                  method == "gvb-b" ~ "Pathfinder-B",
+                                  method == "gvb-c" ~ "Pathfinder-C",
+                                  method == "lm" ~ "Laplace")) %>% 
+  ggplot(aes(x = m_time, y = m_m_l1, label = method_clean)) +
+  geom_point() +
+  geom_text(size = 4, vjust = 0.5, hjust = -0.18) +
+  lims(y = c(-4, 100)) +
+  scale_x_log10() +
+  coord_cartesian(xlim = c(1, 1000000)) +
+  labs(x = "Run time (seconds)",
+       y = "beta_2 mean L1 accuracy") +
+  theme_bw()
+
+ggsave(paste0(plot.directory, "Benchmarks-beta-2.png"), plot = beta.2.plot, dpi = 600, width = 24, height = 14, units = "cm")
+
 ### Combined LaTeX table
 
 bench.l1.table.clean <- bench.l1.table %>% 
