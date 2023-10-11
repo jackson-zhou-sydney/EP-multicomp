@@ -602,6 +602,6 @@ cat(big.latex)
 comp.table <- rbind(hetero.comp.cdf, lasso.comp.cdf, quantile.comp.cdf) %>% 
   select(-c("bench", "n_grid", "min_passes", "thresh")) %>% 
   group_by(model, method) %>% 
-  summarise(m_time = mean(time)) %>% 
-  ungroup() %>% 
-  pivot_wider(names_from = model, values_from = m_time)
+  summarise(m_time = mean(time),
+            sd_time = sd(time)) %>% 
+  ungroup()
