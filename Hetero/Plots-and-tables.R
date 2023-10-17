@@ -354,7 +354,7 @@ bench.l1.plot <- bench.l1.cdf %>%
                                                                "2" = "Salary",
                                                                "3" = "Sniffer",
                                                                "4" = "Energy")))) +
-  scale_x_discrete(labels = c("MCMC" = "ML", "MCMC-S" = "MS", "EP" = "EP", "EP-2D" = "E2", "GVB-A" = "PA", "GVB-B" = "PB", "GVB-C" = "PC", "LM" = "LA")) +
+  scale_x_discrete(labels = c("MCMC" = "ML", "MCMC-S" = "MS", "EP" = "E1", "EP-2D" = "E2", "GVB-A" = "PA", "GVB-B" = "PB", "GVB-C" = "PC", "LM" = "LA")) +
   labs(x = "Method", y = "Mean L1 accuracy") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
@@ -475,7 +475,7 @@ mean.time <- bench.time.table %>%
 beta.1.plot <- merge(mean.l1.beta.1, mean.time, by = "method") %>% 
   mutate(method_clean = case_when(method == "mcmc" ~ "ML",
                                   method == "mcmc-s" ~ "MS",
-                                  method == "ep" ~ "EP",
+                                  method == "ep" ~ "E1",
                                   method == "ep-2d" ~ "E2",
                                   method == "gvb-a" ~ "PA",
                                   method == "gvb-b" ~ "PB",
@@ -496,7 +496,7 @@ ggsave(paste0(plot.directory, "Benchmarks-beta-1.png"), plot = beta.1.plot, dpi 
 beta.2.plot <- merge(mean.l1.beta.2, mean.time, by = "method") %>% 
   mutate(method_clean = case_when(method == "mcmc" ~ "ML",
                                   method == "mcmc-s" ~ "MS",
-                                  method == "ep" ~ "EP",
+                                  method == "ep" ~ "E1",
                                   method == "ep-2d" ~ "E2",
                                   method == "gvb-a" ~ "PA",
                                   method == "gvb-b" ~ "PB",

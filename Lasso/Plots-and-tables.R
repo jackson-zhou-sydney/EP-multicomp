@@ -334,7 +334,7 @@ bench.l1.plot <- bench.l1.cdf %>%
                                                                "2" = "Prostate",
                                                                "3" = "Eye",
                                                                "4" = "Energy")))) +
-  scale_x_discrete(labels = c("MCMC" = "ML", "MCMC-S" = "MS", "EP" = "EP", "EP-2D" = "E2", "MFVB" = "MF")) +
+  scale_x_discrete(labels = c("MCMC" = "ML", "MCMC-S" = "MS", "EP" = "E1", "EP-2D" = "E2", "MFVB" = "MF")) +
   labs(x = "Method", y = "Mean L1 accuracy") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
@@ -451,7 +451,7 @@ mean.time <- bench.time.table %>%
 beta.plot <- merge(mean.l1.beta, mean.time, by = "method") %>% 
   mutate(method_clean = case_when(method == "mcmc" ~ "ML",
                                   method == "mcmc-s" ~ "MS",
-                                  method == "ep" ~ "EP",
+                                  method == "ep" ~ "E1",
                                   method == "ep-2d" ~ "E2",
                                   method == "mfvb" ~ "MF"),
          hjust = case_when(method == "mcmc" ~ -0.12,
@@ -474,7 +474,7 @@ ggsave(paste0(plot.directory, "Benchmarks-beta.png"), plot = beta.plot, dpi = 60
 kappa.plot <- merge(mean.l1.kappa, mean.time, by = "method") %>% 
   mutate(method_clean = case_when(method == "mcmc" ~ "ML",
                                   method == "mcmc-s" ~ "MS",
-                                  method == "ep" ~ "EP",
+                                  method == "ep" ~ "E1",
                                   method == "ep-2d" ~ "E2",
                                   method == "mfvb" ~ "MF"),
          hjust = case_when(method == "mcmc" ~ -0.12,
