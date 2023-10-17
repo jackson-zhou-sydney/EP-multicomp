@@ -330,12 +330,16 @@ bench.l1.plot <- bench.l1.cdf %>%
   ggplot(mapping = aes(x = method, y = m_l1)) +
   geom_boxplot() +
   ggh4x::facet_grid2(block ~ bench, scales = "free_y", independent = "y",
-                     labeller = labeller(bench = as_labeller(bench.labels))) +
-  labs(x = "Method", y = "Mean L1 accuracy across marginals") +
+                     labeller = labeller(bench = as_labeller(c("1" = "Diabetes",
+                                                               "2" = "Prostate",
+                                                               "3" = "Eye",
+                                                               "4" = "Energy")))) +
+  scale_x_discrete(labels = c("MCMC" = "ML", "MCMC-S" = "MS", "EP" = "EP", "EP-2D" = "E2", "MFVB" = "MF")) +
+  labs(x = "Method", y = "Mean L1 accuracy") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
-ggsave(paste0(plot.directory, "Benchmarks-L1.png"), plot = bench.l1.plot, dpi = 600, width = 24, height = 14, units = "cm")
+ggsave(paste0(plot.directory, "Benchmarks-L1.png"), plot = bench.l1.plot, dpi = 600, width = 15, height = 8, units = "cm")
 
 bench.l1.table <- bench.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p"]])) ~ "beta",
@@ -445,11 +449,11 @@ mean.time <- bench.time.table %>%
   select(method, m_time)
 
 beta.plot <- merge(mean.l1.beta, mean.time, by = "method") %>% 
-  mutate(method_clean = case_when(method == "mcmc" ~ "MCMC",
-                                  method == "mcmc-s" ~ "MCMC-S",
+  mutate(method_clean = case_when(method == "mcmc" ~ "ML",
+                                  method == "mcmc-s" ~ "MS",
                                   method == "ep" ~ "EP",
-                                  method == "ep-2d" ~ "EP-2D",
-                                  method == "mfvb" ~ "MFVB"),
+                                  method == "ep-2d" ~ "E2",
+                                  method == "mfvb" ~ "MF"),
          hjust = case_when(method == "mcmc" ~ -0.12,
                            method == "mcmc-s" ~ 1.1,
                            method == "ep" ~ -0.12,
@@ -458,21 +462,21 @@ beta.plot <- merge(mean.l1.beta, mean.time, by = "method") %>%
   ggplot(aes(x = m_time, y = m_m_l1, label = method_clean)) +
   geom_point() +
   geom_text(aes(hjust = hjust), size = 4, vjust = 1.3) +
-  lims(y = c(-4, 100)) +
+  lims(y = c(90, 100)) +
   scale_x_log10() +
-  coord_cartesian(xlim = c(1, 1000000)) +
+  coord_cartesian(xlim = c(1, 600000)) +
   labs(x = "Run time (seconds)",
        y = "beta mean L1 accuracy") +
   theme_bw()
 
-ggsave(paste0(plot.directory, "Benchmarks-beta.png"), plot = beta.plot, dpi = 600, width = 24, height = 14, units = "cm")
+ggsave(paste0(plot.directory, "Benchmarks-beta.png"), plot = beta.plot, dpi = 600, width = 15, height = 7.5, units = "cm")
 
 kappa.plot <- merge(mean.l1.kappa, mean.time, by = "method") %>% 
-  mutate(method_clean = case_when(method == "mcmc" ~ "MCMC",
-                                  method == "mcmc-s" ~ "MCMC-S",
+  mutate(method_clean = case_when(method == "mcmc" ~ "ML",
+                                  method == "mcmc-s" ~ "MS",
                                   method == "ep" ~ "EP",
-                                  method == "ep-2d" ~ "EP-2D",
-                                  method == "mfvb" ~ "MFVB"),
+                                  method == "ep-2d" ~ "E2",
+                                  method == "mfvb" ~ "MF"),
          hjust = case_when(method == "mcmc" ~ -0.12,
                            method == "mcmc-s" ~ 1.1,
                            method == "ep" ~ -0.12,
@@ -481,14 +485,14 @@ kappa.plot <- merge(mean.l1.kappa, mean.time, by = "method") %>%
   ggplot(aes(x = m_time, y = m_m_l1, label = method_clean)) +
   geom_point() +
   geom_text(aes(hjust = hjust), size = 4, vjust = 1.3) +
-  lims(y = c(-4, 100)) +
+  lims(y = c(70, 100)) +
   scale_x_log10() +
-  coord_cartesian(xlim = c(1, 1000000)) +
+  coord_cartesian(xlim = c(1, 600000)) +
   labs(x = "Run time (seconds)",
        y = "kappa mean L1 accuracy") +
   theme_bw()
 
-ggsave(paste0(plot.directory, "Benchmarks-kappa.png"), plot = kappa.plot, dpi = 600, width = 24, height = 14, units = "cm")
+ggsave(paste0(plot.directory, "Benchmarks-kappa.png"), plot = kappa.plot, dpi = 600, width = 15, height = 7.5, units = "cm")
 
 ### Combined LaTeX table
 

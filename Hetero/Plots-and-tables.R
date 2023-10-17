@@ -341,7 +341,7 @@ save(bench.r.hat.table, file = paste0(res.directory, "Benchmarks-conv-table.RDat
 ### L1 accuracy
 
 bench.l1.plot <- bench.l1.cdf %>%
-  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "GVB-A", "GVB-B", "GVB-C", "LM"))) %>% 
+  mutate(method = factor(toupper(method), levels = c("MCMC", "MCMC-S", "EP", "EP-2D", "LM", "GVB-A", "GVB-B", "GVB-C"))) %>% 
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p.1"]])) ~ "beta_1",
                            TRUE ~ "beta_2"),
          l1 = 100*l1) %>% 
@@ -350,13 +350,16 @@ bench.l1.plot <- bench.l1.cdf %>%
   ggplot(mapping = aes(x = method, y = m_l1)) +
   geom_boxplot() +
   ggh4x::facet_grid2(block ~ bench, scales = "free_y", independent = "y",
-                     labeller = labeller(bench = as_labeller(bench.labels))) +
-  scale_x_discrete(labels = c("MCMC" = "MCMC", "MCMC-S" = "MCMC-S", "EP" = "EP", "EP-2D" = "EP-2D", "GVB-A" = "Pathfinder-A", "GVB-B" = "Pathfinder-B", "GVB-C" = "Pathfinder-C", "LM" = "Laplace")) +
-  labs(x = "Method", y = "Mean L1 accuracy across marginals") +
+                     labeller = labeller(bench = as_labeller(c("1" = "Food",
+                                                               "2" = "Salary",
+                                                               "3" = "Sniffer",
+                                                               "4" = "Energy")))) +
+  scale_x_discrete(labels = c("MCMC" = "ML", "MCMC-S" = "MS", "EP" = "EP", "EP-2D" = "E2", "GVB-A" = "PA", "GVB-B" = "PB", "GVB-C" = "PC", "LM" = "LA")) +
+  labs(x = "Method", y = "Mean L1 accuracy") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
-ggsave(paste0(plot.directory, "Benchmarks-L1.png"), plot = bench.l1.plot, dpi = 600, width = 24, height = 14, units = "cm")
+ggsave(paste0(plot.directory, "Benchmarks-L1.png"), plot = bench.l1.plot, dpi = 600, width = 15, height = 8, units = "cm")
 
 bench.l1.table <- bench.l1.cdf %>%
   mutate(block = case_when(j <= as.numeric(map(bench, ~bench.settings[[.]][["p.1"]])) ~ "beta_1",
@@ -470,46 +473,49 @@ mean.time <- bench.time.table %>%
   select(method, m_time)
 
 beta.1.plot <- merge(mean.l1.beta.1, mean.time, by = "method") %>% 
-  mutate(method_clean = case_when(method == "mcmc" ~ "MCMC",
-                                  method == "mcmc-s" ~ "MCMC-S",
+  mutate(method_clean = case_when(method == "mcmc" ~ "ML",
+                                  method == "mcmc-s" ~ "MS",
                                   method == "ep" ~ "EP",
-                                  method == "ep-2d" ~ "EP-2D",
-                                  method == "gvb-a" ~ "Pathfinder-A",
-                                  method == "gvb-b" ~ "Pathfinder-B",
-                                  method == "gvb-c" ~ "Pathfinder-C",
-                                  method == "lm" ~ "Laplace")) %>% 
+                                  method == "ep-2d" ~ "E2",
+                                  method == "gvb-a" ~ "PA",
+                                  method == "gvb-b" ~ "PB",
+                                  method == "gvb-c" ~ "PC",
+                                  method == "lm" ~ "LA")) %>% 
   ggplot(aes(x = m_time, y = m_m_l1, label = method_clean)) +
   geom_point() +
-  geom_text(size = 4, vjust = 0.5, hjust = -0.18) +
+  geom_text(size = 4, vjust = 0.5, hjust = -0.3) +
   lims(y = c(-4, 100)) +
   scale_x_log10() +
-  coord_cartesian(xlim = c(1, 1000000)) +
+  coord_cartesian(xlim = c(1, 600000)) +
   labs(x = "Run time (seconds)",
        y = "beta_1 mean L1 accuracy") +
   theme_bw()
 
-ggsave(paste0(plot.directory, "Benchmarks-beta-1.png"), plot = beta.1.plot, dpi = 600, width = 24, height = 14, units = "cm")
+ggsave(paste0(plot.directory, "Benchmarks-beta-1.png"), plot = beta.1.plot, dpi = 600, width = 15, height = 7.5, units = "cm")
 
 beta.2.plot <- merge(mean.l1.beta.2, mean.time, by = "method") %>% 
-  mutate(method_clean = case_when(method == "mcmc" ~ "MCMC",
-                                  method == "mcmc-s" ~ "MCMC-S",
+  mutate(method_clean = case_when(method == "mcmc" ~ "ML",
+                                  method == "mcmc-s" ~ "MS",
                                   method == "ep" ~ "EP",
-                                  method == "ep-2d" ~ "EP-2D",
-                                  method == "gvb-a" ~ "Pathfinder-A",
-                                  method == "gvb-b" ~ "Pathfinder-B",
-                                  method == "gvb-c" ~ "Pathfinder-C",
-                                  method == "lm" ~ "Laplace")) %>% 
+                                  method == "ep-2d" ~ "E2",
+                                  method == "gvb-a" ~ "PA",
+                                  method == "gvb-b" ~ "PB",
+                                  method == "gvb-c" ~ "PC",
+                                  method == "lm" ~ "LA"),
+         vjust = case_when(method == "gvb-b" ~ 0.75,
+                           method == "gvb-c" ~ 0.25,
+                           TRUE ~ 0.5)) %>% 
   ggplot(aes(x = m_time, y = m_m_l1, label = method_clean)) +
   geom_point() +
-  geom_text(size = 4, vjust = 0.5, hjust = -0.18) +
+  geom_text(aes(vjust = vjust), size = 4, hjust = -0.3) +
   lims(y = c(-4, 100)) +
   scale_x_log10() +
-  coord_cartesian(xlim = c(1, 1000000)) +
+  coord_cartesian(xlim = c(1, 600000)) +
   labs(x = "Run time (seconds)",
        y = "beta_2 mean L1 accuracy") +
   theme_bw()
 
-ggsave(paste0(plot.directory, "Benchmarks-beta-2.png"), plot = beta.2.plot, dpi = 600, width = 24, height = 14, units = "cm")
+ggsave(paste0(plot.directory, "Benchmarks-beta-2.png"), plot = beta.2.plot, dpi = 600, width = 15, height = 7.5, units = "cm")
 
 ### Combined LaTeX table
 
