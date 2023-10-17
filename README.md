@@ -8,4 +8,4 @@ This repository contains fast expectation propagation code for the Bayesian vers
 - Lasso-penalized linear regression
 - Quantile linear regression
 
-For each model, the performance of EP is compared to other standard Bayesian approaches.
+For each model, the performance of EP is compared to that of other standard Bayesian approaches.
